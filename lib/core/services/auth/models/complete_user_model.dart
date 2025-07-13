@@ -1,5 +1,4 @@
 import '../../../types/tipo_usuario.dart';
-import 'firebase_user_model.dart';
 import 'firebase_auth_response.dart';
 import 'user_model.dart';
 

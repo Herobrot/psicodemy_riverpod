@@ -1,4 +1,4 @@
-import '../../../types/tipo_usuario.dart';
+import '../../../constants/enums/tipo_usuario.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserModel {
@@ -61,17 +61,6 @@ class UserModel {
   @override
   int get hashCode {
     return uid.hashCode ^ email.hashCode ^ displayName.hashCode;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^
-      correo.hashCode ^
-      password.hashCode ^
-      tipoUsuario.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode ^
-      deletedAt.hashCode;
   }
 }
 
