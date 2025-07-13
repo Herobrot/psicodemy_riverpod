@@ -1,9 +1,7 @@
 import 'package:psicodemy/core/services/auth/models/user_model.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';
-
-part 'sign_in_with_email_and_password_use_case.g.dart';
 
 class SignInWithEmailAndPasswordUseCase {
   final AuthRepository _authRepository;
@@ -21,8 +19,7 @@ class SignInWithEmailAndPasswordUseCase {
   }
 }
 
-@riverpod
-SignInWithEmailAndPasswordUseCase signInWithEmailAndPasswordUseCase(Ref ref) {
+final signInWithEmailAndPasswordUseCaseProvider = Provider<SignInWithEmailAndPasswordUseCase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return SignInWithEmailAndPasswordUseCase(authRepository);
-}
+});

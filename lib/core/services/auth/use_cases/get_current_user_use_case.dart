@@ -1,9 +1,7 @@
 import 'package:psicodemy/core/services/auth/exceptions/auth_failure.dart';
 import 'package:psicodemy/core/services/auth/models/firebase_user_model.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
-
-part 'get_current_user_use_case.g.dart';
 
 class GetCurrentUserUseCase {
   final AuthRepository _authRepository;
@@ -21,8 +19,7 @@ class GetCurrentUserUseCase {
   }
 }
 
-@riverpod
-GetCurrentUserUseCase getCurrentUserUseCase(Ref ref) {
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return GetCurrentUserUseCase(authRepository);
-}
+});

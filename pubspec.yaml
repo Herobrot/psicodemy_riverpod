@@ -22,8 +22,6 @@ dependencies:
   flutter_local_notifications: ^19.3.0
   hooks_riverpod: ^2.5.2
   flutter_hooks: ^0.20.5
-  riverpod_annotation: ^2.3.5
-  freezed_annotation: ^2.4.4
   json_annotation: ^4.8.1
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.5.1
@@ -35,13 +33,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^5.0.0
   build_runner: ^2.4.9
-  custom_lint: ^0.7.3
-  riverpod_generator: ^2.4.3
-  riverpod_lint: ^2.3.13
-  freezed: ^2.5.7
   json_serializable: ^6.8.0
 
 flutter:

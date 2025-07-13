@@ -1,42 +1,75 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'chat_entity.freezed.dart';
+part 'chat_entity.g.dart';
 
-@freezed
-class ChatEntity with _$ChatEntity {
-  const factory ChatEntity({
-    required String id,
-    required String name,
-    required String? description,
-    required ChatType type,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    required List<String> participantIds,
-    String? lastMessageId,
-    DateTime? lastMessageAt,
-    String? avatarUrl,
-    @Default(false) bool isActive,
-    @Default(0) int unreadCount,
-  }) = _ChatEntity;
+@JsonSerializable()
+class ChatEntity {
+  final String id;
+  final String name;
+  final String? description;
+  final ChatType type;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<String> participantIds;
+  final String? lastMessageId;
+  final DateTime? lastMessageAt;
+  final String? avatarUrl;
+  final bool isActive;
+  final int unreadCount;
+
+  const ChatEntity({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.type,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.participantIds,
+    this.lastMessageId,
+    this.lastMessageAt,
+    this.avatarUrl,
+    this.isActive = false,
+    this.unreadCount = 0,
+  });
+
+  factory ChatEntity.fromJson(Map<String, dynamic> json) => _$ChatEntityFromJson(json);
+  Map<String, dynamic> toJson() => _$ChatEntityToJson(this);
 }
 
-@freezed
-class MessageEntity with _$MessageEntity {
-  const factory MessageEntity({
-    required String id,
-    required String chatId,
-    required String senderId,
-    required String content,
-    required MessageType type,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    String? replyToMessageId,
-    @Default(false) bool isRead,
-    @Default(false) bool isEdited,
-    @Default(false) bool isDeleted,
-    List<String>? attachmentUrls,
-    Map<String, dynamic>? metadata,
-  }) = _MessageEntity;
+@JsonSerializable()
+class MessageEntity {
+  final String id;
+  final String chatId;
+  final String senderId;
+  final String content;
+  final MessageType type;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final String? replyToMessageId;
+  final bool isRead;
+  final bool isEdited;
+  final bool isDeleted;
+  final List<String>? attachmentUrls;
+  final Map<String, dynamic>? metadata;
+
+  const MessageEntity({
+    required this.id,
+    required this.chatId,
+    required this.senderId,
+    required this.content,
+    required this.type,
+    required this.createdAt,
+    this.updatedAt,
+    this.replyToMessageId,
+    this.isRead = false,
+    this.isEdited = false,
+    this.isDeleted = false,
+    this.attachmentUrls,
+    this.metadata,
+  });
+
+  factory MessageEntity.fromJson(Map<String, dynamic> json) => _$MessageEntityFromJson(json);
+  Map<String, dynamic> toJson() => _$MessageEntityToJson(this);
 }
 
 enum ChatType {

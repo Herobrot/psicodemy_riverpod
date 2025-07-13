@@ -1,8 +1,6 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';
-
-part 'sign_out_use_case.g.dart';
 
 class SignOutUseCase {
   final AuthRepository _authRepository;
@@ -20,8 +18,7 @@ class SignOutUseCase {
   }
 }
 
-@riverpod
-SignOutUseCase signOutUseCase (Ref ref) {
+final signOutUseCaseProvider = Provider<SignOutUseCase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return SignOutUseCase(authRepository);
-}
+});

@@ -1,19 +1,41 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'notification_failure.freezed.dart';
+part 'notification_failure.g.dart';
 
-@freezed
-class NotificationFailure with _$NotificationFailure {
-  const NotificationFailure._();
+@JsonSerializable()
+class NotificationFailure {
+  final String type;
+  final String? message;
 
-  @override
-  String? get message => null;
+  // Constructor por defecto para json_serializable
+  const NotificationFailure({
+    required this.type,
+    this.message,
+  });
 
-  const factory NotificationFailure.permissionDenied([String? message]) = _PermissionDenied;
-  const factory NotificationFailure.notInitialized([String? message]) = _NotInitialized;
-  const factory NotificationFailure.invalidNotification([String? message]) = _InvalidNotification;
-  const factory NotificationFailure.schedulingFailed([String? message]) = _SchedulingFailed;
-  const factory NotificationFailure.cancellationFailed([String? message]) = _CancellationFailed;
-  const factory NotificationFailure.platformError([String? message]) = _PlatformError;
-  const factory NotificationFailure.unknown([String? message]) = _Unknown;
+  factory NotificationFailure.permissionDenied([String? message]) => 
+      NotificationFailure(type: 'permissionDenied', message: message);
+  
+  factory NotificationFailure.notInitialized([String? message]) => 
+      NotificationFailure(type: 'notInitialized', message: message);
+  
+  factory NotificationFailure.invalidNotification([String? message]) => 
+      NotificationFailure(type: 'invalidNotification', message: message);
+  
+  factory NotificationFailure.schedulingFailed([String? message]) => 
+      NotificationFailure(type: 'schedulingFailed', message: message);
+  
+  factory NotificationFailure.cancellationFailed([String? message]) => 
+      NotificationFailure(type: 'cancellationFailed', message: message);
+  
+  factory NotificationFailure.platformError([String? message]) => 
+      NotificationFailure(type: 'platformError', message: message);
+  
+  factory NotificationFailure.unknown([String? message]) => 
+      NotificationFailure(type: 'unknown', message: message);
+
+  factory NotificationFailure.fromJson(Map<String, dynamic> json) => 
+      _$NotificationFailureFromJson(json);
+  
+  Map<String, dynamic> toJson() => _$NotificationFailureToJson(this);
 }

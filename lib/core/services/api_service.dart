@@ -165,7 +165,7 @@ class ApiService {
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
     // Verificar si la respuesta está vacía
     if (response.body.isEmpty) {
-      throw const AuthFailure.unknown('Respuesta vacía del servidor');
+      throw AuthFailure.unknown('Respuesta vacía del servidor');
     }
 
     final Map<String, dynamic> responseData;
@@ -173,7 +173,7 @@ class ApiService {
     try {
       final decoded = json.decode(response.body);
       if (decoded == null) {
-        throw const AuthFailure.unknown('El servidor retornó null');
+        throw AuthFailure.unknown('El servidor retornó null');
       }
       responseData = decoded as Map<String, dynamic>;
     } catch (e) {
@@ -232,11 +232,11 @@ class ApiService {
     if (error is AuthFailure) return error;
     
     if (error is SocketException) {
-      return const AuthFailure.network('Error de conexión a internet');
+      return AuthFailure.network('Error de conexión a internet');
     }
     
     if (error is http.ClientException) {
-      return const AuthFailure.network('Error de red');
+      return AuthFailure.network('Error de red');
     }
     
     return AuthFailure.unknown(error.toString());

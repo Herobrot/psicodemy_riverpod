@@ -10,7 +10,7 @@
 // import '../exceptions/notification_exceptions.dart';
 // import '../repositories/interface_notification_repository.dart';
 
-// part 'local_notification_provider.g.dart';
+// Eliminar import y anotaciones de riverpod_annotation
 
 // @riverpod
 // class LocalNotificationProviderRef extends _$LocalNotificationProviderRef {
