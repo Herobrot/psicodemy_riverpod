@@ -145,8 +145,8 @@ class _SignInScreenState extends State<SignInScreen> {
                         border: Border.all(color: Colors.grey.shade300),
                         color: Colors.white,
                       ),
-                      child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+                      child: Image.asset(
+                        'lib/src/shared_imgs/gl.webp',
                         width: 36,
                         height: 36,
                       ),

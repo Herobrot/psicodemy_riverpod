@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../login_screens/sign_in_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/app_providers.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
 
@@ -31,11 +32,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
-  void _goToLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const SignInScreen()),
-    );
+  Future<void> _completeOnboarding() async {
+    // Marcar que el onboarding fue completado
+    await ref.read(onboardingRepository).markOnboardingAsSeen();
+    // Refrescar el provider para que AppWrapper recargue
+    ref.refresh(isFirstTimeProvider);
   }
 
   @override
@@ -55,7 +56,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: TextStyle(color: Colors.grey[400], fontSize: 13),
                   ),
                   TextButton(
-                    onPressed: _goToLogin,
+                    onPressed: _completeOnboarding,
                     child: const Text('Skip', style: TextStyle(color: Colors.black54)),
                   ),
                 ],
@@ -158,7 +159,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               )
                             else
                               TextButton(
-                                onPressed: _goToLogin,
+                                onPressed: _completeOnboarding,
                                 child: const Text('Inicia', style: TextStyle(color: Colors.red)),
                               ),
                           ],

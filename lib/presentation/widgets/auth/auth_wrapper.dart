@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/auth_providers.dart';
-import '../../screens/login_screen.dart';
-import '../../screens/home_screen.dart'; // Asume que tienes una pantalla de home
+import '../../providers/simple_auth_providers.dart';
+import '../../screens/login_screens/login_screen.dart';
+import '../../screens/main_screen.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
@@ -24,11 +24,11 @@ class AuthWrapper extends ConsumerWidget {
       return _errorScreen(
         context,
         errorMsg,
-        () => ref.refresh(authStateProvider),
+        () => ref.refresh(authStateChangesProvider),
       );
     }
 
-    return isAuth ? const HomeScreen() : const LoginScreen();
+    return isAuth ? const MainScreen() : const LoginScreen();
   }
 
   Widget _errorScreen(
