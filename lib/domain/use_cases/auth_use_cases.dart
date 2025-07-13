@@ -24,6 +24,10 @@ class AuthUseCases {
       throw Exception('La contraseña debe tener al menos 6 caracteres');
     }
 
+    if (!_isValidPassword(password)) {
+      throw Exception('La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)');
+    }
+
     return await _authRepository.signInWithEmailAndPassword(email, password);
   }
 
@@ -38,6 +42,10 @@ class AuthUseCases {
     
     if (password.length < 6) {
       throw Exception('La contraseña debe tener al menos 6 caracteres');
+    }
+
+    if (!_isValidPassword(password)) {
+      throw Exception('La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)');
     }
 
     return await _authRepository.signUpWithEmailAndPassword(email, password);
@@ -71,6 +79,10 @@ class AuthUseCases {
 
   bool _isValidEmail(String email) {
     return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
+  }
+
+  bool _isValidPassword(String password) {
+    return RegExp(r'^[a-zA-Z0-9]+$').hasMatch(password);
   }
 }
 

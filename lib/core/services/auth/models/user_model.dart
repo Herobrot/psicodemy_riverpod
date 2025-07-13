@@ -1,4 +1,4 @@
-import '../../../types/tipo_usuario.dart';
+import '../../../constants/enums/tipo_usuario.dart';
 
 class UserApiModel {
   final String id;
@@ -84,6 +84,17 @@ class UserApiModel {
       other.createdAt == createdAt &&
       other.updatedAt == updatedAt &&
       other.deletedAt == deletedAt;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+      correo.hashCode ^
+      password.hashCode ^
+      tipoUsuario.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      deletedAt.hashCode;
   }
 }
 

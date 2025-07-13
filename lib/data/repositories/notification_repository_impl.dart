@@ -1,4 +1,3 @@
-import '../../domain/repositories/notification_repository_interface.dart';
 
 /*part 'notification_repository_impl.g.dart';
 

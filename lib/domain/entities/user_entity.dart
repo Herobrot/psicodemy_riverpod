@@ -1,4 +1,4 @@
-import '../../core/types/tipo_usuario.dart';
+import '../../core/constants/enums/tipo_usuario.dart';
 
 class UserEntity {
   final String id;
