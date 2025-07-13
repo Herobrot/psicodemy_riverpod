@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1_a/screens/chats_screens/tutor_profile_screen.dart';
-import 'package:flutter_application_1_a/components/footer_nav_bar.dart';
+import 'tutor_profile_screen.dart';
+import '../../../components/footer_nav_bar.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({super.key});

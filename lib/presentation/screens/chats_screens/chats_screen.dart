@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../components/footer_nav_bar.dart';
+import '../../../components/footer_nav_bar.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});

@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/secure_storage_provider.dart';
 import '../exceptions/auth_exceptions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-part 'secure_storage_repository.g.dart';
+// part 'secure_storage_repository.g.dart';
 
 abstract class SecureStorageRepository {
   Future<void> storeToken(String key, String token);
@@ -11,6 +13,8 @@ abstract class SecureStorageRepository {
   Future<void> deleteToken(String key);
   Future<void> clearAll();
   Future<bool> hasToken(String key);
+  Future<void> storeData(String key, Map<String, dynamic> data);
+  Future<Map<String, dynamic>?> read(String key);
 }
 
 class SecureStorageRepositoryImpl implements SecureStorageRepository {
@@ -63,10 +67,32 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
       return false;
     }
   }
+
+  @override
+  Future<void> storeData(String key, Map<String, dynamic> data) async {
+    try {
+      final jsonString = json.encode(data);
+      await _secureStorage.write(key: key, value: jsonString);
+    } catch (e) {
+      throw AuthExceptions.handleGenericException(Exception('Error storing data: $e'));
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> read(String key) async {
+    try {
+      final jsonString = await _secureStorage.read(key: key);
+      if (jsonString != null) {
+        return json.decode(jsonString) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      throw AuthExceptions.handleGenericException(Exception('Error reading data: $e'));
+    }
+  }
 }
 
-@riverpod
-SecureStorageRepository secureStorageRepository(Ref ref) {
+final secureStorageRepositoryProvider = Provider<SecureStorageRepository>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
   return SecureStorageRepositoryImpl(secureStorage);
-}
+});

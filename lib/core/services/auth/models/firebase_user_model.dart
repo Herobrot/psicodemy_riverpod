@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'complete_user_model.dart';
 
-class UserModel {
+class FirebaseUserModel {
   final String uid;
   final String email;
   final String? displayName;
@@ -9,7 +10,7 @@ class UserModel {
   final DateTime? createdAt;
   final DateTime? lastSignInAt;
 
-  const UserModel({
+  const FirebaseUserModel({
     required this.uid,
     required this.email,
     this.displayName,
@@ -19,8 +20,8 @@ class UserModel {
     this.lastSignInAt,
   });
 
-  factory UserModel.fromFirebaseUser(User user) {
-    return UserModel(
+  factory FirebaseUserModel.fromFirebaseUser(User user) {
+    return FirebaseUserModel(
       uid: user.uid,
       email: user.email ?? '',
       displayName: user.displayName,
@@ -28,6 +29,18 @@ class UserModel {
       isEmailVerified: user.emailVerified,
       createdAt: user.metadata.creationTime,
       lastSignInAt: user.metadata.lastSignInTime,
+    );
+  }
+
+  factory FirebaseUserModel.fromCompleteUser(CompleteUserModel completeUser) {
+    return FirebaseUserModel(
+      uid: completeUser.firebaseUser.uid,
+      email: completeUser.firebaseUser.email,
+      displayName: completeUser.firebaseUser.displayName,
+      photoURL: completeUser.firebaseUser.photoURL,
+      isEmailVerified: completeUser.firebaseUser.emailVerified,
+      createdAt: completeUser.firebaseUser.createdAt,
+      lastSignInAt: completeUser.firebaseUser.lastSignInAt,
     );
   }
 
@@ -43,8 +56,8 @@ class UserModel {
     };
   }
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
+  factory FirebaseUserModel.fromJson(Map<String, dynamic> json) {
+    return FirebaseUserModel(
       uid: json['uid'] as String,
       email: json['email'] as String,
       displayName: json['displayName'] as String?,
@@ -59,7 +72,7 @@ class UserModel {
     );
   }
 
-  UserModel copyWith({
+  FirebaseUserModel copyWith({
     String? uid,
     String? email,
     String? displayName,
@@ -68,7 +81,7 @@ class UserModel {
     DateTime? createdAt,
     DateTime? lastSignInAt,
   }) {
-    return UserModel(
+    return FirebaseUserModel(
       uid: uid ?? this.uid,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
@@ -82,7 +95,7 @@ class UserModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is UserModel &&
+    return other is FirebaseUserModel &&
         other.uid == uid &&
         other.email == email &&
         other.displayName == displayName &&
@@ -101,6 +114,6 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, displayName: $displayName, isEmailVerified: $isEmailVerified)';
+    return 'FirebaseUserModel(uid: $uid, email: $email, displayName: $displayName, isEmailVerified: $isEmailVerified)';
   }
 }

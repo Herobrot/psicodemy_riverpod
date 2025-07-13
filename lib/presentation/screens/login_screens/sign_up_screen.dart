@@ -1,58 +1,141 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/auth/auth_service.dart';
+import '../../../core/services/api_service_provider.dart';
+import '../../providers/auth_providers.dart';
+import '../../state_notifiers/auth_state_notifier.dart';
 import 'sign_in_screen.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
+  final TextEditingController _codigoTutorController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
   String? _error;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    _codigoTutorController.dispose();
+    super.dispose();
+  }
+
   Future<void> _signUpWithEmail() async {
-    setState(() { _isLoading = true; _error = null; });
-    if (_passwordController.text != _confirmController.text) {
-      setState(() { _error = 'Las contraseñas no coinciden'; _isLoading = false; });
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() { 
+      _isLoading = true; 
+      _error = null; 
+    });
+
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      final authService = ref.read(authServiceProvider);
+      
+      await authService.signUpWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
+            ? _codigoTutorController.text.trim() 
+            : null,
       );
-    } on FirebaseAuthException catch (e) {
-      setState(() { _error = e.message; });
+
+      // Si llegamos aquí, el registro fue exitoso
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registro exitoso'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
     } finally {
-      setState(() { _isLoading = false; });
+      if (mounted) {
+        setState(() { _isLoading = false; });
+      }
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() { _isLoading = true; _error = null; });
+  Future<void> _signUpWithGoogle() async {
+    setState(() { 
+      _isLoading = true; 
+      _error = null; 
+    });
+
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        setState(() { _isLoading = false; });
-        return;
-      }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final authService = ref.read(authServiceProvider);
+      
+      await authService.signInWithGoogle(
+        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
+            ? _codigoTutorController.text.trim() 
+            : null,
       );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-    } on FirebaseAuthException catch (e) {
-      setState(() { _error = e.message; });
+
+      // Si llegamos aquí, el registro fue exitoso
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registro exitoso con Google'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
     } finally {
-      setState(() { _isLoading = false; });
+      if (mounted) {
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
+  Future<void> _validateTutorCode() async {
+    final codigo = _codigoTutorController.text.trim();
+    if (codigo.isEmpty) return;
+
+    try {
+      final apiService = ref.read(apiServiceProvider);
+      final isValid = await apiService.validateTutorCode(codigo);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isValid 
+                ? 'Código válido: serás registrado como TUTOR ✓' 
+                : 'Código inválido: serás registrado como ALUMNO ℹ️'
+            ),
+            backgroundColor: isValid ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al validar el código'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -64,120 +147,238 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 24),
-                const Text(
-                  'Crea una cuenta',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.left,
-                ),
-                const SizedBox(height: 32),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.person_outline),
-                    labelText: 'Correo',
-                    border: OutlineInputBorder(),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Crea una cuenta',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.lock_outline),
-                    labelText: 'Contraseña',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _confirmController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.lock_outline),
-                    labelText: 'Confirmar Contraseña',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Al hacer click en crear cuenta, usted está de acuerdo con los políticas de uso.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                  textAlign: TextAlign.left,
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 8),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                ],
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _signUpWithEmail,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(fontSize: 18),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Crear cuenta'),
-                ),
-                const SizedBox(height: 16),
-                const Row(
-                  children: [
-                    Expanded(child: Divider()),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('O registrate en -'),
+                  const SizedBox(height: 32),
+                  
+                  // Campo de correo
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.person_outline),
+                      labelText: 'Correo electrónico',
+                      border: OutlineInputBorder(),
                     ),
-                    Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: InkWell(
-                    onTap: _isLoading ? null : _signInWithGoogle,
-                    borderRadius: BorderRadius.circular(32),
-                    child: Container(
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa tu correo';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Por favor ingresa un correo válido';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Campo de contraseña
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      labelText: 'Contraseña',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () {
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    obscureText: !_showPassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa tu contraseña';
+                      }
+                      if (value.length < 6) {
+                        return 'La contraseña debe tener al menos 6 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Campo de confirmar contraseña
+                  TextFormField(
+                    controller: _confirmController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      labelText: 'Confirmar Contraseña',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () {
+                          setState(() {
+                            _showConfirmPassword = !_showConfirmPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    obscureText: !_showConfirmPassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor confirma tu contraseña';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Las contraseñas no coinciden';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Campo de código de tutor (opcional)
+                  TextFormField(
+                    controller: _codigoTutorController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.school_outlined),
+                      labelText: 'Código de Institución (opcional)',
+                      border: const OutlineInputBorder(),
+                      hintText: 'Ingresa "TUTOR" si eres tutor',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.help_outline),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Código de Institución'),
+                              content: const Text(
+                                'Si tienes un código de institución válido, ingrésalo aquí para obtener permisos de tutor. '
+                                'Si no tienes código, se te registrará como alumno.\n\n'
+                                'Código válido para tutores: TUTOR'
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Entendido'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                    onChanged: (value) {
+                      // Validar código automáticamente cuando sea "TUTOR"
+                      if (value.toUpperCase() == 'TUTOR') {
+                        _validateTutorCode();
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  const Text(
+                    'Al hacer clic en crear cuenta, usted está de acuerdo con las políticas de uso.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                    textAlign: TextAlign.left,
+                  ),
+                  
+                  if (_error != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade300),
-                        color: Colors.white,
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.red.shade200),
                       ),
-                      child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
-                        width: 36,
-                        height: 36,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Si ya tienes una cuenta haz '),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const SignInScreen()),
-                        );
-                      },
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                   ],
-                ),
-              ],
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Botón de crear cuenta
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _signUpWithEmail,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(fontSize: 18),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Crear cuenta', style: TextStyle(color: Colors.white)),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  const Row(
+                    children: [
+                      Expanded(child: Divider()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('O regístrate con'),
+                      ),
+                      Expanded(child: Divider()),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Botón de Google
+                  Center(
+                    child: InkWell(
+                      onTap: _isLoading ? null : _signUpWithGoogle,
+                      borderRadius: BorderRadius.circular(32),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey.shade300),
+                          color: Colors.white,
+                        ),
+                        child: Image.asset(
+                          'lib/src/shared_imgs/gl.webp',
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Link a inicio de sesión
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('¿Ya tienes una cuenta? '),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SignInScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Iniciar sesión',
+                          style: TextStyle(
+                            color: Colors.red, 
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

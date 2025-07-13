@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart'; // Comentado hasta agregar la dependencia
 
 class TutorProfileScreen extends StatelessWidget {
   const TutorProfileScreen({super.key});
@@ -53,8 +53,10 @@ class TutorProfileScreen extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      final uri = Uri.parse('https://wa.me/${phoneNumber.replaceAll(' ', '').replaceAll('+', '')}');
-                      launchUrl(uri, mode: LaunchMode.externalApplication);
+                      // final uri = Uri.parse('https://wa.me/${phoneNumber.replaceAll(' ', '').replaceAll('+', '')}');
+                      // launchUrl(uri, mode: LaunchMode.externalApplication);
+                      // Temporalmente comentado hasta agregar url_launcher
+                      print('Abrir WhatsApp: $phoneNumber');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -65,8 +67,10 @@ class TutorProfileScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () {
-                      final uri = Uri.parse('mailto:$email');
-                      launchUrl(uri, mode: LaunchMode.externalApplication);
+                      // final uri = Uri.parse('mailto:$email');
+                      // launchUrl(uri, mode: LaunchMode.externalApplication);
+                      // Temporalmente comentado hasta agregar url_launcher
+                      print('Abrir correo: $email');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,

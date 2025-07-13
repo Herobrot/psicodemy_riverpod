@@ -1,94 +1,71 @@
 import '../../../types/tipo_usuario.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class UserApiModel {
-  final String id;
-  final String correo;
-  final String password;
-  final TipoUsuario tipoUsuario;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
+class UserModel {
+  final String uid;
+  final String email;
+  final String? displayName;
+  final String? photoURL;
+  final bool emailVerified;
+  final DateTime? createdAt;
+  final DateTime? lastSignInAt;
 
-  UserApiModel({
-    required this.id,
-    required this.correo,
-    required this.password,
-    required this.tipoUsuario,
-    required this.createdAt,
-    required this.updatedAt,
-    this.deletedAt,
+  UserModel({
+    required this.uid,
+    required this.email,
+    this.displayName,
+    this.photoURL,
+    required this.emailVerified,
+    this.createdAt,
+    this.lastSignInAt,
   });
 
+  factory UserModel.fromFirebaseUser(User user) {
+    return UserModel(
+      uid: user.uid,
+      email: user.email ?? '',
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      createdAt: user.metadata.creationTime,
+      lastSignInAt: user.metadata.lastSignInTime,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'correo': correo,
-      'contraseña': password,
-      'tipo_usuario': tipoUsuario.name,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
+      'uid': uid,
+      'email': email,
+      'displayName': displayName,
+      'photoURL': photoURL,
+      'emailVerified': emailVerified,
+      'createdAt': createdAt?.toIso8601String(),
+      'lastSignInAt': lastSignInAt?.toIso8601String(),
     };
-  }
-
-  // Factory constructor para crear desde respuesta de API
-  factory UserApiModel.fromApiResponse(Map<String, dynamic> json) {
-    return UserApiModel(
-      id: json['id'] as String,
-      correo: json['correo'] as String,
-      password: json['contraseña'] as String,
-      tipoUsuario: _parseTipoUsuario(json['tipo_usuario']),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt: json['deleted_at'] != null 
-          ? DateTime.parse(json['deleted_at'] as String)
-          : null,
-    );
-  }
-
-  // Método para crear copia sin contraseña (para mostrar en UI)
-  UserApiModel copyWithoutPassword({
-    String? id,
-    String? correo,
-    TipoUsuario? tipoUsuario,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
-  }) {
-    return UserApiModel(
-      id: id ?? this.id,
-      correo: correo ?? this.correo,
-      password: '',
-      tipoUsuario: tipoUsuario ?? this.tipoUsuario,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      deletedAt: deletedAt ?? this.deletedAt,
-    );
   }
 
   @override
   String toString() {
-    return 'UserApiModel(id: $id, correo: $correo, password: $password, tipoUsuario: $tipoUsuario, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'UserModel(uid: $uid, email: $email, displayName: $displayName)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-  
-    return other is UserApiModel &&
-      other.id == id &&
-      other.correo == correo &&
-      other.password == password &&
-      other.tipoUsuario == tipoUsuario &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt &&
-      other.deletedAt == deletedAt;
+    return other is UserModel &&
+        other.uid == uid &&
+        other.email == email &&
+        other.displayName == displayName;
+  }
+
+  @override
+  int get hashCode {
+    return uid.hashCode ^ email.hashCode ^ displayName.hashCode;
   }
 }
 
 // Función helper para parsear tipo de usuario
-TipoUsuario _parseTipoUsuario(dynamic value) {
+TipoUsuario parseTipoUsuario(dynamic value) {
   if (value is String) {
     switch (value.toLowerCase()) {
       case 'tutor':
@@ -112,4 +89,4 @@ extension TipoUsuarioExtension on TipoUsuario {
         return 'Alumno';
     }
   }
-}
+} 

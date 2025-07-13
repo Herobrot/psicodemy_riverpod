@@ -2,62 +2,45 @@ import 'package:flutter/material.dart';
 
 class FooterNavBar extends StatelessWidget {
   final int currentIndex;
-  final ValueChanged<int> onTap;
+  final Function(int) onTap;
 
   const FooterNavBar({
+    Key? key,
     required this.currentIndex,
     required this.onTap,
-    super.key,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: Colors.redAccent,
-        unselectedItemColor: Colors.grey.shade600,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Citas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined),
-            activeIcon: Icon(Icons.people_alt),
-            label: 'Foro',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Setting',
-          ),
-        ],
-      ),
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: const Color(0xFF1E88E5),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Inicio',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat),
+          label: 'Chats',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.forum),
+          label: 'Foro',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.format_quote),
+          label: 'Frases',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: 'Config',
+        ),
+      ],
     );
   }
 } 
