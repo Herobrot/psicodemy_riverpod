@@ -1,30 +1,74 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'auth_failure.freezed.dart';
+part 'auth_failure.g.dart';
 
-@freezed
-class AuthFailure with _$AuthFailure {
-  const AuthFailure._();
+@JsonSerializable()
+class AuthFailure {
+  final String type;
+  final String? message;
 
-  @override
-  String? get message => null;
+  // Constructor por defecto para json_serializable
+  const AuthFailure({
+    required this.type,
+    this.message,
+  });
 
-  const factory AuthFailure.serverError([String? message]) = _ServerError;
-  const factory AuthFailure.apiError([String? message]) = _ApiError;
-  const factory AuthFailure.unauthorized([String? message]) = _Unauthorized;
-  const factory AuthFailure.invalidCredentials([String? message]) = _InvalidCredentials;
-  const factory AuthFailure.network([String? message]) = _Network;
-  const factory AuthFailure.emailAlreadyInUse([String? message]) = _EmailAlreadyInUse;
-  const factory AuthFailure.invalidEmail([String? message]) = _InvalidEmail;
-  const factory AuthFailure.weakPassword([String? message]) = _WeakPassword;
-  const factory AuthFailure.userNotFound([String? message]) = _UserNotFound;
-  const factory AuthFailure.wrongPassword([String? message]) = _WrongPassword;
-  const factory AuthFailure.userDisabled([String? message]) = _UserDisabled;
-  const factory AuthFailure.tooManyRequests([String? message]) = _TooManyRequests;
-  const factory AuthFailure.operationNotAllowed([String? message]) = _OperationNotAllowed;
-  const factory AuthFailure.networkError([String? message]) = _NetworkError;
-  const factory AuthFailure.googleSignInCancelled([String? message]) = _GoogleSignInCancelled;
-  const factory AuthFailure.googleSignInFailed([String? message]) = _GoogleSignInFailed;
-  const factory AuthFailure.storageError([String? message]) = _StorageError;
-  const factory AuthFailure.unknown([String? message]) = _Unknown;
+  factory AuthFailure.serverError([String? message]) => 
+      AuthFailure(type: 'serverError', message: message);
+  
+  factory AuthFailure.apiError([String? message]) => 
+      AuthFailure(type: 'apiError', message: message);
+  
+  factory AuthFailure.unauthorized([String? message]) => 
+      AuthFailure(type: 'unauthorized', message: message);
+  
+  factory AuthFailure.invalidCredentials([String? message]) => 
+      AuthFailure(type: 'invalidCredentials', message: message);
+  
+  factory AuthFailure.network([String? message]) => 
+      AuthFailure(type: 'network', message: message);
+  
+  factory AuthFailure.emailAlreadyInUse([String? message]) => 
+      AuthFailure(type: 'emailAlreadyInUse', message: message);
+  
+  factory AuthFailure.invalidEmail([String? message]) => 
+      AuthFailure(type: 'invalidEmail', message: message);
+  
+  factory AuthFailure.weakPassword([String? message]) => 
+      AuthFailure(type: 'weakPassword', message: message);
+  
+  factory AuthFailure.userNotFound([String? message]) => 
+      AuthFailure(type: 'userNotFound', message: message);
+  
+  factory AuthFailure.wrongPassword([String? message]) => 
+      AuthFailure(type: 'wrongPassword', message: message);
+  
+  factory AuthFailure.userDisabled([String? message]) => 
+      AuthFailure(type: 'userDisabled', message: message);
+  
+  factory AuthFailure.tooManyRequests([String? message]) => 
+      AuthFailure(type: 'tooManyRequests', message: message);
+  
+  factory AuthFailure.operationNotAllowed([String? message]) => 
+      AuthFailure(type: 'operationNotAllowed', message: message);
+  
+  factory AuthFailure.networkError([String? message]) => 
+      AuthFailure(type: 'networkError', message: message);
+  
+  factory AuthFailure.googleSignInCancelled([String? message]) => 
+      AuthFailure(type: 'googleSignInCancelled', message: message);
+  
+  factory AuthFailure.googleSignInFailed([String? message]) => 
+      AuthFailure(type: 'googleSignInFailed', message: message);
+  
+  factory AuthFailure.storageError([String? message]) => 
+      AuthFailure(type: 'storageError', message: message);
+  
+  factory AuthFailure.unknown([String? message]) => 
+      AuthFailure(type: 'unknown', message: message);
+
+  factory AuthFailure.fromJson(Map<String, dynamic> json) => 
+      _$AuthFailureFromJson(json);
+  
+  Map<String, dynamic> toJson() => _$AuthFailureToJson(this);
 }

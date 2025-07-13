@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/secure_storage_provider.dart';
 import '../exceptions/auth_exceptions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

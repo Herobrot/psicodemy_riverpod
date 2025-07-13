@@ -106,32 +106,20 @@ final authStateProvider = Provider<AuthState>((ref) {
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.maybeWhen(
-    authenticated: (_) => true,
-    orElse: () => false,
-  );
+  return authState.status == AuthStateStatus.authenticated;
 });
 
 final currentUserProvider = Provider<FirebaseUserModel?>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.maybeWhen(
-    authenticated: (user) => user,
-    orElse: () => null,
-  );
+  return authState.status == AuthStateStatus.authenticated ? authState.user : null;
 });
 
 final isLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.maybeWhen(
-    loading: () => true,
-    orElse: () => false,
-  );
+  return authState.status == AuthStateStatus.loading;
 });
 
 final authErrorProvider = Provider<String?>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.maybeWhen(
-    error: (failure) => failure.message,
-    orElse: () => null,
-  );
+  return authState.status == AuthStateStatus.error ? authState.error?.message : null;
 });

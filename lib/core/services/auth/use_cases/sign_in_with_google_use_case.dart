@@ -1,9 +1,7 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../models/firebase_user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';
-
-part 'sign_in_with_google_use_case.g.dart';
 
 class SignInWithGoogleUseCase {
   final AuthRepository _authRepository;
@@ -21,8 +19,7 @@ class SignInWithGoogleUseCase {
   }
 }
 
-@riverpod
-SignInWithGoogleUseCase signInWithGoogleUseCase(Ref ref) {
+final signInWithGoogleUseCaseProvider = Provider<SignInWithGoogleUseCase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return SignInWithGoogleUseCase(authRepository);
-}
+});

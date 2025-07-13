@@ -48,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (response['user'] == null) {
-        throw const AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
+        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
       }
 
       final user = UserApiModel.fromApiResponse(response['user']);
@@ -70,7 +70,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       
       if (userCredential.user == null) {
-        throw const AuthFailure.unknown('Usuario no creado correctamente en Firebase');
+        throw AuthFailure.unknown('Usuario no creado correctamente en Firebase');
       }
 
       final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
@@ -88,7 +88,7 @@ class AuthRepositoryImpl implements AuthRepository {
       
       // 3. Registrar en la API del backend
       if (firebaseToken == null) {
-        throw const AuthFailure.serverError('Firebase token is null');
+        throw AuthFailure.serverError('Firebase token is null');
       }
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
@@ -122,7 +122,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
-        throw const AuthFailure.googleSignInCancelled('El usuario canceló el inicio de sesión');
+        throw AuthFailure.googleSignInCancelled('El usuario canceló el inicio de sesión');
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -135,7 +135,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final userCredential = await _firebaseAuth.signInWithCredential(credential);
       
       if (userCredential.user == null) {
-        throw const AuthFailure.unknown('Usuario no encontrado después del inicio de sesión con Google');
+        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión con Google');
       }
 
       final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
@@ -155,7 +155,7 @@ class AuthRepositoryImpl implements AuthRepository {
       
       // 3. Autenticar/Registrar en la API del backend
       if (firebaseToken == null) {
-        throw const AuthFailure.serverError('Firebase token is null');
+        throw AuthFailure.serverError('Firebase token is null');
       }
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,

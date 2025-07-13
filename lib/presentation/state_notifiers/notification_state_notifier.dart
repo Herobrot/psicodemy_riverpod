@@ -1,144 +1,101 @@
-/*import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../core/services/notification/notification_service.dart';
 import '../../domain/repositories/notification_repository_interface.dart';
 import '../../domain/entities/notification_entity.dart';
 import 'notification_state.dart';
 
-part 'notification_state_notifier.g.dart';
+// Provider estándar en lugar de anotación @riverpod
+final notificationStateNotifierProvider = StateNotifierProvider<NotificationStateNotifier, NotificationState>((ref) {
+  final service = ref.watch(notificationServiceProvider);
+  final repository = ref.watch(notificationRepositoryProvider);
+  return NotificationStateNotifier(service, repository);
+});
 
-/*@riverpod
-class NotificationStateNotifier extends _$NotificationStateNotifier {
-  @override
-  NotificationState build() {
-    // Inicializar dependencias usando ref
-    final service = ref.watch(notificationServiceProvider);
-    final repository = ref.watch(notificationRepositoryProvider);
-    
-    return const NotificationState();
-  }
+class NotificationStateNotifier extends StateNotifier<NotificationState> {
+  final NotificationService _service;
+  final NotificationRepositoryInterface _repository;
+
+  NotificationStateNotifier(this._service, this._repository) 
+      : super(NotificationState.initial());
 
   Future<void> initializeNotifications() async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = NotificationState.loading();
       
-      final service = ref.read(notificationServiceProvider);
-      final repository = ref.read(notificationRepositoryProvider);
+      await _service.initializeNotifications();
       
-      await service.initializeNotifications();
+      final hasPermission = await _repository.hasPermission();
+      final token = await _repository.getFCMToken();
+      final notifications = await _repository.getLocalNotifications();
       
-      final hasPermission = await repository.hasPermission();
-      final token = await repository.getFCMToken();
-      final notifications = await repository.getLocalNotifications();
-      
-      state = state.copyWith(
-        isInitialized: true,
-        hasPermission: hasPermission,
-        fcmToken: token,
-        notifications: notifications,
-        isLoading: false,
-      );
+      if (hasPermission) {
+        state = NotificationState.permission();
+      } else if (token != null) {
+        state = NotificationState.token(token);
+      } else if (notifications.isNotEmpty) {
+        state = NotificationState.notifications(notifications.first);
+      } else {
+        state = NotificationState.initial();
+      }
     } catch (e) {
-      state = state.copyWith(
-        error: e.toString(),
-        isLoading: false,
-      );
+      state = NotificationState.error(e.toString());
     }
   }
 
   Future<void> subscribeToTopics(List<String> topics) async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = NotificationState.loading();
       
-      final service = ref.read(notificationServiceProvider);
-      await service.subscribeToTopics(topics);
+      await _service.subscribeToTopics(topics);
       
-      final updatedTopics = [...state.subscribedTopics];
-      for (final topic in topics) {
-        if (!updatedTopics.contains(topic)) {
-          updatedTopics.add(topic);
-        }
+      if (topics.isNotEmpty) {
+        state = NotificationState.subscribedTopics(topics.first);
+      } else {
+        state = NotificationState.initial();
       }
-      
-      state = state.copyWith(
-        subscribedTopics: updatedTopics,
-        isLoading: false,
-      );
     } catch (e) {
-      state = state.copyWith(
-        error: e.toString(),
-        isLoading: false,
-      );
+      state = NotificationState.error(e.toString());
     }
   }
 
   Future<void> unsubscribeFromTopics(List<String> topics) async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = NotificationState.loading();
       
-      final service = ref.read(notificationServiceProvider);
-      await service.unsubscribeFromTopics(topics);
-      
-      final updatedTopics = state.subscribedTopics.where(
-        (topic) => !topics.contains(topic),
-      ).toList();
-      
-      state = state.copyWith(
-        subscribedTopics: updatedTopics,
-        isLoading: false,
-      );
+      await _service.unsubscribeFromTopics(topics);
+      state = NotificationState.initial();
     } catch (e) {
-      state = state.copyWith(
-        error: e.toString(),
-        isLoading: false,
-      );
+      state = NotificationState.error(e.toString());
     }
   }
 
   Future<void> saveFCMToken(String userId) async {
     try {
-      final repository = ref.read(notificationRepositoryProvider);
-      if (state.fcmToken != null) {
-        await repository.saveFCMToken(state.fcmToken!, userId);
+      if (state.token != null) {
+        await _repository.saveFCMToken(state.token!, userId);
       }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = NotificationState.error(e.toString());
     }
   }
 
   Future<void> refreshNotifications() async {
     try {
-      final repository = ref.read(notificationRepositoryProvider);
-      final notifications = await repository.getLocalNotifications();
-      state = state.copyWith(notifications: notifications);
+      final notifications = await _repository.getLocalNotifications();
+      if (notifications.isNotEmpty) {
+        state = NotificationState.notifications(notifications.first);
+      }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = NotificationState.error(e.toString());
     }
   }
 
   void handleForegroundMessage(Map<String, dynamic> message) {
-    final service = ref.read(notificationServiceProvider);
-    service.handleForegroundMessage(message);
+    _service.handleForegroundMessage(message);
     refreshNotifications();
   }
 
   void clearError() {
-    state = state.copyWith(error: null);
+    state = NotificationState.initial();
   }
-}*/
-
-@riverpod
-class NotificationStateNotifier extends _$NotificationStateNotifier {
-  @override
-  NotificationState build() {
-    _listenToNotificationState();
-    return const NotificationState.initial();
-  }
-
-  void _listenToNotificationState() {
-    final notificationService = ref.watch(notificationServiceProvider);
-    _notificationStateSubscription?.cancel();
-    _notificationStateSubscription = notificationService.notificationStateChanges.listen((notificationState) {
-      state = notificationState;
-    });
-  }
-}*/
+}

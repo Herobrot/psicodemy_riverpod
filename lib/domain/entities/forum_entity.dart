@@ -1,48 +1,87 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'forum_entity.freezed.dart';
+part 'forum_entity.g.dart';
 
-@freezed
-class ForumPostEntity with _$ForumPostEntity {
-  const factory ForumPostEntity({
-    required String id,
-    required String title,
-    required String content,
-    required String authorId,
-    required String authorName,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    required ForumCategory category,
-    @Default([]) List<String> tags,
-    @Default(0) int likesCount,
-    @Default(0) int commentsCount,
-    @Default(0) int viewsCount,
-    @Default(false) bool isLiked,
-    @Default(false) bool isPinned,
-    @Default(false) bool isAnonymous,
-    String? authorAvatarUrl,
-    List<String>? imageUrls,
-    PostStatus? status,
-  }) = _ForumPostEntity;
+@JsonSerializable()
+class ForumPostEntity {
+  final String id;
+  final String title;
+  final String content;
+  final String authorId;
+  final String authorName;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final ForumCategory category;
+  final List<String> tags;
+  final int likesCount;
+  final int commentsCount;
+  final int viewsCount;
+  final bool isLiked;
+  final bool isPinned;
+  final bool isAnonymous;
+  final String? authorAvatarUrl;
+  final List<String>? imageUrls;
+  final PostStatus? status;
+
+  const ForumPostEntity({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.authorId,
+    required this.authorName,
+    required this.createdAt,
+    this.updatedAt,
+    required this.category,
+    this.tags = const [],
+    this.likesCount = 0,
+    this.commentsCount = 0,
+    this.viewsCount = 0,
+    this.isLiked = false,
+    this.isPinned = false,
+    this.isAnonymous = false,
+    this.authorAvatarUrl,
+    this.imageUrls,
+    this.status,
+  });
+
+  factory ForumPostEntity.fromJson(Map<String, dynamic> json) => _$ForumPostEntityFromJson(json);
+  Map<String, dynamic> toJson() => _$ForumPostEntityToJson(this);
 }
 
-@freezed
-class ForumCommentEntity with _$ForumCommentEntity {
-  const factory ForumCommentEntity({
-    required String id,
-    required String postId,
-    required String content,
-    required String authorId,
-    required String authorName,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    @Default(0) int likesCount,
-    @Default(false) bool isLiked,
-    @Default(false) bool isAnonymous,
-    String? authorAvatarUrl,
-    String? replyToCommentId,
-    @Default([]) List<ForumCommentEntity> replies,
-  }) = _ForumCommentEntity;
+@JsonSerializable()
+class ForumCommentEntity {
+  final String id;
+  final String postId;
+  final String content;
+  final String authorId;
+  final String authorName;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final int likesCount;
+  final bool isLiked;
+  final bool isAnonymous;
+  final String? authorAvatarUrl;
+  final String? replyToCommentId;
+  final List<ForumCommentEntity> replies;
+
+  const ForumCommentEntity({
+    required this.id,
+    required this.postId,
+    required this.content,
+    required this.authorId,
+    required this.authorName,
+    required this.createdAt,
+    this.updatedAt,
+    this.likesCount = 0,
+    this.isLiked = false,
+    this.isAnonymous = false,
+    this.authorAvatarUrl,
+    this.replyToCommentId,
+    this.replies = const [],
+  });
+
+  factory ForumCommentEntity.fromJson(Map<String, dynamic> json) => _$ForumCommentEntityFromJson(json);
+  Map<String, dynamic> toJson() => _$ForumCommentEntityToJson(this);
 }
 
 enum ForumCategory {

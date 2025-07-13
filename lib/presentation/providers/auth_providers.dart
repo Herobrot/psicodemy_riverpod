@@ -1,11 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/entities/user_firebase_entity.dart';
 import '../state_notifiers/auth_state_notifier.dart';
 import '../state_notifiers/auth_state.dart';
 
 final authErrorMessageProvider = Provider<String?>((ref) {
   final state = ref.watch(authStateNotifierProvider);
-  return state.maybeWhen(error: (msg) => msg, orElse: () => null);
+  return state.status == 'error' ? state.message : null;
 });
 
 final authStateProvider = Provider<AuthState>((ref) {
@@ -18,29 +18,17 @@ final loginStateProvider = Provider<LoginState>((ref) {
 
 final currentUserProvider = Provider<UserFirebaseEntity?>((ref) {
   final authState = ref.watch(authStateNotifierProvider);
-  return authState.maybeWhen(
-    authenticated: (user) => user,
-    orElse: () => null,
-  );
+  return authState.status == 'authenticated' ? authState.user : null;
 });
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateNotifierProvider);
-  return authState.maybeWhen(
-    authenticated: (_) => true,
-    orElse: () => false,
-  );
+  return authState.status == 'authenticated';
 });
 
-final isAuthLoadingProvider = Provider<bool>((ref) {
+final isLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateNotifierProvider);
   final loginState = ref.watch(loginStateNotifierProvider);
   
-  return authState.maybeWhen(
-    loading: () => true,
-    orElse: () => false,
-  ) || loginState.maybeWhen(
-    loading: () => true,
-    orElse: () => false,
-  );
+  return authState.status == 'loading' || loginState.status == 'loading';
 });

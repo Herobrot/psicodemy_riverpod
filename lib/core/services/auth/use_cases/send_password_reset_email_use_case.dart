@@ -1,8 +1,6 @@
 import 'package:psicodemy/core/services/auth/exceptions/auth_failure.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
-
-part 'send_password_reset_email_use_case.g.dart';
 
 class SendPasswordResetEmailUseCase {
   final AuthRepository _authRepository;
@@ -20,8 +18,7 @@ class SendPasswordResetEmailUseCase {
   }
 }
 
-@riverpod
-SendPasswordResetEmailUseCase sendPasswordResetEmailUseCase (Ref ref) {
+final sendPasswordResetEmailUseCaseProvider = Provider<SendPasswordResetEmailUseCase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return SendPasswordResetEmailUseCase(authRepository);
-}
+});
