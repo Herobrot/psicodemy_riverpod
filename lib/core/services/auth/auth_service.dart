@@ -1,32 +1,30 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'models/firebase_user_model.dart';
-import 'models/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'models/complete_user_model.dart';
+import 'models/user_api_model.dart';
 import 'repositories/auth_repository.dart';
-
-part 'auth_service.g.dart';
 
 class AuthService {
   final AuthRepository _authRepository;
 
   AuthService(this._authRepository);
 
-  Future<UserApiModel> signInWithEmailAndPassword(String email, String password) async {
-    return await _authRepository.signInWithEmailAndPassword(email, password);
+  Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+    return await _authRepository.signInWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
   }
 
-  Future<UserModel> signUpWithEmailAndPassword(String email, String password) async {
-    return await _authRepository.signUpWithEmailAndPassword(email, password);
+  Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+    return await _authRepository.signUpWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
   }
 
-  Future<UserModel> signInWithGoogle() async {
-    return await _authRepository.signInWithGoogle();
+  Future<CompleteUserModel> signInWithGoogle({String? codigoTutor}) async {
+    return await _authRepository.signInWithGoogle(codigoTutor: codigoTutor);
   }
 
   Future<void> signOut() async {
     await _authRepository.signOut();
   }
 
-  Future<UserModel?> getCurrentUser() async {
+  Future<CompleteUserModel?> getCurrentUser() async {
     return await _authRepository.getCurrentUser();
   }
 
@@ -34,11 +32,11 @@ class AuthService {
     await _authRepository.sendPasswordResetEmail(email);
   }
 
-  Stream<UserModel?> get authStateChanges => _authRepository.authStateChanges;
+  Stream<CompleteUserModel?> get authStateChanges => _authRepository.authStateChanges;
 }
 
-@riverpod
-AuthService authService(Ref ref) {
+// Provider simple para AuthService
+final authServiceProvider = Provider<AuthService>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return AuthService(authRepository);
-}
+});

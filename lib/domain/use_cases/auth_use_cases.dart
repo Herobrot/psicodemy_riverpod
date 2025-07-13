@@ -1,10 +1,10 @@
-import 'package:psicodemy/domain/entities/user_entity.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../entities/user_firebase_entity.dart';
-import '../repositories/auth_repository_interface.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/user_firebase_entity.dart';
+import '../../domain/repositories/auth_repository_interface.dart';
+import '../entities/user_entity.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 
-part 'auth_use_cases.g.dart';
+// part 'auth_use_cases.g.dart';
 
 class AuthUseCases {
   final AuthRepositoryInterface _authRepository;
@@ -86,8 +86,7 @@ class AuthUseCases {
   }
 }
 
-@riverpod
-AuthUseCases authUseCases(Ref ref) {
+final authUseCasesProvider = Provider<AuthUseCases>((ref) {
   final authRepository = ref.watch(authRepositoryImplProvider);
   return AuthUseCases(authRepository);
-}
+});

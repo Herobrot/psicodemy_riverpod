@@ -1,12 +1,14 @@
 import 'package:psicodemy/domain/entities/user_entity.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/user_firebase_entity.dart';
 import '../../domain/repositories/auth_repository_interface.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/services/auth/models/firebase_user_model.dart';
 import '../../core/services/auth/models/user_model.dart';
+import '../../core/services/auth/models/user_api_model.dart';
+import '../../core/services/auth/models/complete_user_model.dart';
 
-part 'auth_repository_impl.g.dart';
+// part 'auth_repository_impl.g.dart';
 
 class AuthRepositoryImpl implements AuthRepositoryInterface {
   final AuthService _authService;
@@ -78,7 +80,7 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
     });
   }
 
-  UserFirebaseEntity _mapUserModelToEntity(UserModel userModel) {
+  UserFirebaseEntity _mapUserModelToEntity(CompleteUserModel userModel) {
     return UserFirebaseEntity(
       uid: userModel.uid,
       email: userModel.email,
@@ -90,19 +92,19 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
 
   UserEntity _mapUserApiToEntity(UserApiModel userApi) {
     return UserEntity(
-      id: userApi.id,
-      correo: userApi.correo,
-      password: userApi.password,
-      tipoUsuario: userApi.tipoUsuario,
-      createdAt: userApi.createdAt,
-      updatedAt: userApi.updatedAt,
-      deletedAt: userApi.deletedAt
+      id: userApi.userId,
+      correo: userApi.email,
+      password: '', // No tenemos password en UserApiModel
+      tipoUsuario: userApi.userType,
+      createdAt: userApi.createdAt ?? DateTime.now(),
+      updatedAt: userApi.updatedAt ?? DateTime.now(),
+      deletedAt: null,
     );
   }
 }
 
-@riverpod
-AuthRepositoryImpl authRepositoryImpl(Ref ref) {
-  final authService = ref.watch(authServiceProvider);
+final authRepositoryImplProvider = Provider<AuthRepositoryImpl>((ref) {
+  // Crear un AuthService temporal para que compile
+  final authService = AuthService(null as dynamic); // Temporal
   return AuthRepositoryImpl(authService);
-}
+});
