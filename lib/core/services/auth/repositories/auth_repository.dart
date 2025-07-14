@@ -41,9 +41,36 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
     try {
-      final response = await _apiService.authenticateWithCredentials(
-        correo: email,
+      // 1. Iniciar sesión con Firebase
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
         password: password,
+      );
+      
+      if (userCredential.user == null) {
+        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
+      }
+
+      // 2. Obtener token de Firebase
+      final firebaseToken = await userCredential.user!.getIdToken();
+      
+      // 🔍 DEBUG: Imprimir token de Firebase
+      print('🔥 FIREBASE TOKEN (Sign In):');
+      print('Token length: ${firebaseToken?.length ?? 0}');
+      print('Token: $firebaseToken');
+      print('User UID: ${userCredential.user!.uid}');
+      print('User Email: ${userCredential.user!.email}');
+      print('---');
+      
+      // 3. Autenticar en la API del backend
+      if (firebaseToken == null) {
+        throw AuthFailure.serverError('Firebase token is null');
+      }
+      
+      final response = await _apiService.authenticateWithFirebase(
+        firebaseToken: firebaseToken,
+        nombre: userCredential.user!.displayName ?? email.split('@')[0],
+        correo: email,
         codigoTutor: codigoTutor,
       );
 
@@ -54,6 +81,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = UserApiModel.fromApiResponse(response['user']);
       await _storeUserSession(user);
       return user;
+    } on FirebaseAuthException catch (e) {
+      throw AuthExceptions.handleFirebaseAuthException(e);
     } catch (e) {
       if (e is AuthFailure) rethrow;
       throw AuthFailure.unknown(e.toString());

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../quotes_screens/detail_quotes_screen.dart';
+
 import '../../../services/login_services/auth_service.dart';
 import '../../../services/login_services/fcm_service.dart';
 import '../login_screens/sign_in_screen.dart';
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DetalleCitaScreen()),
+          MaterialPageRoute(builder: (_) => const CitasScreen()),
         );
       },
       child: Container(
