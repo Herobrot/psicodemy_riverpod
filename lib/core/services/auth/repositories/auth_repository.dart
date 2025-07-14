@@ -78,8 +78,20 @@ class AuthRepositoryImpl implements AuthRepository {
         throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
       }
 
+      // Crear UserApiModel para la respuesta inmediata
       final user = UserApiModel.fromApiResponse(response['user']);
-      await _storeUserSession(user);
+      
+      // CORRECCIÓN: También crear CompleteUserModel para guardar todos los datos
+      final firebaseUserModel = UserModel.fromFirebaseUser(userCredential.user!);
+      final firebaseAuthResponse = FirebaseAuthResponse.fromJson(response);
+      final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
+        firebaseUserModel,
+        firebaseAuthResponse,
+      );
+      
+      // Guardar el CompleteUserModel (que tiene todos los datos)
+      await _storeUserSession(completeUser);
+      
       return user;
     } on FirebaseAuthException catch (e) {
       throw AuthExceptions.handleFirebaseAuthException(e);
@@ -231,20 +243,41 @@ class AuthRepositoryImpl implements AuthRepository {
       if (firebaseUser != null) {
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
         
+        print('🔍 === OBTENIENDO USUARIO ACTUAL ===');
+        print('Firebase UID: ${firebaseUser.uid}');
+        print('Firebase Email: ${firebaseUser.email}');
+        
         // Intentar obtener datos adicionales del storage
         final savedUserData = await _secureStorage.read('complete_user_data');
+        print('¿Hay datos guardados en storage?: ${savedUserData != null}');
+        
         if (savedUserData != null) {
           try {
             final userData = CompleteUserModel.fromJson(savedUserData);
+            print('Datos recuperados del storage:');
+            print('  - UID Firebase: ${userData.uid}');
+            print('  - UserID API: ${userData.userId}');
+            print('  - Email: ${userData.email}');
+            print('  - Nombre: ${userData.nombre}');
+            print('  - Tipo: ${userData.tipoUsuario}');
+            print('=====================================');
             return userData;
           } catch (e) {
+            print('❌ Error al deserializar datos: $e');
             // Si no se puede deserializar, devolver solo datos de Firebase
-            return CompleteUserModel.fromFirebaseUser(userModel);
+            final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+            print('Devolviendo solo datos de Firebase');
+            print('=====================================');
+            return completeUser;
           }
         }
         
-        return CompleteUserModel.fromFirebaseUser(userModel);
+        final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+        print('No hay datos en storage - usando solo Firebase');
+        print('=====================================');
+        return completeUser;
       }
+      print('🔍 No hay usuario en Firebase Auth');
       return null;
     } catch (e) {
       throw AuthExceptions.handleGenericException(Exception(e.toString()));
@@ -292,11 +325,12 @@ class AuthRepositoryImpl implements AuthRepository {
       Map<String, dynamic>? userData;
 
       if (user is UserModel) {
-        userId = user.uid; // Firebase user
+        userId = user.uid; // Firebase user (no tiene userId de API)
       } else if (user is UserApiModel) {
-        userId = user.userId; // API user
+        userId = user.userId; // API user - usar el userId de la API ✅
       } else if (user is CompleteUserModel) {
-        userId = user.uid; // Complete user
+        // CORRECCIÓN: usar el userId de la API si está disponible, sino el UID de Firebase
+        userId = user.userId ?? user.uid; // Priorizar userId de API ✅
         userData = user.toJson();
       } else {
         throw ArgumentError('Tipo de usuario no válido');
@@ -305,7 +339,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // 🔍 DEBUG: Imprimir lo que se está guardando
       print('🔍 === GUARDANDO SESIÓN DE USUARIO ===');
       print('Tipo de usuario: ${user.runtimeType}');
-      print('UserID guardado: $userId');
+      print('UserID guardado en storage: $userId');
       if (user is UserApiModel) {
         print('UserID de API: ${user.userId}');
         print('Email de API: ${user.email}');
@@ -317,6 +351,7 @@ class AuthRepositoryImpl implements AuthRepository {
         print('Email: ${user.email}');
         print('Nombre: ${user.nombre}');
         print('Tipo: ${user.tipoUsuario}');
+        print('¿Usando userId de API?: ${user.userId != null}');
       }
       print('==================================');
 

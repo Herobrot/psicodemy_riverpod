@@ -312,16 +312,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         if (widget.appointment.estadoCita == EstadoCita.pendiente) ...[
           Row(
             children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _updateAppointmentStatus(EstadoCita.confirmada),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Confirmar Cita'),
-                ),
-              ),
+              
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
@@ -336,27 +327,23 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             ],
           ),
         ] else if (widget.appointment.estadoCita == EstadoCita.confirmada) ...[
-          SizedBox(
+          Container(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _updateAppointmentStatus(EstadoCita.completada),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF366A73),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Marcar como Completada'),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green.shade300),
             ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _updateAppointmentStatus(EstadoCita.cancelada),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Cancelar Cita', style: TextStyle(color: Colors.red)),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green.shade600),
+                const SizedBox(width: 8),
+                const Text(
+                  'Cita confirmada - Contacta al tutor para cancelar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
         ] else if (widget.appointment.estadoCita == EstadoCita.completada) ...[

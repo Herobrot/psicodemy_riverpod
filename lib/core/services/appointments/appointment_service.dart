@@ -231,13 +231,26 @@ class AppointmentService {
     try {
       final headers = await _authHeaders;
       
+      // Obtener el usuario actual para incluir su userId
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser == null) {
+        throw AppointmentException.simple('Usuario no autenticado');
+      }
+      
+      // Crear request con userId incluido
+      final requestWithUserId = UpdateStatusRequest(
+        estadoCita: request.estadoCita,
+        userId: currentUser.userId,
+      );
+      
       print('🔄 Actualizando estado de cita: $id');
-      print('Body: ${json.encode(request.toJson())}');
+      print('Usuario: ${currentUser.nombre} (${currentUser.userId})');
+      print('Body: ${json.encode(requestWithUserId.toJson())}');
       
       final response = await _client.put(
         Uri.parse('$_baseUrl/appointments/$id/status'),
         headers: headers,
-        body: json.encode(request.toJson()),
+        body: json.encode(requestWithUserId.toJson()),
       );
 
       print('📡 Respuesta: ${response.statusCode}');
