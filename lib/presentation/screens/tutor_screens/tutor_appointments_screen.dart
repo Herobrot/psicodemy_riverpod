@@ -18,7 +18,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
 
   @override
   Widget build(BuildContext context) {
-    final appointmentsAsync = ref.watch(myAppointmentsAsTutorProvider);
+    final appointmentsAsync = ref.watch(appointmentListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -117,7 +117,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
             'id': appointment.id,
             'estado': newStatus,
           }).future);
-          ref.refresh(myAppointmentsAsTutorProvider);
+          ref.refresh(appointmentListProvider);
           Navigator.pop(context);
         },
         onEditTodo: (toDo, finishToDo) async {
@@ -128,7 +128,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
               finishToDo: finishToDo,
             ),
           }).future);
-          ref.refresh(myAppointmentsAsTutorProvider);
+          ref.refresh(appointmentListProvider);
           Navigator.pop(context);
         },
       ),

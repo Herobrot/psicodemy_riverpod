@@ -19,7 +19,7 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
     // Cargar datos al inicializar
     Future.microtask(() {
       ref.read(tutorListProvider.notifier).loadTutors();
-      ref.read(appointmentListProvider.notifier).loadAppointments();
+      ref.refresh(appointmentListProvider);
     });
   }
 
@@ -151,7 +151,7 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    ref.read(appointmentListProvider.notifier).refresh();
+                    ref.refresh(appointmentListProvider);
                   },
                   child: const Text('Refrescar'),
                 ),
@@ -160,68 +160,55 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
             const SizedBox(height: 16),
             Consumer(
               builder: (context, ref, child) {
-                final appointmentState = ref.watch(appointmentListProvider);
-                
-                if (appointmentState.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                
-                if (appointmentState.error != null) {
-                  return Column(
+                final appointmentsAsync = ref.watch(appointmentListProvider);
+                return appointmentsAsync.when(
+                  data: (appointments) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Text('Total: ${appointments.length} citas'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...appointments.take(3).map((appointment) => 
+                        ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: _getStatusColor(appointment.estadoCita),
+                            child: Icon(
+                              _getStatusIcon(appointment.estadoCita),
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text('Cita ${appointment.id}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Estado: ${appointment.estadoCita.displayName}'),
+                              Text('Fecha: ${appointment.fechaCita.day}/${appointment.fechaCita.month}/${appointment.fechaCita.year}'),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                        ),
+                      ),
+                      if (appointments.length > 3)
+                        Text('... y ${appointments.length - 3} más'),
+                    ],
+                  ),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Column(
                     children: [
                       Icon(Icons.error, color: Colors.red, size: 48),
                       const SizedBox(height: 8),
-                      Text(
-                        'Error: ${appointmentState.error!.message}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                      Text('Error: ${e.toString()}', style: const TextStyle(color: Colors.red)),
                       const SizedBox(height: 8),
                       ElevatedButton(
-                        onPressed: () {
-                          ref.read(appointmentListProvider.notifier).loadAppointments();
-                        },
+                        onPressed: () => ref.refresh(appointmentListProvider),
                         child: const Text('Reintentar'),
                       ),
                     ],
-                  );
-                }
-                
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        Text('Total: ${appointmentState.appointments.length} citas'),
-                        const Spacer(),
-                        if (appointmentState.hasMore)
-                          const Icon(Icons.more_horiz, color: Colors.orange),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ...appointmentState.appointments.take(3).map((appointment) => 
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getStatusColor(appointment.estadoCita),
-                          child: Icon(
-                            _getStatusIcon(appointment.estadoCita),
-                            color: Colors.white,
-                          ),
-                        ),
-                        title: Text('Cita ${appointment.id}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Estado: ${appointment.estadoCita.displayName}'),
-                            Text('Fecha: ${appointment.fechaCita.day}/${appointment.fechaCita.month}/${appointment.fechaCita.year}'),
-                          ],
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                      ),
-                    ),
-                    if (appointmentState.appointments.length > 3)
-                      Text('... y ${appointmentState.appointments.length - 3} más'),
-                  ],
+                  ),
                 );
               },
             ),
@@ -362,40 +349,37 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
   }
 
   void _showHealthCheck() async {
-    try {
-      final isHealthy = await ref.read(appointmentServiceHealthProvider.future);
-      
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Estado del Servicio'),
-            content: Row(
-              children: [
-                Icon(
-                  isHealthy ? Icons.check_circle : Icons.error,
-                  color: isHealthy ? Colors.green : Colors.red,
-                ),
-                const SizedBox(width: 8),
-                Text(isHealthy ? 'Servicio funcionando correctamente' : 'Servicio con problemas'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cerrar'),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Estado del Servicio'),
+        content: Consumer(
+          builder: (context, ref, child) {
+            final healthAsync = ref.watch(healthCheckProvider);
+            return healthAsync.when(
+              data: (isHealthy) => Row(
+                children: [
+                  Icon(
+                    isHealthy == true ? Icons.check_circle : Icons.error,
+                    color: isHealthy == true ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isHealthy == true ? 'Servicio funcionando correctamente' : 'Servicio con problemas'),
+                ],
               ),
-            ],
+              loading: () => const CircularProgressIndicator(),
+              error: (e, _) => Text('Error: ${e.toString()}'),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al verificar el servicio: $e')),
-        );
-      }
-    }
+        ],
+      ),
+    );
   }
 
   Color _getStatusColor(EstadoCita estado) {
@@ -495,15 +479,12 @@ class AppointmentServiceUsageExample {
   /// Ejemplo de cómo filtrar citas
   static Future<void> filterAppointmentsExample(WidgetRef ref) async {
     try {
-      // Cargar citas del tutor actual
-      await ref.read(appointmentListProvider.notifier).loadAppointments(
-        estadoCita: EstadoCita.confirmada,
-        fechaDesde: DateTime.now(),
-        fechaHasta: DateTime.now().add(const Duration(days: 30)),
-      );
-      
-      final state = ref.read(appointmentListProvider);
-      print('Citas confirmadas próximas: ${state.appointments.length}');
+      // Obtener todas las citas y filtrar en la UI
+      final appointmentsAsync = await ref.read(appointmentListProvider.future);
+      final confirmed = appointmentsAsync.where((a) => a.estadoCita == EstadoCita.confirmada &&
+        a.fechaCita.isAfter(DateTime.now()) &&
+        a.fechaCita.isBefore(DateTime.now().add(const Duration(days: 30)))).toList();
+      print('Citas confirmadas próximas: ${confirmed.length}');
     } catch (e) {
       print('Error al filtrar citas: $e');
     }

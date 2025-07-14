@@ -90,7 +90,7 @@ static const bool enableRepositoryLogs = true;
 ```
 🔐 Iniciando sesión con email: usuario@ejemplo.com
 🌐 ApiService: Iniciando autenticación con credenciales
-📤 ApiService: Enviando petición a https://api.rutasegura.xyz/auth/auth/validate
+📤 ApiService: Enviando petición a https://api.psicodemy.com/auth/auth/validate
 📡 ApiService: Respuesta recibida
 🔍 ApiService: Procesando respuesta HTTP
 ✅ ApiService: Respuesta exitosa (200)
@@ -107,7 +107,7 @@ static const bool enableRepositoryLogs = true;
 ```
 🔐 Iniciando sesión con email: usuario@ejemplo.com
 🌐 ApiService: Iniciando autenticación con credenciales
-📤 ApiService: Enviando petición a https://api.rutasegura.xyz/auth/auth/validate
+📤 ApiService: Enviando petición a https://api.psicodemy.com/auth/auth/validate
 📡 ApiService: Respuesta recibida
 🔍 ApiService: Procesando respuesta HTTP
 ❌ ApiService: Error 401 - No autorizado
@@ -144,12 +144,12 @@ static const bool enableRepositoryLogs = true;
 
 ### Verificar conectividad a la API:
 ```bash
-curl -X POST https://api.rutasegura.xyz/auth/health
+curl -X POST https://api.psicodemy.com/auth/health
 ```
 
 ### Probar endpoint de autenticación:
 ```bash
-curl -X POST https://api.rutasegura.xyz/auth/validate \
+curl -X POST https://api.psicodemy.com/auth/validate \
   -H "Content-Type: application/json" \
   -d '{"correo":"test@ejemplo.com","contraseña":"password123"}'
 ```

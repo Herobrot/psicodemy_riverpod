@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/exceptions/auth_failure.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://api.rutasegura.xyz/auth';
+  static const String _baseUrl = 'https://api.psicodemy.com/auth';
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 
@@ -170,6 +170,121 @@ class ApiService {
         headers: _baseHeaders,
       );
 
+      return await _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Crear una nueva cita
+  Future<Map<String, dynamic>> createAppointment(Map<String, dynamic> request) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$_baseUrl/appointments'),
+        headers: await _authHeaders,
+        body: json.encode(request),
+      );
+      final data = await _handleResponse(response);
+      return data['data']; // SOLO data['data']
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Obtener citas con filtros y paginación
+  Future<List<dynamic>> getAppointments({
+    String? idTutor,
+    String? idAlumno,
+    String? estadoCita,
+    DateTime? fechaDesde,
+    DateTime? fechaHasta,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'page': page.toString(),
+        'limit': limit.toString(),
+      };
+      if (idTutor != null) queryParams['id_tutor'] = idTutor;
+      if (idAlumno != null) queryParams['id_alumno'] = idAlumno;
+      if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
+      if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
+      if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
+
+      final uri = Uri.parse('$_baseUrl/appointments').replace(queryParameters: queryParams);
+      final response = await _client.get(uri, headers: await _authHeaders);
+      final data = await _handleResponse(response);
+      return (data['data'] as List<dynamic>); // SOLO data['data']
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Obtener una cita por ID
+  Future<Map<String, dynamic>> getAppointmentById(String id) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$_baseUrl/appointments/$id'),
+        headers: await _authHeaders,
+      );
+      final data = await _handleResponse(response);
+      return data['data']; // SOLO data['data']
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Actualizar una cita completa
+  Future<Map<String, dynamic>> updateAppointment(String id, Map<String, dynamic> request) async {
+    try {
+      final response = await _client.put(
+        Uri.parse('$_baseUrl/appointments/$id'),
+        headers: await _authHeaders,
+        body: json.encode(request),
+      );
+      final data = await _handleResponse(response);
+      return data['data']; // SOLO data['data']
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Actualizar solo el estado de una cita
+  Future<Map<String, dynamic>> updateAppointmentStatus(String id, Map<String, dynamic> request) async {
+    try {
+      final response = await _client.put(
+        Uri.parse('$_baseUrl/appointments/$id/status'),
+        headers: await _authHeaders,
+        body: json.encode(request),
+      );
+      final data = await _handleResponse(response);
+      return data['data']; // SOLO data['data']
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Eliminar una cita (soft delete)
+  Future<void> deleteAppointment(String id) async {
+    try {
+      final response = await _client.delete(
+        Uri.parse('$_baseUrl/appointments/$id'),
+        headers: await _authHeaders,
+      );
+      await _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Verificar el estado detallado del servicio
+  Future<Map<String, dynamic>> detailedHealthCheck() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$_baseUrl/health/detailed'),
+        headers: _baseHeaders,
+      );
       return await _handleResponse(response);
     } catch (e) {
       throw _handleError(e);

@@ -421,7 +421,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
       }
 
       // Refrescar la lista de citas
-      ref.read(appointmentListProvider.notifier).refresh();
+      ref.refresh(appointmentListProvider);
 
     } catch (e) {
       if (mounted) {

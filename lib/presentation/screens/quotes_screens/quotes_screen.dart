@@ -30,13 +30,14 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     // Cargar tutores y citas del alumno al inicializar
     Future.microtask(() {
       ref.read(tutorListProvider.notifier).loadTutors();
-      ref.read(appointmentListProvider.notifier).loadAppointments();
+      ref.refresh(appointmentListProvider);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final appointmentsAsync = ref.watch(appointmentListProvider);
     
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -124,48 +125,50 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                   const SizedBox(height: 8),
                   Consumer(
                     builder: (context, ref, child) {
-                      final appointmentState = ref.watch(appointmentListProvider);
+                      final appointmentsAsync = ref.watch(appointmentListProvider);
                       
-                      return TableCalendar(
-                        firstDay: DateTime.utc(2022, 1, 1),
-                        lastDay: DateTime.utc(2026, 12, 31),
-                        focusedDay: _focusedDay,
-                        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                        eventLoader: (day) {
-                          // Mostrar citas del día
-                          return appointmentState.appointments
-                              .where((appointment) => isSameDay(appointment.fechaCita, day))
-                              .toList();
-                        },
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            _focusedDay = focusedDay;
-                          });
-                          _selectedTutor = null;
-                          _selectedTime = null;
-                          _todoText = '';
-                          _showTutorDialog();
-                        },
-                        calendarFormat: CalendarFormat.month,
-                        headerStyle: const HeaderStyle(
-                          formatButtonVisible: false,
-                          titleCentered: true,
+                      return appointmentsAsync.when(
+                        data: (appointments) => TableCalendar(
+                          firstDay: DateTime.utc(2022, 1, 1),
+                          lastDay: DateTime.utc(2026, 12, 31),
+                          focusedDay: _focusedDay,
+                          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                          eventLoader: (day) {
+                            // Mostrar citas del día
+                            return appointments.where((appointment) => isSameDay(appointment.fechaCita, day)).toList();
+                          },
+                          onDaySelected: (selectedDay, focusedDay) {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                              _focusedDay = focusedDay;
+                            });
+                            _selectedTutor = null;
+                            _selectedTime = null;
+                            _todoText = '';
+                            _showTutorDialog();
+                          },
+                          calendarFormat: CalendarFormat.month,
+                          headerStyle: const HeaderStyle(
+                            formatButtonVisible: false,
+                            titleCentered: true,
+                          ),
+                          calendarStyle: const CalendarStyle(
+                            selectedDecoration: BoxDecoration(
+                              color: Color(0xFF4A90E2),
+                              shape: BoxShape.circle,
+                            ),
+                            todayDecoration: BoxDecoration(
+                              color: Colors.grey,
+                              shape: BoxShape.circle,
+                            ),
+                            markerDecoration: BoxDecoration(
+                              color: Color(0xFF5CC9C0),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
-                        calendarStyle: const CalendarStyle(
-                          selectedDecoration: BoxDecoration(
-                            color: Color(0xFF4A90E2),
-                            shape: BoxShape.circle,
-                          ),
-                          todayDecoration: BoxDecoration(
-                            color: Colors.grey,
-                            shape: BoxShape.circle,
-                          ),
-                          markerDecoration: BoxDecoration(
-                            color: Color(0xFF5CC9C0),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Center(child: Text('Error: ${e.toString()}')),
                       );
                     },
                   ),
@@ -412,12 +415,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       // Verificar conflictos de horario
       final hasConflict = await ref.read(
         scheduleConflictProvider({
-          'tutorId': _selectedTutor!.id, // Usando el ID del tutor
+          'tutorId': _selectedTutor!.id,
           'fechaCita': fechaCita,
         }).future,
       );
 
-      if (hasConflict) {
+      if (hasConflict == true) {
         setState(() => _isScheduling = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -432,7 +435,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
 
       // Crear la cita
       final request = CreateAppointmentRequest(
-        idTutor: _selectedTutor!.id, // Usando el ID del tutor
+        idTutor: _selectedTutor!.id,
         idAlumno: FirebaseAuth.instance.currentUser?.uid ?? '',
         fechaCita: fechaCita,
         toDo: _todoText.isNotEmpty ? _todoText : null,
@@ -441,7 +444,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       final appointment = await ref.read(createAppointmentProvider(request).future);
 
       // Actualizar la lista de citas
-      ref.read(appointmentListProvider.notifier).addAppointmentToList(appointment);
+      ref.refresh(appointmentListProvider);
 
       setState(() => _isScheduling = false);
 
@@ -505,15 +508,19 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildMainAppointmentCard() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentState = ref.watch(appointmentListProvider);
+        final appointmentsAsync = ref.watch(appointmentListProvider);
         
         // Buscar la próxima cita confirmada
         final now = DateTime.now();
-        final upcomingAppointments = appointmentState.appointments
-            .where((appointment) => 
-                appointment.fechaCita.isAfter(now) && 
-                appointment.estadoCita == EstadoCita.confirmada)
-            .toList();
+        final upcomingAppointments = appointmentsAsync.when(
+          data: (appointments) => appointments
+              .where((appointment) => 
+                  appointment.fechaCita.isAfter(now) && 
+                  appointment.estadoCita == EstadoCita.confirmada)
+              .toList(),
+          loading: () => [],
+          error: (e, _) => [],
+        );
         
         upcomingAppointments.sort((a, b) => a.fechaCita.compareTo(b.fechaCita));
         
@@ -614,19 +621,50 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildAppointmentsList() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentState = ref.watch(appointmentListProvider);
+        final appointmentsAsync = ref.watch(appointmentListProvider);
         
-        if (appointmentState.isLoading) {
-          return const Center(
+        return appointmentsAsync.when(
+          data: (appointments) {
+            if (appointments.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.calendar_today, size: 48, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text(
+                      'No tienes citas programadas',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Selecciona una fecha en el calendario para crear tu primera cita',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            return Column(
+              children: appointments
+                  .take(5) // Mostrar solo las últimas 5 citas
+                  .map((appointment) => _buildAppointmentCard(appointment))
+                  .toList(),
+            );
+          },
+          loading: () => const Center(
             child: Padding(
               padding: EdgeInsets.all(32.0),
               child: CircularProgressIndicator(),
             ),
-          );
-        }
-        
-        if (appointmentState.error != null) {
-          return Container(
+          ),
+          error: (e, _) => Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.red.shade50,
@@ -646,53 +684,20 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  appointmentState.error!.message,
+                  e.toString(),
                   style: TextStyle(color: Colors.red.shade600),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ref.read(appointmentListProvider.notifier).refresh();
+                    ref.refresh(appointmentListProvider);
                   },
                   child: const Text('Reintentar'),
                 ),
               ],
             ),
-          );
-        }
-        
-        if (appointmentState.appointments.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Column(
-              children: [
-                Icon(Icons.calendar_today, size: 48, color: Colors.grey),
-                SizedBox(height: 8),
-                Text(
-                  'No tienes citas programadas',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Selecciona una fecha en el calendario para crear tu primera cita',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        return Column(
-          children: appointmentState.appointments
-              .take(5) // Mostrar solo las últimas 5 citas
-              .map((appointment) => _buildAppointmentCard(appointment))
-              .toList(),
+          ),
         );
       },
     );

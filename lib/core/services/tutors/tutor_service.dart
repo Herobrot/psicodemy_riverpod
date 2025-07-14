@@ -7,7 +7,7 @@ import 'exceptions/tutor_exception.dart';
 
 /// Servicio para gestionar tutores
 class TutorService {
-  static const String _baseUrl = 'https://api.rutasegura.xyz/s1';
+  static const String _baseUrl = 'https://api.psicodemy.com/s1';
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 
@@ -38,10 +38,10 @@ class TutorService {
       final headers = await _authHeaders;
       
       print('🔍 Obteniendo tutores...');
-      print('URL: https://api.rutasegura.xyz/auth/users/tutor');
+      print('URL: https://api.psicodemy.com/auth/users/tutor');
       
       final response = await _client.get(
-        Uri.parse('https://api.rutasegura.xyz/auth/auth/users/tutor'),
+        Uri.parse('https://api.psicodemy.com/auth/auth/users/tutor'),
         headers: headers,
       );
 

@@ -5,7 +5,7 @@ class DebugConfig {
   static const bool enableRepositoryLogs = true;
   
   // Configuración de la API
-  static const String apiBaseUrl = 'https://api.rutasegura.xyz/auth';
+  static const String apiBaseUrl = 'https://api.psicodemy.com/auth';
   
   // Timeouts
   static const Duration apiTimeout = Duration(seconds: 30);
