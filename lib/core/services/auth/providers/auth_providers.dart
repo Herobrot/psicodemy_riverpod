@@ -44,7 +44,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final userApiModel = await _authService.signInWithEmailAndPassword(email, password);
       final userEntity = UserFirebaseEntity(
-        uid: userApiModel.userId,
+        uid: userApiModel.userId ?? userApiModel.uid,
         email: userApiModel.email,
         displayName: userApiModel.nombre,
         photoURL: '',

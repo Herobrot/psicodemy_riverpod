@@ -1,5 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/auth/auth_service.dart';
+import '../../core/services/auth/models/complete_user_model.dart';
+import '../../core/services/auth/repositories/auth_repository.dart';
+import '../../core/types/tipo_usuario.dart';
 
 // Provider básico para FirebaseAuth
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -46,6 +50,34 @@ final currentUserProvider = Provider<User?>((ref) {
     loading: () => null,
     error: (_, __) => null,
   );
+});
+
+// Provider para el CompleteUserModel actual
+final currentCompleteUserProvider = StreamProvider<CompleteUserModel?>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return authService.authStateChanges;
+});
+
+// Provider para el tipo de usuario actual
+final currentUserTypeProvider = Provider<TipoUsuario?>((ref) {
+  final completeUserAsync = ref.watch(currentCompleteUserProvider);
+  return completeUserAsync.when(
+    data: (completeUser) => completeUser?.tipoUsuario,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+});
+
+// Provider para verificar si el usuario es tutor
+final isTutorProvider = Provider<bool>((ref) {
+  final userType = ref.watch(currentUserTypeProvider);
+  return userType == TipoUsuario.tutor;
+});
+
+// Provider para verificar si el usuario es alumno
+final isAlumnoProvider = Provider<bool>((ref) {
+  final userType = ref.watch(currentUserTypeProvider);
+  return userType == TipoUsuario.alumno;
 });
 
 // Provider para acciones de autenticación

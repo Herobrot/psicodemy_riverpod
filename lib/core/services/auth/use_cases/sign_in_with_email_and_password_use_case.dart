@@ -1,4 +1,4 @@
-import 'package:psicodemy/core/services/auth/models/user_api_model.dart';
+import 'package:psicodemy/core/services/auth/models/complete_user_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';
@@ -8,7 +8,7 @@ class SignInWithEmailAndPasswordUseCase {
 
   SignInWithEmailAndPasswordUseCase(this._authRepository);
 
-  Future<UserApiModel> call(String email, String password) async {
+  Future<CompleteUserModel> call(String email, String password) async {
     try {
       return await _authRepository.signInWithEmailAndPassword(email, password);
     } on AuthFailure {

@@ -14,7 +14,7 @@ import '../../api_service.dart';
 import '../../api_service_provider.dart';
 
 abstract class AuthRepository {
-  Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor});
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor});
   Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor});
   Future<CompleteUserModel> signInWithGoogle({String? codigoTutor});
   Future<void> signOut();
@@ -37,23 +37,47 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
     try {
+      print('🔐 AuthRepository: Iniciando autenticación con credenciales');
+      print('📧 Email: $email');
+      print('🔑 Código tutor: $codigoTutor');
+      
       final response = await _apiService.authenticateWithCredentials(
         correo: email,
         password: password,
         codigoTutor: codigoTutor,
       );
 
+      print('📡 AuthRepository: Respuesta de API recibida');
+      print('📡 Response keys: ${response.keys.toList()}');
+      print('📡 User data: ${response['user']}');
+
       if (response['user'] == null) {
+        print('❌ AuthRepository: Usuario no encontrado en la respuesta');
         throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
       }
 
-      final user = UserApiModel.fromApiResponse(response['user']);
+      print('✅ AuthRepository: Creando CompleteUserModel');
+      final user = CompleteUserModel.fromJson(response['user']);
+      print('✅ AuthRepository: Usuario creado: ${user.toString()}');
+      
+      print('💾 AuthRepository: Guardando sesión de usuario');
       await _storeUserSession(user);
+      print('✅ AuthRepository: Sesión guardada exitosamente');
+      
       return user;
     } catch (e) {
-      if (e is AuthFailure) rethrow;
+      print('❌ AuthRepository: Error en signInWithEmailAndPassword');
+      print('❌ Error tipo: ${e.runtimeType}');
+      print('❌ Error mensaje: $e');
+      
+      if (e is AuthFailure) {
+        print('❌ Es un AuthFailure, re-lanzando');
+        rethrow;
+      }
+      
+      print('❌ Convirtiendo a AuthFailure.unknown');
       throw AuthFailure.unknown(e.toString());
     }
   }

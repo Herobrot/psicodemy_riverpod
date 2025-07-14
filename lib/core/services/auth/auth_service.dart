@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'models/complete_user_model.dart';
-import 'models/user_api_model.dart';
 import 'repositories/auth_repository.dart';
 
 class AuthService {
@@ -8,7 +7,7 @@ class AuthService {
 
   AuthService(this._authRepository);
 
-  Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
     return await _authRepository.signInWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
   }
 

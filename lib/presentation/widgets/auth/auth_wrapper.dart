@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/simple_auth_providers.dart';
 import '../../screens/login_screens/login_screen.dart';
 import '../../screens/main_screen.dart';
+import '../../screens/tutor_screens/tutor_main_screen.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
@@ -12,6 +13,8 @@ class AuthWrapper extends ConsumerWidget {
     final isLoading = ref.watch(isAuthLoadingProvider);
     final errorMsg = ref.watch(authErrorMessageProvider);
     final isAuth = ref.watch(isAuthenticatedProvider);
+    final isTutor = ref.watch(isTutorProvider);
+    final isAlumno = ref.watch(isAlumnoProvider);
 
     if (isLoading) {
       return const Scaffold(
@@ -28,7 +31,30 @@ class AuthWrapper extends ConsumerWidget {
       );
     }
 
-    return isAuth ? const MainScreen() : const LoginScreen();
+    if (!isAuth) {
+      return const LoginScreen();
+    }
+
+    // Si el usuario está autenticado, redirigir según su tipo
+    if (isTutor) {
+      return const TutorMainScreen();
+    } else if (isAlumno) {
+      return const MainScreen();
+    } else {
+      // Si no se puede determinar el tipo, mostrar pantalla de carga
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Determinando tipo de usuario...'),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   Widget _errorScreen(

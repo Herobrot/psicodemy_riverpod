@@ -23,7 +23,27 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // Agregar listeners para limpiar errores cuando el usuario escriba
+    _emailController.addListener(_clearError);
+    _passwordController.addListener(_clearError);
+    _codigoTutorController.addListener(_clearError);
+  }
+
+  void _clearError() {
+    if (_error != null) {
+      setState(() {
+        _error = null;
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _emailController.removeListener(_clearError);
+    _passwordController.removeListener(_clearError);
+    _codigoTutorController.removeListener(_clearError);
     _emailController.dispose();
     _passwordController.dispose();
     _codigoTutorController.dispose();
@@ -39,6 +59,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     });
 
     try {
+      print('🔐 Iniciando sesión con email: ${_emailController.text.trim()}');
       final authService = ref.read(authServiceProvider);
       
       await authService.signInWithEmailAndPassword(
@@ -49,6 +70,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             : null,
       );
 
+      print('✅ Inicio de sesión exitoso');
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -59,9 +81,34 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         );
       }
     } catch (e) {
+      print('❌ Error en inicio de sesión: $e');
+      print('❌ Tipo de error: ${e.runtimeType}');
+      
+      String errorMessage;
+      if (e.toString().contains('AuthFailure')) {
+        // Extraer el mensaje del AuthFailure
+        final errorString = e.toString();
+        if (errorString.contains('message:')) {
+          final startIndex = errorString.indexOf('message:') + 8;
+          final endIndex = errorString.indexOf(')', startIndex);
+          if (endIndex > startIndex) {
+            errorMessage = errorString.substring(startIndex, endIndex).trim();
+          } else {
+            errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+          }
+        } else {
+          errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+        }
+      } else {
+        errorMessage = e.toString();
+      }
+      
       setState(() {
-        _error = e.toString();
+        _error = errorMessage;
       });
+      
+      // Mostrar error en consola para debug
+      print('🚨 Error mostrado al usuario: $errorMessage');
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });
@@ -281,18 +328,70 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ),
                   ),
                   
+                  // Mostrar error si existe
                   if (_error != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        _error!,
-                        style: const TextStyle(color: Colors.red),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red.shade600),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Error de autenticación',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _error!,
+                            style: TextStyle(color: Colors.red.shade700),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () {
+                              // Mostrar información de debug
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Información de Debug'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Error: $_error'),
+                                      const SizedBox(height: 8),
+                                      Text('Email: ${_emailController.text}'),
+                                      const SizedBox(height: 8),
+                                      Text('Código tutor: ${_codigoTutorController.text}'),
+                                      const SizedBox(height: 8),
+                                      const Text('Revisa la consola para más detalles.'),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Cerrar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            child: const Text('Ver detalles de debug'),
+                          ),
+                        ],
                       ),
                     ),
                   ],

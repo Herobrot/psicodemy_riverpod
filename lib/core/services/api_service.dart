@@ -88,18 +88,34 @@ class ApiService {
     String? codigoTutor,
   }) async {
     try {
+      print('🌐 ApiService: Iniciando autenticación con credenciales');
+      print('📧 Correo: $correo');
+      print('🔑 Código tutor: $codigoTutor');
+      
+      final requestBody = {
+        'correo': correo,
+        'contraseña': password,
+        if (codigoTutor != null && codigoTutor.isNotEmpty) 'codigo_institucion': codigoTutor,
+      };
+      
+      print('📤 ApiService: Enviando petición a $_baseUrl/auth/validate');
+      print('📤 Request body: ${json.encode(requestBody)}');
+      
       final response = await _client.post(
         Uri.parse('$_baseUrl/auth/validate'),
         headers: _baseHeaders,
-        body: json.encode({
-          'correo': correo,
-          'contraseña': password,
-          if (codigoTutor != null && codigoTutor.isNotEmpty) 'codigo_institucion': codigoTutor,
-        }),
+        body: json.encode(requestBody),
       );
+
+      print('📡 ApiService: Respuesta recibida');
+      print('📡 Status code: ${response.statusCode}');
+      print('📡 Response body: ${response.body}');
 
       return await _handleResponse(response);
     } catch (e) {
+      print('❌ ApiService: Error en authenticateWithCredentials');
+      print('❌ Error tipo: ${e.runtimeType}');
+      print('❌ Error mensaje: $e');
       throw _handleError(e);
     }
   }
@@ -162,20 +178,31 @@ class ApiService {
 
   // Manejo de respuestas HTTP
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
+    print('🔍 ApiService: Procesando respuesta HTTP');
+    print('🔍 Status code: ${response.statusCode}');
+    print('🔍 Response body length: ${response.body.length}');
+    print('🔍 Response body: ${response.body}');
+    
     // Verificar si la respuesta está vacía
     if (response.body.isEmpty) {
+      print('❌ ApiService: Respuesta vacía del servidor');
       throw AuthFailure.unknown('Respuesta vacía del servidor');
     }
 
     final Map<String, dynamic> responseData;
     
     try {
+      print('🔍 ApiService: Intentando decodificar JSON');
       final decoded = json.decode(response.body);
       if (decoded == null) {
+        print('❌ ApiService: El servidor retornó null');
         throw AuthFailure.unknown('El servidor retornó null');
       }
       responseData = decoded as Map<String, dynamic>;
+      print('✅ ApiService: JSON decodificado exitosamente');
+      print('🔍 Response data keys: ${responseData.keys.toList()}');
     } catch (e) {
+      print('❌ ApiService: Error decodificando JSON: $e');
       if (e is AuthFailure) rethrow;
       throw AuthFailure.unknown('Respuesta inválida del servidor: ${response.body}');
     }
@@ -183,43 +210,52 @@ class ApiService {
     switch (response.statusCode) {
       case 200:
       case 201:
+        print('✅ ApiService: Respuesta exitosa (${response.statusCode})');
         // Si hay token en la respuesta, lo guardamos
         if (responseData['token'] != null) {
+          print('🔑 ApiService: Guardando token de autenticación');
           await _secureStorage.write(key: 'auth_token', value: responseData['token']);
         }
         return responseData;
       
       case 400:
+        print('❌ ApiService: Error 400 - Datos de entrada inválidos');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Datos de entrada inválidos'
         );
       
       case 401:
+        print('❌ ApiService: Error 401 - No autorizado');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Token de autorización requerido o inválido'
         );
       
       case 403:
+        print('❌ ApiService: Error 403 - Permisos insuficientes');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Permisos insuficientes'
         );
       
       case 404:
+        print('❌ ApiService: Error 404 - Recurso no encontrado');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Recurso no encontrado'
         );
       
       case 422:
+        print('❌ ApiService: Error 422 - Datos de entrada inválidos');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Datos de entrada inválidos'
         );
       
       case 500:
+        print('❌ ApiService: Error 500 - Error interno del servidor');
         throw AuthFailure.serverError(
           responseData['message'] ?? 'Error interno del servidor'
         );
       
       default:
+        print('❌ ApiService: Error HTTP ${response.statusCode}');
         throw AuthFailure.unknown(
           'Error HTTP ${response.statusCode}: ${responseData['message'] ?? 'Error desconocido'}'
         );
