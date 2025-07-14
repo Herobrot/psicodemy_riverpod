@@ -186,113 +186,127 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
           builder: (context, setStateDialog) {
             return Dialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    Text(
-                      '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final tutorState = ref.watch(tutorListProvider);
-                        
-                        if (tutorState.isLoading) {
-                          return const CircularProgressIndicator();
-                        }
-                        
-                        if (tutorState.error != null) {
-                          return Column(
-                            children: [
-                              Text(
-                                'Error al cargar tutores: ${tutorState.error!.message}',
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  ref.read(tutorListProvider.notifier).loadTutors();
-                                },
-                                child: const Text('Reintentar'),
-                              ),
-                            ],
-                          );
-                        }
-                        
-                        if (tutorState.tutors.isEmpty) {
-                          return const Text('No hay tutores disponibles');
-                        }
-                        
-                        return DropdownButtonFormField<TutorModel>(
-                          decoration: const InputDecoration(
-                            labelText: 'Selecciona al tutor deseado',
-                            border: OutlineInputBorder(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: MediaQuery.of(context).size.width * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          value: _selectedTutor,
-                          items: tutorState.tutors.map((tutor) {
-                            return DropdownMenuItem<TutorModel>(
-                              value: tutor,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
+                        ),
+                        Text(
+                          '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final tutorState = ref.watch(tutorListProvider);
+                            
+                            if (tutorState.isLoading) {
+                              return const CircularProgressIndicator();
+                            }
+                            
+                            if (tutorState.error != null) {
+                              return Column(
                                 children: [
                                   Text(
-                                    tutor.nombre,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    'Error al cargar tutores: ${tutorState.error!.message}',
+                                    style: const TextStyle(color: Colors.red),
                                   ),
-                                  Text(
-                                    tutor.correo,
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      ref.read(tutorListProvider.notifier).loadTutors();
+                                    },
+                                    child: const Text('Reintentar'),
                                   ),
                                 ],
+                              );
+                            }
+                            
+                            if (tutorState.tutors.isEmpty) {
+                              return const Text('No hay tutores disponibles');
+                            }
+                            
+                            return DropdownButtonFormField<TutorModel>(
+                              decoration: const InputDecoration(
+                                labelText: 'Selecciona al tutor deseado',
+                                border: OutlineInputBorder(),
                               ),
+                              value: _selectedTutor,
+                              isExpanded: true,
+                              menuMaxHeight: 200,
+                              items: tutorState.tutors.map((tutor) {
+                                return DropdownMenuItem<TutorModel>(
+                                  value: tutor,
+                                  child: Container(
+                                    constraints: const BoxConstraints(maxHeight: 60),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          tutor.nombre,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() => _selectedTutor = value);
+                                setStateDialog(() {});
+                              },
                             );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() => _selectedTutor = value);
-                            setStateDialog(() {});
                           },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Describe qué quieres trabajar (opcional)',
-                        border: OutlineInputBorder(),
-                        hintText: 'Ej: Revisar álgebra básica',
-                      ),
-                      maxLines: 2,
-                      onChanged: (value) => _todoText = value,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancelar'),
                         ),
-                        ElevatedButton(
-                          onPressed: _selectedTutor != null ? () {
-                            Navigator.pop(context);
-                            _showTimeDialog();
-                          } : null,
-                          child: const Text('Siguiente'),
+                        const SizedBox(height: 16),
+                        TextField(
+                          decoration: const InputDecoration(
+                            labelText: 'Describe qué quieres trabajar (opcional)',
+                            border: OutlineInputBorder(),
+                            hintText: 'Ej: Revisar álgebra básica',
+                          ),
+                          maxLines: 2,
+                          onChanged: (value) => _todoText = value,
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancelar'),
+                            ),
+                            ElevatedButton(
+                              onPressed: _selectedTutor != null ? () {
+                                Navigator.pop(context);
+                                _showTimeDialog();
+                              } : null,
+                              child: const Text('Siguiente'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -311,48 +325,56 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
           builder: (context, setStateDialog) {
             return Dialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: MediaQuery.of(context).size.width * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Text(
+                          '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        InkWell(
+                          onTap: () async {
+                            TimeOfDay? picked = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _selectedTime = picked;
+                              });
+                              setStateDialog(() {});
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(labelText: 'Selecciona un horario disponible'),
+                            child: Text(_selectedTime?.format(context) ?? 'hh:mm aa'),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _selectedTime != null ? _agendarCita : null,
+                          child: const Text('Agendar Cita'),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: () async {
-                        TimeOfDay? picked = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (picked != null) {
-                          setState(() {
-                            _selectedTime = picked;
-                          });
-                          setStateDialog(() {});
-                        }
-                      },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(labelText: 'Selecciona un horario disponible'),
-                        child: Text(_selectedTime?.format(context) ?? 'hh:mm aa'),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _selectedTime != null ? _agendarCita : null,
-                      child: const Text('Agendar Cita'),
-                    )
-                  ],
+                  ),
                 ),
               ),
             );
@@ -757,7 +779,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         return Colors.green;
       case EstadoCita.cancelada:
         return Colors.red;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Colors.grey;
     }
   }
@@ -772,7 +794,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         return Icons.done_all;
       case EstadoCita.cancelada:
         return Icons.cancel;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Icons.person_off;
     }
   }

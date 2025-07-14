@@ -7,16 +7,16 @@ class AuthService {
 
   AuthService(this._authRepository);
 
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
-    return await _authRepository.signInWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password) async {
+    return await _authRepository.signInWithEmailAndPassword(email, password);
   }
 
   Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
     return await _authRepository.signUpWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
   }
 
-  Future<CompleteUserModel> signInWithGoogle({String? codigoTutor}) async {
-    return await _authRepository.signInWithGoogle(codigoTutor: codigoTutor);
+  Future<CompleteUserModel> signInWithGoogle() async {
+    return await _authRepository.signInWithGoogle();
   }
 
   Future<void> signOut() async {

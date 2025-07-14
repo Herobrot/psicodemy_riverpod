@@ -41,7 +41,7 @@ const _$EstadoCitaEnumMap = {
   EstadoCita.confirmada: 'confirmada',
   EstadoCita.cancelada: 'cancelada',
   EstadoCita.completada: 'completada',
-  EstadoCita.no_asistio: 'no_asistio',
+  EstadoCita.noAsistio: 'no_asistio',
 };
 
 CreateAppointmentRequest _$CreateAppointmentRequestFromJson(

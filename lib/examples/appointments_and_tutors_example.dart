@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/services/appointments/models/appointment_model.dart';
 import '../core/services/appointments/providers/appointment_providers.dart';
-import '../core/services/tutors/models/tutor_model.dart';
 import '../core/services/tutors/providers/tutor_providers.dart';
 
 /// Ejemplo de cómo usar los servicios de citas y tutores
@@ -409,7 +408,7 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
         return Colors.green;
       case EstadoCita.cancelada:
         return Colors.red;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Colors.grey;
     }
   }
@@ -424,7 +423,7 @@ class _AppointmentsAndTutorsExampleState extends ConsumerState<AppointmentsAndTu
         return Icons.done_all;
       case EstadoCita.cancelada:
         return Icons.cancel;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Icons.person_off;
     }
   }

@@ -16,9 +16,8 @@ class AppointmentException implements Exception {
   });
 
   // Constructor simple para crear excepciones con solo un mensaje
-  const AppointmentException.simple(String message) : 
+  const AppointmentException.simple(this.message) : 
     type = 'error',
-    message = message,
     details = null;
 
   // Factores de errores comunes

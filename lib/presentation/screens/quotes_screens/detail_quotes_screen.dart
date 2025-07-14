@@ -464,7 +464,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         return Colors.green;
       case EstadoCita.cancelada:
         return Colors.red;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Colors.grey;
     }
   }
@@ -479,7 +479,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         return Icons.done_all;
       case EstadoCita.cancelada:
         return Icons.cancel;
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return Icons.person_off;
     }
   }

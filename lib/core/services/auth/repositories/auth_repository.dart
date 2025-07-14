@@ -14,9 +14,9 @@ import '../../api_service.dart';
 import '../../api_service_provider.dart';
 
 abstract class AuthRepository {
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor});
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password);
   Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor});
-  Future<CompleteUserModel> signInWithGoogle({String? codigoTutor});
+  Future<CompleteUserModel> signInWithGoogle();
   Future<void> signOut();
   Future<CompleteUserModel?> getCurrentUser();
   Future<void> sendPasswordResetEmail(String email);
@@ -37,7 +37,7 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password) async {
     try {
       // 1. Iniciar sesión con Firebase
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
@@ -68,8 +68,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
         nombre: userCredential.user!.displayName ?? email.split('@')[0],
-        correo: email,
-        codigoTutor: codigoTutor,
+        correo: email
       );
 
       print('📡 AuthRepository: Respuesta de API recibida');
@@ -163,7 +162,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<CompleteUserModel> signInWithGoogle({String? codigoTutor}) async {
+  Future<CompleteUserModel> signInWithGoogle() async {
     try {
       // 1. Iniciar sesión con Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -207,8 +206,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
         nombre: firebaseUser.displayName ?? googleUser.displayName ?? firebaseUser.email.split('@')[0],
-        correo: firebaseUser.email,
-        codigoTutor: codigoTutor,
+        correo: firebaseUser.email      
       );
 
       final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
@@ -248,18 +246,45 @@ class AuthRepositoryImpl implements AuthRepository {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser != null) {
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
-        
         print('🔍 === OBTENIENDO USUARIO ACTUAL ===');
         print('Firebase UID: ${firebaseUser.uid}');
         print('Firebase Email: ${firebaseUser.email}');
-        
+
         // Intentar obtener datos adicionales del storage
         final savedUserData = await _secureStorage.read('complete_user_data');
         print('¿Hay datos guardados en storage?: ${savedUserData != null}');
-        
+
         if (savedUserData != null) {
           try {
             final userData = CompleteUserModel.fromJson(savedUserData);
+            // Validar que el UID del usuario actual coincida con el del storage
+            if (userData.uid != firebaseUser.uid) {
+              print('❌ UID de storage no coincide con el usuario actual. Ignorando datos guardados.');
+              // Forzar obtención de datos completos desde la API
+              final firebaseToken = await firebaseUser.getIdToken();
+              if (firebaseToken == null) {
+                print('❌ No se pudo obtener el token de Firebase.');
+                final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+                print('Devolviendo solo datos de Firebase');
+                print('=====================================');
+                return completeUser;
+              }
+              final apiResponse = await _apiService.authenticateWithFirebase(
+                firebaseToken: firebaseToken,
+                nombre: userModel.displayName ?? firebaseUser.email?.split('@')[0] ?? '',
+                correo: firebaseUser.email ?? '',
+                codigoTutor: null,
+              );
+              final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
+              final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
+                userModel,
+                firebaseAuthResponse,
+              );
+              await _storeUserSession(completeUser);
+              print('✅ Usuario actualizado desde la API tras cambio de cuenta.');
+              print('=====================================');
+              return completeUser;
+            }
             print('Datos recuperados del storage:');
             print('  - UID Firebase: ${userData.uid}');
             print('  - UserID API: ${userData.userId}');
@@ -277,7 +302,7 @@ class AuthRepositoryImpl implements AuthRepository {
             return completeUser;
           }
         }
-        
+        // Si no hay datos en storage, devolver solo datos de Firebase
         final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
         print('No hay datos en storage - usando solo Firebase');
         print('=====================================');

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/simple_auth_providers.dart';
+import '../../screens/login_screens/sign_in_screen.dart';
+import 'package:psicodemy/core/services/auth/repositories/auth_repository.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -319,6 +321,20 @@ class SettingsScreen extends ConsumerWidget {
           final confirmed = await _showSignOutDialog(context);
           if (confirmed == true) {
             await ref.read(authActionsProvider).signOut();
+            // Invalidar providers relacionados con el usuario
+            ref.invalidate(currentCompleteUserProvider);
+            ref.invalidate(currentUserTypeProvider);
+            ref.invalidate(isTutorProvider);
+            ref.invalidate(isAlumnoProvider);
+            ref.invalidate(authRepositoryProvider);
+            // Navegar a la pantalla de login y limpiar la pila
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+                (route) => false,
+              );
+            }
           }
         },
         style: ElevatedButton.styleFrom(

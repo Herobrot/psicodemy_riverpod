@@ -85,11 +85,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     try {
       final authService = ref.read(authServiceProvider);
       
-      final completeUser = await authService.signInWithGoogle(
-        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
-            ? _codigoTutorController.text.trim() 
-            : null,
-      );
+      final completeUser = await authService.signInWithGoogle();
 
       // Si llegamos aquí, el registro fue exitoso
       if (mounted) {

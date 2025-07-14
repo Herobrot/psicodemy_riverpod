@@ -4,6 +4,7 @@ import '../chat_screens/chat_screen.dart';
 import '../forum_screens/forum_screen.dart';
 import '../quotes_screens/quotes_screen.dart';
 import '../settings_screens/settings_screen.dart';
+import 'tutor_appointments_screen.dart';
 
 class TutorMainScreen extends StatefulWidget {
   const TutorMainScreen({super.key});
@@ -19,7 +20,7 @@ class _TutorMainScreenState extends State<TutorMainScreen> {
     const TutorHomeScreen(),
     const ChatScreen(),
     const ForumScreen(),
-    const CitasScreen(),
+    const TutorAppointmentsScreen(), // Cambiado a la nueva pantalla
     const SettingsScreen(),
   ];
 

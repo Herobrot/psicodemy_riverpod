@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
-import '../../../core/services/api_service_provider.dart';
 import '../../../core/types/tipo_usuario.dart';
 import '../../providers/simple_auth_providers.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
 import '../main_screen.dart';
 import '../tutor_screens/tutor_main_screen.dart';
+import 'package:psicodemy/core/services/auth/repositories/auth_repository.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -19,11 +19,9 @@ class SignInScreen extends ConsumerStatefulWidget {
 class _SignInScreenState extends ConsumerState<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _codigoTutorController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _showPassword = false;
-  bool _showCodigoTutor = false;
+  bool _showPassword = false;  
   String? _error;
 
   @override
@@ -31,8 +29,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.initState();
     // Agregar listeners para limpiar errores cuando el usuario escriba
     _emailController.addListener(_clearError);
-    _passwordController.addListener(_clearError);
-    _codigoTutorController.addListener(_clearError);
+    _passwordController.addListener(_clearError);  
   }
 
   void _clearError() {
@@ -47,10 +44,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   void dispose() {
     _emailController.removeListener(_clearError);
     _passwordController.removeListener(_clearError);
-    _codigoTutorController.removeListener(_clearError);
     _emailController.dispose();
     _passwordController.dispose();
-    _codigoTutorController.dispose();
     super.dispose();
   }
 
@@ -68,13 +63,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       
       final completeUser = await authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
-        _passwordController.text.trim(),
-        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
-            ? _codigoTutorController.text.trim() 
-            : null,
+        _passwordController.text.trim()
       );
 
       print('✅ Inicio de sesión exitoso');
+      print('Usuario objeto: $completeUser');
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,7 +76,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+        // Invalida el provider de usuario para refrescar el estado
+        ref.invalidate(authRepositoryProvider);
         // Navegar a la pantalla correspondiente basándose en el tipo de usuario
         _navigateToAppropriateScreen(completeUser);
       }
@@ -140,11 +134,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     try {
       final authService = ref.read(authServiceProvider);
       
-      final completeUser = await authService.signInWithGoogle(
-        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
-            ? _codigoTutorController.text.trim() 
-            : null,
-      );
+      final completeUser = await authService.signInWithGoogle();
 
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
@@ -173,38 +163,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });
-      }
-    }
-  }
-
-  Future<void> _validateTutorCode() async {
-    final codigo = _codigoTutorController.text.trim();
-    if (codigo.isEmpty) return;
-
-    try {
-      final apiService = ref.read(apiServiceProvider);
-      final isValid = await apiService.validateTutorCode(codigo);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isValid 
-                ? 'Código válido: iniciarás sesión como TUTOR ✓' 
-                : 'Código inválido: iniciarás sesión como ALUMNO ℹ️'
-            ),
-            backgroundColor: isValid ? Colors.green : Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al validar el código'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
@@ -275,67 +233,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
-                  
-                  // Botón para mostrar/ocultar código de tutor
-                  TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _showCodigoTutor = !_showCodigoTutor;
-                      });
-                    },
-                    icon: Icon(_showCodigoTutor ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
-                    label: const Text('¿Tienes código de institución?'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      alignment: Alignment.centerLeft,
-                    ),
-                  ),
-                  
-                  // Campo de código de tutor (condicional)
-                  if (_showCodigoTutor) ...[
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _codigoTutorController,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.school_outlined),
-                        labelText: 'Código de Institución',
-                        border: const OutlineInputBorder(),
-                        hintText: 'Ingresa "TUTOR" si eres tutor',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.help_outline),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Código de Institución'),
-                                content: const Text(
-                                  'Si tienes un código de institución válido, ingrésalo aquí para obtener permisos de tutor. '
-                                  'Si no tienes código, iniciarás sesión como alumno.\n\n'
-                                  'Código válido para tutores: TUTOR'
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Entendido'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      textCapitalization: TextCapitalization.characters,
-                      onChanged: (value) {
-                        // Validar código automáticamente cuando sea "TUTOR"
-                        if (value.toUpperCase() == 'TUTOR') {
-                          _validateTutorCode();
-                        }
-                      },
-                    ),
-                  ],
-                  
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),                  
                   
                   // Link de contraseña olvidada
                   Align(
@@ -400,8 +298,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       Text('Error: $_error'),
                                       const SizedBox(height: 8),
                                       Text('Email: ${_emailController.text}'),
-                                      const SizedBox(height: 8),
-                                      Text('Código tutor: ${_codigoTutorController.text}'),
                                       const SizedBox(height: 8),
                                       const Text('Revisa la consola para más detalles.'),
                                     ],
@@ -506,18 +402,21 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  void _navigateToAppropriateScreen(dynamic completeUser) {
+  void _navigateToAppropriateScreen(dynamic completeUser, {void Function()? onNavigate}) {
     // Determinar el tipo de usuario y navegar
     if (completeUser.tipoUsuario == TipoUsuario.tutor) {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const TutorMainScreen()),
+        (route) => false,
       );
     } else {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
       );
     }
+    if (onNavigate != null) onNavigate();
   }
 } 

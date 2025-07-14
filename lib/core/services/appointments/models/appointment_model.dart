@@ -13,7 +13,7 @@ enum EstadoCita {
   @JsonValue('completada')
   completada,
   @JsonValue('no_asistio')
-  no_asistio,
+  noAsistio,
 }
 
 /// Modelo principal para las citas
@@ -242,7 +242,7 @@ extension EstadoCitaExtension on EstadoCita {
         return 'Cancelada';
       case EstadoCita.completada:
         return 'Completada';
-      case EstadoCita.no_asistio:
+      case EstadoCita.noAsistio:
         return 'No asistió';
     }
   }
