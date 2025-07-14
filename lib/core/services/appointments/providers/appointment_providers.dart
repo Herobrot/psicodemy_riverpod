@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../appointment_service.dart';
+import '../repositories/appointment_repository.dart';
+import '../repositories/appointment_repository_interface.dart';
 import '../models/appointment_model.dart';
 import '../exceptions/appointment_exception.dart';
-import '../repositories/appointment_repository.dart';
+import '../../auth/auth_service.dart';
+import '../../api_service_provider.dart';
 
 /// Estado para la lista de citas
-@immutable
 class AppointmentListState {
   final List<AppointmentModel> appointments;
   final bool isLoading;
@@ -36,35 +39,154 @@ class AppointmentListState {
       currentPage: currentPage ?? this.currentPage,
     );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is AppointmentListState &&
-        other.appointments == appointments &&
-        other.isLoading == isLoading &&
-        other.error == error &&
-        other.hasMore == hasMore &&
-        other.currentPage == currentPage;
-  }
-
-  @override
-  int get hashCode {
-    return appointments.hashCode ^
-        isLoading.hashCode ^
-        error.hashCode ^
-        hasMore.hashCode ^
-        currentPage.hashCode;
-  }
 }
 
-/// Notificador para la lista de citas
+/// StateNotifier para gestionar el estado de la lista de citas
 class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
   final AppointmentRepository _repository;
 
   AppointmentListNotifier(this._repository) : super(const AppointmentListState());
 
-  /// Cargar citas con filtros
+  /// Obtener citas
+  Future<void> getAppointments({
+    String? idTutor,
+    String? idAlumno,
+    EstadoCita? estadoCita,
+    DateTime? fechaDesde,
+    DateTime? fechaHasta,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final appointments = await _repository.getAppointments(
+        idTutor: idTutor,
+        idAlumno: idAlumno,
+        estadoCita: estadoCita,
+        fechaDesde: fechaDesde,
+        fechaHasta: fechaHasta,
+        page: page,
+        limit: limit,
+      );
+      
+      state = state.copyWith(
+        appointments: appointments,
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppointmentException ? e : AppointmentException.simple(e.toString()),
+      );
+    }
+  }
+
+  /// Crear nueva cita
+  Future<void> createAppointment({
+    required String idTutor,
+    required String idAlumno,
+    required DateTime fechaHora,
+    required String descripcion,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      // Crear un objeto simple para la cita
+      final newAppointment = AppointmentModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        idTutor: idTutor,
+        idAlumno: idAlumno,
+        fechaCita: fechaHora,
+        toDo: descripcion,
+        estadoCita: EstadoCita.pendiente,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      
+      state = state.copyWith(
+        appointments: [...state.appointments, newAppointment],
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppointmentException ? e : AppointmentException.simple(e.toString()),
+      );
+    }
+  }
+
+  /// Actualizar cita
+  Future<void> updateAppointment({
+    required String appointmentId,
+    DateTime? fechaHora,
+    String? descripcion,
+    EstadoCita? estadoCita,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final updatedAppointments = state.appointments.map<AppointmentModel>((appointment) {
+        if (appointment.id == appointmentId) {
+          return AppointmentModel(
+            id: appointment.id,
+            idTutor: appointment.idTutor,
+            idAlumno: appointment.idAlumno,
+            fechaCita: fechaHora ?? appointment.fechaCita,
+            toDo: descripcion ?? appointment.toDo,
+            estadoCita: estadoCita ?? appointment.estadoCita,
+            createdAt: appointment.createdAt,
+            updatedAt: DateTime.now(),
+            deletedAt: appointment.deletedAt,
+            finishToDo: appointment.finishToDo,
+          );
+        }
+        return appointment;
+      }).toList();
+      
+      state = state.copyWith(
+        appointments: updatedAppointments,
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppointmentException ? e : AppointmentException.simple(e.toString()),
+      );
+    }
+  }
+
+  /// Eliminar cita
+  Future<void> deleteAppointment(String appointmentId) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final updatedAppointments = state.appointments
+        .where((appointment) => appointment.id != appointmentId)
+        .toList();
+      
+      state = state.copyWith(
+        appointments: updatedAppointments,
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppointmentException ? e : AppointmentException.simple(e.toString()),
+      );
+    }
+  }
+
+  /// Limpiar estado
+  void clear() {
+    state = const AppointmentListState();
+  }
+
+  /// Método de compatibilidad para loadAppointments
   Future<void> loadAppointments({
     String? idTutor,
     String? idAlumno,
@@ -76,51 +198,7 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     if (refresh) {
       state = const AppointmentListState();
     }
-
-    if (state.isLoading) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final appointments = await _repository.getAppointments(
-        idTutor: idTutor,
-        idAlumno: idAlumno,
-        estadoCita: estadoCita,
-        fechaDesde: fechaDesde,
-        fechaHasta: fechaHasta,
-        page: refresh ? 1 : state.currentPage,
-        limit: 20,
-      );
-
-      final List<AppointmentModel> newAppointments = refresh
-          ? appointments
-          : [...state.appointments, ...appointments];
-
-      state = state.copyWith(
-        appointments: newAppointments,
-        isLoading: false,
-        hasMore: appointments.length == 20,
-        currentPage: refresh ? 2 : state.currentPage + 1,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e is AppointmentException ? e : AppointmentException.unknown(e.toString()),
-      );
-    }
-  }
-
-  /// Cargar más citas (paginación)
-  Future<void> loadMoreAppointments({
-    String? idTutor,
-    String? idAlumno,
-    EstadoCita? estadoCita,
-    DateTime? fechaDesde,
-    DateTime? fechaHasta,
-  }) async {
-    if (!state.hasMore || state.isLoading) return;
-
-    await loadAppointments(
+    return getAppointments(
       idTutor: idTutor,
       idAlumno: idAlumno,
       estadoCita: estadoCita,
@@ -129,7 +207,7 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     );
   }
 
-  /// Refrescar lista
+  /// Método de compatibilidad para refresh
   Future<void> refresh({
     String? idTutor,
     String? idAlumno,
@@ -137,7 +215,7 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     DateTime? fechaDesde,
     DateTime? fechaHasta,
   }) async {
-    await loadAppointments(
+    return loadAppointments(
       idTutor: idTutor,
       idAlumno: idAlumno,
       estadoCita: estadoCita,
@@ -147,42 +225,17 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     );
   }
 
-  /// Actualizar una cita en la lista
-  void updateAppointmentInList(AppointmentModel updatedAppointment) {
-    final appointments = state.appointments.map((appointment) {
-      return appointment.id == updatedAppointment.id
-          ? updatedAppointment
-          : appointment;
-    }).toList();
-
-    state = state.copyWith(appointments: appointments);
-  }
-
-  /// Eliminar una cita de la lista
-  void removeAppointmentFromList(String appointmentId) {
-    final appointments = state.appointments
-        .where((appointment) => appointment.id != appointmentId)
-        .toList();
-
-    state = state.copyWith(appointments: appointments);
-  }
-
-  /// Agregar una nueva cita a la lista
+  /// Método de compatibilidad para addAppointmentToList
   void addAppointmentToList(AppointmentModel newAppointment) {
     final appointments = [newAppointment, ...state.appointments];
     state = state.copyWith(appointments: appointments);
-  }
-
-  /// Limpiar estado
-  void clear() {
-    state = const AppointmentListState();
   }
 }
 
 /// Provider para la lista de citas
 final appointmentListProvider = StateNotifierProvider<AppointmentListNotifier, AppointmentListState>((ref) {
   final repository = ref.watch(appointmentRepositoryProvider);
-  return AppointmentListNotifier(repository);
+  return AppointmentListNotifier(repository as AppointmentRepository);
 });
 
 /// Provider para las citas del tutor actual
@@ -294,4 +347,29 @@ final markAsNoShowProvider = FutureProvider.family<AppointmentModel, String>((re
 final deleteAppointmentProvider = FutureProvider.family<bool, String>((ref, appointmentId) async {
   final repository = ref.watch(appointmentRepositoryProvider);
   return await repository.deleteAppointment(appointmentId);
+}); 
+
+// Provider para AppointmentService
+final appointmentServiceProvider = Provider<AppointmentService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  final authService = ref.watch(authServiceProvider);
+  
+  return AppointmentService(
+    baseUrl: 'https://api.rutasegura.xyz/s1',
+    apiService: apiService,
+    authService: authService,
+  );
+});
+
+// Provider para AppointmentRepository
+final appointmentRepositoryProvider = Provider<AppointmentRepositoryInterface>((ref) {
+  final appointmentService = ref.watch(appointmentServiceProvider);
+  final authService = ref.watch(authServiceProvider);
+  return AppointmentRepository(appointmentService, authService);
+}); 
+
+// Provider para AppointmentListNotifier
+final appointmentListNotifierProvider = StateNotifierProvider<AppointmentListNotifier, AppointmentListState>((ref) {
+  final repository = ref.watch(appointmentRepositoryProvider);
+  return AppointmentListNotifier(repository as AppointmentRepository);
 }); 
