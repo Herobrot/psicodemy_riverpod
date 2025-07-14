@@ -132,9 +132,12 @@ class UpdateAppointmentRequest {
 class UpdateStatusRequest {
   @JsonKey(name: 'estado_cita')
   final EstadoCita estadoCita;
+  @JsonKey(name: 'userId')
+  final String? userId;
 
   const UpdateStatusRequest({
     required this.estadoCita,
+    this.userId,
   });
 
   factory UpdateStatusRequest.fromJson(Map<String, dynamic> json) =>

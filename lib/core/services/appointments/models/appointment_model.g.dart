@@ -85,12 +85,14 @@ Map<String, dynamic> _$UpdateAppointmentRequestToJson(
 UpdateStatusRequest _$UpdateStatusRequestFromJson(Map<String, dynamic> json) =>
     UpdateStatusRequest(
       estadoCita: $enumDecode(_$EstadoCitaEnumMap, json['estado_cita']),
+      userId: json['userId'] as String?,
     );
 
 Map<String, dynamic> _$UpdateStatusRequestToJson(
   UpdateStatusRequest instance,
 ) => <String, dynamic>{
   'estado_cita': _$EstadoCitaEnumMap[instance.estadoCita]!,
+  'userId': instance.userId,
 };
 
 PaginationMeta _$PaginationMetaFromJson(Map<String, dynamic> json) =>

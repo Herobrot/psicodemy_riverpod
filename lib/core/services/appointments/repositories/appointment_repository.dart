@@ -363,19 +363,7 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
     if (error is AppointmentException) {
       return error;
     } else {
-      return AppointmentException.unknown(error.toString());
+      return AppointmentException.simple(error.toString());
     }
   }
-}
-
-/// Provider para el repositorio de citas
-final appointmentRepositoryProvider = Provider<AppointmentRepository>((ref) {
-  final appointmentService = ref.watch(appointmentServiceProvider);
-  final authService = ref.watch(authServiceProvider);
-  return AppointmentRepository(appointmentService, authService);
-});
-
-/// Provider para el servicio de citas
-final appointmentServiceProvider = Provider<AppointmentService>((ref) {
-  return AppointmentService();
-}); 
+} 
