@@ -302,6 +302,24 @@ class AuthRepositoryImpl implements AuthRepository {
         throw ArgumentError('Tipo de usuario no válido');
       }
 
+      // 🔍 DEBUG: Imprimir lo que se está guardando
+      print('🔍 === GUARDANDO SESIÓN DE USUARIO ===');
+      print('Tipo de usuario: ${user.runtimeType}');
+      print('UserID guardado: $userId');
+      if (user is UserApiModel) {
+        print('UserID de API: ${user.userId}');
+        print('Email de API: ${user.email}');
+        print('Nombre de API: ${user.nombre}');
+        print('Tipo de API: ${user.userType}');
+      } else if (user is CompleteUserModel) {
+        print('UID Firebase: ${user.uid}');
+        print('UserID API: ${user.userId}');
+        print('Email: ${user.email}');
+        print('Nombre: ${user.nombre}');
+        print('Tipo: ${user.tipoUsuario}');
+      }
+      print('==================================');
+
       await _secureStorage.storeToken('user_session', userId);
       
       // Guardar datos completos del usuario si están disponibles

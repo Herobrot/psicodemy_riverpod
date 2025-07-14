@@ -2,20 +2,32 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../api_service.dart';
+import '../auth/auth_service.dart';
+import '../../types/tipo_usuario.dart';
 import 'models/appointment_model.dart';
 import 'exceptions/appointment_exception.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Servicio para gestionar citas
 class AppointmentService {
-  static const String _baseUrl = 'https://api.rutasegura.xyz/s1';
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
+  final String _baseUrl;
+  final ApiService _apiService;
+  final AuthService _authService;
 
   AppointmentService({
     http.Client? client,
     FlutterSecureStorage? secureStorage,
-  }) : _client = client ?? http.Client(),
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    required String baseUrl,
+    required ApiService apiService,
+    required AuthService authService,
+  })  : _client = client ?? http.Client(),
+        _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+        _baseUrl = baseUrl,
+        _apiService = apiService,
+        _authService = authService;
 
   /// Headers básicos para todas las requests
   Map<String, String> get _baseHeaders => {
@@ -25,11 +37,32 @@ class AppointmentService {
 
   /// Headers con token de autorización
   Future<Map<String, String>> get _authHeaders async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    return {
-      ..._baseHeaders,
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
+    try {
+      // Obtener el usuario actual de Firebase Auth directamente
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser?.firebaseUser != null) {
+        // Obtener el token de Firebase del usuario actual
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser != null) {
+          final token = await firebaseUser.getIdToken();
+          print('🔍 Token de Firebase obtenido: ${token?.substring(0, 50)}...');
+          
+          final headers = {
+            ..._baseHeaders,
+            'Authorization': 'Bearer $token',
+          };
+          
+          print('🔍 Headers finales: $headers');
+          return headers;
+        }
+      }
+      
+      print('🔍 No hay usuario autenticado - usando headers básicos');
+      return _baseHeaders;
+    } catch (e) {
+      print('❌ Error al obtener token de autorización: $e');
+      return _baseHeaders;
+    }
   }
 
   /// Crear una nueva cita
@@ -39,6 +72,7 @@ class AppointmentService {
       
       print('🔄 Creando cita...');
       print('URL: $_baseUrl/appointments');
+      print('Headers enviados: $headers');
       print('Body: ${json.encode(request.toJson())}');
       
       final response = await _client.post(
@@ -51,7 +85,12 @@ class AppointmentService {
       print('Body: ${response.body}');
 
       final result = await _handleResponse(response);
-      return AppointmentModel.fromJson(result['data']);
+      
+      // Los datos reales de la cita están en result['data']['data']
+      final appointmentData = result['data']['data'];
+      print('🔍 Datos de cita parseados: $appointmentData');
+      
+      return AppointmentModel.fromJson(appointmentData);
     } catch (e) {
       print('❌ Error al crear cita: $e');
       throw _handleError(e);
@@ -71,14 +110,45 @@ class AppointmentService {
     try {
       final headers = await _authHeaders;
       
+      // Obtener el usuario actual
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser == null) {
+        throw AppointmentException.simple('Usuario no autenticado');
+      }
+      
+      // 🔍 DEBUG: Imprimir todos los datos del usuario actual
+      print('🔍 === DATOS DEL USUARIO ACTUAL ===');
+      print('UID: ${currentUser.uid}');
+      print('Email: ${currentUser.email}');
+      print('Nombre: ${currentUser.nombre}');
+      print('UserID (API): ${currentUser.userId}');
+      print('Tipo Usuario: ${currentUser.tipoUsuario}');
+      print('Es Tutor: ${currentUser.isTutor}');
+      print('Es Alumno: ${currentUser.isAlumno}');
+      print('==============================');
+      
+      // Validar tipo de usuario y asignar ID automáticamente
+      String? finalIdTutor = idTutor;
+      String? finalIdAlumno = idAlumno;
+      
+      if (currentUser.isTutor) {
+        // Si es tutor, asignar su ID automáticamente
+        finalIdTutor = currentUser.userId;
+        print('🔍 Usuario es TUTOR - ID asignado: ${currentUser.userId}');
+      } else if (currentUser.isAlumno) {
+        // Si es alumno, asignar su ID automáticamente
+        finalIdAlumno = currentUser.userId;
+        print('🔍 Usuario es ALUMNO - ID asignado: ${currentUser.userId}');
+      }
+      
       // Construir query parameters
       final queryParams = <String, String>{
         'page': page.toString(),
         'limit': limit.toString(),
       };
       
-      if (idTutor != null) queryParams['id_tutor'] = idTutor;
-      if (idAlumno != null) queryParams['id_alumno'] = idAlumno;
+      if (finalIdTutor != null) queryParams['id_tutor'] = finalIdTutor;
+      if (finalIdAlumno != null) queryParams['id_alumno'] = finalIdAlumno;
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita.name;
       if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
       if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
@@ -89,6 +159,7 @@ class AppointmentService {
 
       print('🔍 Obteniendo citas...');
       print('URL: $uri');
+      print('Usuario: ${currentUser.nombre} (${currentUser.tipoUsuario?.name})');
       
       final response = await _client.get(uri, headers: headers);
       
