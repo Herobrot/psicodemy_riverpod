@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/user_firebase_entity.dart';
 import '../../domain/repositories/auth_repository_interface.dart';
 import '../../core/services/auth/auth_service.dart';
-import '../../core/services/auth/models/firebase_user_model.dart';
-import '../../core/services/auth/models/user_model.dart';
 import '../../core/services/auth/models/user_api_model.dart';
 import '../../core/services/auth/models/complete_user_model.dart';
+import '../../core/types/tipo_usuario.dart';
 
 // part 'auth_repository_impl.g.dart';
 
@@ -95,7 +94,9 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
       id: userApi.userId,
       correo: userApi.email,
       password: '', // No tenemos password en UserApiModel
-      tipoUsuario: userApi.userType,
+      tipoUsuario: userApi.userType == TipoUsuario.tutor 
+          ? TipoUsuario.tutor 
+          : TipoUsuario.alumno,
       createdAt: userApi.createdAt ?? DateTime.now(),
       updatedAt: userApi.updatedAt ?? DateTime.now(),
       deletedAt: null,

@@ -35,8 +35,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _completeOnboarding() async {
     // Marcar que el onboarding fue completado
     await ref.read(onboardingRepository).markOnboardingAsSeen();
-    // Refrescar el provider para que AppWrapper recargue
-    ref.refresh(isFirstTimeProvider);
+    // Invalidar el provider para que AppWrapper recargue
+    ref.invalidate(isFirstTimeProvider);
   }
 
   @override

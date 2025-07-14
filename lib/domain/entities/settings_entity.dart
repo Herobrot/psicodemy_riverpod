@@ -52,6 +52,30 @@ class NotificationSettings {
 
   factory NotificationSettings.fromJson(Map<String, dynamic> json) => _$NotificationSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
+
+  NotificationSettings copyWith({
+    bool? pushNotifications,
+    bool? emailNotifications,
+    bool? chatNotifications,
+    bool? forumNotifications,
+    bool? dailyQuotes,
+    bool? reminders,
+    bool? systemUpdates,
+    String? dailyQuoteTime,
+    List<String>? mutedUsers,
+  }) {
+    return NotificationSettings(
+      pushNotifications: pushNotifications ?? this.pushNotifications,
+      emailNotifications: emailNotifications ?? this.emailNotifications,
+      chatNotifications: chatNotifications ?? this.chatNotifications,
+      forumNotifications: forumNotifications ?? this.forumNotifications,
+      dailyQuotes: dailyQuotes ?? this.dailyQuotes,
+      reminders: reminders ?? this.reminders,
+      systemUpdates: systemUpdates ?? this.systemUpdates,
+      dailyQuoteTime: dailyQuoteTime ?? this.dailyQuoteTime,
+      mutedUsers: mutedUsers ?? this.mutedUsers,
+    );
+  }
 }
 
 @JsonSerializable()
@@ -74,6 +98,24 @@ class PrivacySettings {
 
   factory PrivacySettings.fromJson(Map<String, dynamic> json) => _$PrivacySettingsFromJson(json);
   Map<String, dynamic> toJson() => _$PrivacySettingsToJson(this);
+
+  PrivacySettings copyWith({
+    ProfileVisibility? profileVisibility,
+    bool? showOnlineStatus,
+    bool? allowDirectMessages,
+    bool? showInSearch,
+    bool? dataCollection,
+    List<String>? blockedUsers,
+  }) {
+    return PrivacySettings(
+      profileVisibility: profileVisibility ?? this.profileVisibility,
+      showOnlineStatus: showOnlineStatus ?? this.showOnlineStatus,
+      allowDirectMessages: allowDirectMessages ?? this.allowDirectMessages,
+      showInSearch: showInSearch ?? this.showInSearch,
+      dataCollection: dataCollection ?? this.dataCollection,
+      blockedUsers: blockedUsers ?? this.blockedUsers,
+    );
+  }
 }
 
 @JsonSerializable()
@@ -94,6 +136,22 @@ class AppearanceSettings {
 
   factory AppearanceSettings.fromJson(Map<String, dynamic> json) => _$AppearanceSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$AppearanceSettingsToJson(this);
+
+  AppearanceSettings copyWith({
+    ThemeMode? themeMode,
+    String? language,
+    double? fontSize,
+    bool? highContrast,
+    bool? reduceAnimations,
+  }) {
+    return AppearanceSettings(
+      themeMode: themeMode ?? this.themeMode,
+      language: language ?? this.language,
+      fontSize: fontSize ?? this.fontSize,
+      highContrast: highContrast ?? this.highContrast,
+      reduceAnimations: reduceAnimations ?? this.reduceAnimations,
+    );
+  }
 }
 
 @JsonSerializable()
@@ -114,6 +172,22 @@ class ChatSettings {
 
   factory ChatSettings.fromJson(Map<String, dynamic> json) => _$ChatSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$ChatSettingsToJson(this);
+
+  ChatSettings copyWith({
+    bool? readReceipts,
+    bool? typingIndicators,
+    bool? autoDownloadImages,
+    bool? autoDownloadVideos,
+    MessageRetention? messageRetention,
+  }) {
+    return ChatSettings(
+      readReceipts: readReceipts ?? this.readReceipts,
+      typingIndicators: typingIndicators ?? this.typingIndicators,
+      autoDownloadImages: autoDownloadImages ?? this.autoDownloadImages,
+      autoDownloadVideos: autoDownloadVideos ?? this.autoDownloadVideos,
+      messageRetention: messageRetention ?? this.messageRetention,
+    );
+  }
 }
 
 @JsonSerializable()
@@ -132,6 +206,20 @@ class ForumSettings {
 
   factory ForumSettings.fromJson(Map<String, dynamic> json) => _$ForumSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$ForumSettingsToJson(this);
+
+  ForumSettings copyWith({
+    bool? defaultAnonymous,
+    bool? showNotifications,
+    List<ForumCategory>? subscribedCategories,
+    SortOrder? defaultSortOrder,
+  }) {
+    return ForumSettings(
+      defaultAnonymous: defaultAnonymous ?? this.defaultAnonymous,
+      showNotifications: showNotifications ?? this.showNotifications,
+      subscribedCategories: subscribedCategories ?? this.subscribedCategories,
+      defaultSortOrder: defaultSortOrder ?? this.defaultSortOrder,
+    );
+  }
 }
 
 enum ProfileVisibility {

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
-import '../../providers/auth_providers.dart';
-import '../../state_notifiers/auth_state_notifier.dart';
 import 'sign_in_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {

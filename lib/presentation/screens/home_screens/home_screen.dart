@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../quotes_screens/detail_quotes_screen.dart';
-import '../../../services/login_services/auth_service.dart';
 import '../../../services/login_services/fcm_service.dart';
-import '../login_screens/sign_in_screen.dart';
-import '../quotes_screens/quotes_screen.dart';
-import '../forum_screens/forum_screen.dart';
-import '../../../components/header_home.dart';
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
 

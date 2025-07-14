@@ -43,12 +43,4 @@ abstract class SettingsRepository {
   Stream<SettingsEntity> watchSettings();
 }
 
-// Re-export ForumCategory
-enum ForumCategory {
-  general,
-  support,
-  experiences,
-  questions,
-  resources,
-  achievements,
-} 
+ 

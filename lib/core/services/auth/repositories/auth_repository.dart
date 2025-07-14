@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/firebase_user_model.dart';
 import '../models/user_model.dart';
 import '../models/complete_user_model.dart';
 import '../models/firebase_auth_response.dart';
@@ -13,7 +12,6 @@ import '../exceptions/auth_failure.dart';
 import 'secure_storage_repository.dart';
 import '../../api_service.dart';
 import '../../api_service_provider.dart';
-import '../../../types/tipo_usuario.dart';
 
 abstract class AuthRepository {
   Future<UserApiModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor});

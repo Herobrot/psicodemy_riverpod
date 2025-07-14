@@ -46,6 +46,48 @@ class ForumPostEntity {
 
   factory ForumPostEntity.fromJson(Map<String, dynamic> json) => _$ForumPostEntityFromJson(json);
   Map<String, dynamic> toJson() => _$ForumPostEntityToJson(this);
+
+  ForumPostEntity copyWith({
+    String? id,
+    String? title,
+    String? content,
+    String? authorId,
+    String? authorName,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    ForumCategory? category,
+    List<String>? tags,
+    int? likesCount,
+    int? commentsCount,
+    int? viewsCount,
+    bool? isLiked,
+    bool? isPinned,
+    bool? isAnonymous,
+    String? authorAvatarUrl,
+    List<String>? imageUrls,
+    PostStatus? status,
+  }) {
+    return ForumPostEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      category: category ?? this.category,
+      tags: tags ?? this.tags,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      viewsCount: viewsCount ?? this.viewsCount,
+      isLiked: isLiked ?? this.isLiked,
+      isPinned: isPinned ?? this.isPinned,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
+      imageUrls: imageUrls ?? this.imageUrls,
+      status: status ?? this.status,
+    );
+  }
 }
 
 @JsonSerializable()

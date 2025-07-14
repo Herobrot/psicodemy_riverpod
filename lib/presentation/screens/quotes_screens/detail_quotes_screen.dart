@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../forum_screens/forum_screen.dart';
-import '../home_screens/home_screen.dart';
 
 class DetalleCitaScreen extends StatefulWidget {
   const DetalleCitaScreen({super.key});

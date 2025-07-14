@@ -108,6 +108,16 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
   void reset() {
     state = LoginState.initial();
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      state = LoginState.loading();
+      await _authUseCases.sendPasswordResetEmail(email);
+      state = LoginState.success();
+    } catch (e) {
+      state = LoginState.error(e.toString());
+    }
+  }
 }
 
 // Providers para los state notifiers

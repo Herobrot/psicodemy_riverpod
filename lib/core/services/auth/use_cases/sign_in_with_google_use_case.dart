@@ -1,5 +1,5 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../models/firebase_user_model.dart';
+import 'package:psicodemy/core/services/auth/models/complete_user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';
 
@@ -8,7 +8,7 @@ class SignInWithGoogleUseCase {
 
   SignInWithGoogleUseCase(this._authRepository);
 
-  Future<UserModel> call() async {
+  Future<CompleteUserModel> call() async {
     try {
       return await _authRepository.signInWithGoogle();
     } on AuthFailure {

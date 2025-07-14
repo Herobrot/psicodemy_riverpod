@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../forum_screens/forum_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../home_screens/home_screen.dart';
 import 'detail_quotes_screen.dart';
 
 class CitasScreen extends StatefulWidget {

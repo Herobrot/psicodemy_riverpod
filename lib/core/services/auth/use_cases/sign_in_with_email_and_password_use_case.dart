@@ -1,4 +1,4 @@
-import 'package:psicodemy/core/services/auth/models/user_model.dart';
+import 'package:psicodemy/core/services/auth/models/user_api_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../exceptions/auth_failure.dart';

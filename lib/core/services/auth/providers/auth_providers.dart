@@ -1,73 +1,109 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/firebase_auth_state.dart';
-import '../models/firebase_user_model.dart';
-import '../models/complete_user_model.dart';
+import 'package:psicodemy/presentation/state_notifiers/auth_state.dart';
 import '../auth_service.dart';
 import '../exceptions/auth_failure.dart';
+import '../../../../domain/entities/user_firebase_entity.dart';
+
+// Enum para los estados de autenticación
+enum AuthStateStatus {
+  initial,
+  loading,
+  authenticated,
+  unauthenticated,
+  error,
+}
 
 // StateNotifier para manejar el estado de autenticación
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
 
-  AuthNotifier(this._authService) : super(const AuthState.initial()) {
+  AuthNotifier(this._authService) : super(AuthState.initial()) {
     _listenToAuthChanges();
   }
 
   void _listenToAuthChanges() {
-    _authService.authStateChanges.listen((user) {
-      if (user != null) {
-        state = AuthState.authenticated(FirebaseUserModel.fromCompleteUser(user));
+    _authService.authStateChanges.listen((completeUser) {
+      if (completeUser != null) {
+        final userEntity = UserFirebaseEntity(
+          uid: completeUser.uid,
+          email: completeUser.email,
+          displayName: completeUser.displayName ?? '',
+          photoURL: completeUser.photoURL ?? '',
+          isEmailVerified: completeUser.isEmailVerified,
+        );
+        state = AuthState.authenticated(userEntity);
       } else {
-        state = const AuthState.unauthenticated();
+        state = AuthState.unauthenticated();
       }
     });
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password, {String? codigoInstitucion}) async {
-    state = const AuthState.loading();
+    state = AuthState.loading();
     
     try {
-      final user = await _authService.signInWithEmailAndPassword(email, password);
-      state = AuthState.authenticated(FirebaseUserModel.fromCompleteUser(user));
+      final userApiModel = await _authService.signInWithEmailAndPassword(email, password);
+      final userEntity = UserFirebaseEntity(
+        uid: userApiModel.userId,
+        email: userApiModel.email,
+        displayName: userApiModel.nombre,
+        photoURL: '',
+        isEmailVerified: true,
+      );
+      state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
-      state = AuthState.error(e);
+      state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 
   Future<void> signUpWithEmailAndPassword(String email, String password, {String? codigoInstitucion}) async {
-    state = const AuthState.loading();
+    state = AuthState.loading();
     
     try {
-      final user = await _authService.signUpWithEmailAndPassword(email, password);
-      state = AuthState.authenticated(FirebaseUserModel.fromCompleteUser(user));
+      final completeUser = await _authService.signUpWithEmailAndPassword(email, password);
+      final userEntity = UserFirebaseEntity(
+        uid: completeUser.uid,
+        email: completeUser.email,
+        displayName: completeUser.displayName ?? '',
+        photoURL: completeUser.photoURL ?? '',
+        isEmailVerified: completeUser.isEmailVerified,
+      );
+      state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
-      state = AuthState.error(e);
+      state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 
   Future<void> signInWithGoogle({String? codigoInstitucion}) async {
-    state = const AuthState.loading();
+    state = AuthState.loading();
     
     try {
-      final user = await _authService.signInWithGoogle();
-      state = AuthState.authenticated(FirebaseUserModel.fromCompleteUser(user));
+      final completeUser = await _authService.signInWithGoogle();
+      final userEntity = UserFirebaseEntity(
+        uid: completeUser.uid,
+        email: completeUser.email,
+        displayName: completeUser.displayName ?? '',
+        photoURL: completeUser.photoURL ?? '',
+        isEmailVerified: completeUser.isEmailVerified,
+      );
+      state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
-      state = AuthState.error(e);
+      state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 
   Future<void> signOut() async {
     try {
       await _authService.signOut();
-      state = const AuthState.unauthenticated();
+      state = AuthState.unauthenticated();
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 
@@ -75,20 +111,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _authService.sendPasswordResetEmail(email);
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 
   Future<void> getCurrentUser() async {
     try {
-      final user = await _authService.getCurrentUser();
-      if (user != null) {
-        state = AuthState.authenticated(FirebaseUserModel.fromCompleteUser(user));
+      final completeUser = await _authService.getCurrentUser();
+      if (completeUser != null) {
+        final userEntity = UserFirebaseEntity(
+          uid: completeUser.uid,
+          email: completeUser.email,
+          displayName: completeUser.displayName ?? '',
+          photoURL: completeUser.photoURL ?? '',
+          isEmailVerified: completeUser.isEmailVerified,
+        );
+        state = AuthState.authenticated(userEntity);
       } else {
-        state = const AuthState.unauthenticated();
+        state = AuthState.unauthenticated();
       }
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()));
+      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
     }
   }
 }
@@ -106,20 +149,20 @@ final authStateProvider = Provider<AuthState>((ref) {
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.status == AuthStateStatus.authenticated;
+  return authState.status == 'authenticated';
 });
 
-final currentUserProvider = Provider<FirebaseUserModel?>((ref) {
+final currentUserProvider = Provider<UserFirebaseEntity?>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.status == AuthStateStatus.authenticated ? authState.user : null;
+  return authState.status == 'authenticated' ? authState.user : null;
 });
 
 final isLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.status == AuthStateStatus.loading;
+  return authState.status == 'loading';
 });
 
 final authErrorProvider = Provider<String?>((ref) {
   final authState = ref.watch(authNotifierProvider);
-  return authState.status == AuthStateStatus.error ? authState.error?.message : null;
+  return authState.status == 'error' ? authState.message : null;
 });

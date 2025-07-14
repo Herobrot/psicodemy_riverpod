@@ -68,10 +68,20 @@ class ChatUseCases {
     final messages = await _chatRepository.getMessages(''); // This would need to be refactored
     final message = messages.firstWhere((m) => m.id == messageId);
     
-    final updatedMessage = message.copyWith(
+    final updatedMessage = MessageEntity(
+      id: message.id,
+      chatId: message.chatId,
+      senderId: message.senderId,
       content: newContent,
-      isEdited: true,
+      type: message.type,
+      createdAt: message.createdAt,
       updatedAt: DateTime.now(),
+      replyToMessageId: message.replyToMessageId,
+      isRead: message.isRead,
+      isEdited: true,
+      isDeleted: message.isDeleted,
+      attachmentUrls: message.attachmentUrls,
+      metadata: message.metadata,
     );
     
     return await _chatRepository.updateMessage(updatedMessage);

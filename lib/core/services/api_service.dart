@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/exceptions/auth_failure.dart';
-import '../types/tipo_usuario.dart';
 
 class ApiService {
   static const String _baseUrl = 'https://api.rutasegura.xyz/auth';

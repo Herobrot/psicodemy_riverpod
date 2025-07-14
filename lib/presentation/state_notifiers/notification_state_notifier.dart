@@ -1,7 +1,5 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../core/services/notification/notification_service.dart';
-import '../../domain/repositories/notification_repository_interface.dart';
-import '../../domain/entities/notification_entity.dart';
+import '../providers/notification_providers.dart';
 import 'notification_state.dart';
 
 // Provider estándar en lugar de anotación @riverpod
@@ -12,8 +10,8 @@ final notificationStateNotifierProvider = StateNotifierProvider<NotificationStat
 });
 
 class NotificationStateNotifier extends StateNotifier<NotificationState> {
-  final NotificationService _service;
-  final NotificationRepositoryInterface _repository;
+  final dynamic _service;
+  final dynamic _repository;
 
   NotificationStateNotifier(this._service, this._repository) 
       : super(NotificationState.initial());
