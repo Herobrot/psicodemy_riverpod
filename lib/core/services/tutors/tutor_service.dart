@@ -41,7 +41,7 @@ class TutorService {
       print('URL: https://api.psicodemy.com/auth/users/tutor');
       
       final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com/auth/auth/users/tutor'),
+        Uri.parse('https://api.psicodemy.com/auth/users/tutor'),
         headers: headers,
       );
 

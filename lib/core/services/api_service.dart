@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/exceptions/auth_failure.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://api.psicodemy.com/auth';
+  static const String _baseUrl = 'https://api.psicodemy.com';
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 
@@ -57,7 +57,7 @@ class ApiService {
       };
 
       // 🔍 DEBUG: Imprimir datos de la petición
-      print('🌐 API REQUEST to $_baseUrl/auth/firebase:');
+      print('🌐 API REQUEST to $_baseUrl/auth/auth/firebase:');
       print('Headers: $_baseHeaders');
       print('Body: ${json.encode(requestBody)}');
       print('Token (first 50 chars): ${firebaseToken.substring(0, firebaseToken.length > 50 ? 50 : firebaseToken.length)}...');
@@ -98,11 +98,11 @@ class ApiService {
         if (codigoTutor != null && codigoTutor.isNotEmpty) 'codigo_institucion': codigoTutor,
       };
       
-      print('📤 ApiService: Enviando petición a $_baseUrl/auth/validate');
+      print('📤 ApiService: Enviando petición a $_baseUrl/auth/auth/validate');
       print('📤 Request body: ${json.encode(requestBody)}');
       
       final response = await _client.post(
-        Uri.parse('$_baseUrl/auth/validate'),
+        Uri.parse('$_baseUrl/auth/auth/validate'),
         headers: _baseHeaders,
         body: json.encode(requestBody),
       );
@@ -124,7 +124,7 @@ class ApiService {
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/auth/profile'),
+        Uri.parse('$_baseUrl/auth/auth/profile'),
         headers: await _authHeaders,
       );
 
@@ -138,7 +138,7 @@ class ApiService {
   Future<Map<String, dynamic>> getTutorOnlyResource() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/auth/tutor-only'),
+        Uri.parse('$_baseUrl/auth/auth/tutor-only'),
         headers: await _authHeaders,
       );
 
@@ -152,7 +152,7 @@ class ApiService {
   Future<Map<String, dynamic>> getStudentOnlyResource() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/auth/student-only'),
+        Uri.parse('$_baseUrl/auth/auth/student-only'),
         headers: await _authHeaders,
       );
 
@@ -180,7 +180,7 @@ class ApiService {
   Future<Map<String, dynamic>> createAppointment(Map<String, dynamic> request) async {
     try {
       final response = await _client.post(
-        Uri.parse('$_baseUrl/appointments'),
+        Uri.parse('$_baseUrl/s1/appointments'),
         headers: await _authHeaders,
         body: json.encode(request),
       );
@@ -212,7 +212,7 @@ class ApiService {
       if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
       if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
 
-      final uri = Uri.parse('$_baseUrl/appointments').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$_baseUrl/s1/appointments').replace(queryParameters: queryParams);
       final response = await _client.get(uri, headers: await _authHeaders);
       final data = await _handleResponse(response);
       return (data['data'] as List<dynamic>); // SOLO data['data']
@@ -225,7 +225,7 @@ class ApiService {
   Future<Map<String, dynamic>> getAppointmentById(String id) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/appointments/$id'),
+        Uri.parse('$_baseUrl/s1/appointments/$id'),
         headers: await _authHeaders,
       );
       final data = await _handleResponse(response);
@@ -239,7 +239,7 @@ class ApiService {
   Future<Map<String, dynamic>> updateAppointment(String id, Map<String, dynamic> request) async {
     try {
       final response = await _client.put(
-        Uri.parse('$_baseUrl/appointments/$id'),
+        Uri.parse('$_baseUrl/s1/appointments/$id'),
         headers: await _authHeaders,
         body: json.encode(request),
       );
@@ -254,7 +254,7 @@ class ApiService {
   Future<Map<String, dynamic>> updateAppointmentStatus(String id, Map<String, dynamic> request) async {
     try {
       final response = await _client.put(
-        Uri.parse('$_baseUrl/appointments/$id/status'),
+        Uri.parse('$_baseUrl/s1/appointments/$id/status'),
         headers: await _authHeaders,
         body: json.encode(request),
       );
@@ -269,7 +269,7 @@ class ApiService {
   Future<void> deleteAppointment(String id) async {
     try {
       final response = await _client.delete(
-        Uri.parse('$_baseUrl/appointments/$id'),
+        Uri.parse('$_baseUrl/s1/appointments/$id'),
         headers: await _authHeaders,
       );
       await _handleResponse(response);
