@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../quotes_screens/detail_quotes_screen.dart';
+
 import '../../../services/login_services/fcm_service.dart';
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
+import '../quotes_screens/quotes_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -192,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DetalleCitaScreen()),
+          MaterialPageRoute(builder: (_) => const CitasScreen()),
         );
       },
       child: Container(

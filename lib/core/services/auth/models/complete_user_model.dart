@@ -196,6 +196,40 @@ class CompleteUserModel {
     );
   }
 
+  // Constructor específico para respuesta de API del backend
+  factory CompleteUserModel.fromApiResponse(Map<String, dynamic> apiData, UserModel firebaseUser) {
+    return CompleteUserModel(
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName,
+      photoURL: firebaseUser.photoURL,
+      isEmailVerified: firebaseUser.emailVerified,
+      createdAt: firebaseUser.createdAt,
+      lastSignInAt: firebaseUser.lastSignInAt,
+      userId: apiData['userId']?.toString(),
+      nombre: apiData['nombre']?.toString(),
+      tipoUsuario: _parseUserType(apiData['userType']),
+      apiToken: apiData['token']?.toString(),
+      apiCreatedAt: null,
+      apiUpdatedAt: null,
+      firebaseUser: firebaseUser,
+      apiUser: apiData,
+    );
+  }
+
+  // Método auxiliar para parsear el tipo de usuario
+  static TipoUsuario _parseUserType(dynamic userType) {
+    if (userType == null) return TipoUsuario.alumno;
+    
+    switch (userType.toString().toLowerCase()) {
+      case 'tutor':
+        return TipoUsuario.tutor;
+      case 'alumno':
+      default:
+        return TipoUsuario.alumno;
+    }
+  }
+
   @override
   String toString() {
     return 'CompleteUserModel(uid: $uid, email: $email, displayName: $displayName, '

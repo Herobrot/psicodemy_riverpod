@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
+import '../../providers/simple_auth_providers.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -84,6 +85,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       print('❌ Error en inicio de sesión: $e');
       print('❌ Tipo de error: ${e.runtimeType}');
       
+      // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
+      try {
+        final authActions = ref.read(authActionsProvider);
+        await authActions.signOut();
+      } catch (signOutError) {
+        print('❌ Error al cerrar sesión después del error: $signOutError');
+      }
+      
       String errorMessage;
       if (e.toString().contains('AuthFailure')) {
         // Extraer el mensaje del AuthFailure
@@ -141,6 +150,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         );
       }
     } catch (e) {
+      // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
+      try {
+        final authActions = ref.read(authActionsProvider);
+        await authActions.signOut();
+      } catch (signOutError) {
+        print('❌ Error al cerrar sesión después del error: $signOutError');
+      }
+      
       setState(() {
         _error = e.toString();
       });

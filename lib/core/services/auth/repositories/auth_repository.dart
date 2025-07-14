@@ -39,27 +39,50 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
     try {
-      print('🔐 AuthRepository: Iniciando autenticación con credenciales');
-      print('📧 Email: $email');
-      print('🔑 Código tutor: $codigoTutor');
-      
-      final response = await _apiService.authenticateWithCredentials(
-        correo: email,
+      // 1. Iniciar sesión con Firebase
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
         password: password,
+      );
+      
+      if (userCredential.user == null) {
+        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
+      }
+
+      // 2. Obtener token de Firebase
+      final firebaseToken = await userCredential.user!.getIdToken();
+      
+      // 🔍 DEBUG: Imprimir token de Firebase
+      print('🔥 FIREBASE TOKEN (Sign In):');
+      print('Token length: ${firebaseToken?.length ?? 0}');
+      print('Token: $firebaseToken');
+      print('User UID: ${userCredential.user!.uid}');
+      print('User Email: ${userCredential.user!.email}');
+      print('---');
+      
+      // 3. Autenticar en la API del backend
+      if (firebaseToken == null) {
+        throw AuthFailure.serverError('Firebase token is null');
+      }
+      
+      final response = await _apiService.authenticateWithFirebase(
+        firebaseToken: firebaseToken,
+        nombre: userCredential.user!.displayName ?? email.split('@')[0],
+        correo: email,
         codigoTutor: codigoTutor,
       );
 
       print('📡 AuthRepository: Respuesta de API recibida');
       print('📡 Response keys: ${response.keys.toList()}');
-      print('📡 User data: ${response['user']}');
+      print('📡 User data: ${response['data']}');
 
-      if (response['user'] == null) {
+      if (response['data'] == null) {
         print('❌ AuthRepository: Usuario no encontrado en la respuesta');
         throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
       }
 
       print('✅ AuthRepository: Creando CompleteUserModel');
-      final user = CompleteUserModel.fromJson(response['user']);
+      final user = CompleteUserModel.fromApiResponse(response['data'], UserModel.fromFirebaseUser(userCredential.user!));
       print('✅ AuthRepository: Usuario creado: ${user.toString()}');
       
       print('💾 AuthRepository: Guardando sesión de usuario');
@@ -67,6 +90,8 @@ class AuthRepositoryImpl implements AuthRepository {
       print('✅ AuthRepository: Sesión guardada exitosamente');
       
       return user;
+    } on FirebaseAuthException catch (e) {
+      throw AuthExceptions.handleFirebaseAuthException(e);
     } catch (e) {
       print('❌ AuthRepository: Error en signInWithEmailAndPassword');
       print('❌ Error tipo: ${e.runtimeType}');
