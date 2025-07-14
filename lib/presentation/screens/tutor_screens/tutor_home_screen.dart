@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/appointment_providers.dart';
-import '../../providers/simple_auth_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
 
 class TutorHomeScreen extends ConsumerStatefulWidget {

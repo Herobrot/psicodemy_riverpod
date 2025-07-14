@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
+import '../../../core/types/tipo_usuario.dart';
 import 'sign_in_screen.dart';
+import '../main_screen.dart';
+import '../tutor_screens/tutor_main_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -42,7 +45,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     try {
       final authService = ref.read(authServiceProvider);
       
-      await authService.signUpWithEmailAndPassword(
+      final completeUser = await authService.signUpWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
         codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
@@ -58,6 +61,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
+        _navigateToAppropriateScreen(completeUser);
       }
     } catch (e) {
       setState(() {
@@ -79,7 +85,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     try {
       final authService = ref.read(authServiceProvider);
       
-      await authService.signInWithGoogle(
+      final completeUser = await authService.signInWithGoogle(
         codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
             ? _codigoTutorController.text.trim() 
             : null,
@@ -93,6 +99,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
+        _navigateToAppropriateScreen(completeUser);
       }
     } catch (e) {
       setState(() {
@@ -134,6 +143,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         );
       }
+    }
+  }
+
+  void _navigateToAppropriateScreen(dynamic completeUser) {
+    // Determinar el tipo de usuario y navegar
+    if (completeUser.tipoUsuario == TipoUsuario.tutor) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const TutorMainScreen()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+      );
     }
   }
 

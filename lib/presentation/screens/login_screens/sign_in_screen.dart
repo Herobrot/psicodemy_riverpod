@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
+import '../../../core/types/tipo_usuario.dart';
 import '../../providers/simple_auth_providers.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
+import '../main_screen.dart';
+import '../tutor_screens/tutor_main_screen.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -63,7 +66,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       print('🔐 Iniciando sesión con email: ${_emailController.text.trim()}');
       final authService = ref.read(authServiceProvider);
       
-      await authService.signInWithEmailAndPassword(
+      final completeUser = await authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
         codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
@@ -80,6 +83,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
+        _navigateToAppropriateScreen(completeUser);
       }
     } catch (e) {
       print('❌ Error en inicio de sesión: $e');
@@ -134,7 +140,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     try {
       final authService = ref.read(authServiceProvider);
       
-      await authService.signInWithGoogle(
+      final completeUser = await authService.signInWithGoogle(
         codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
             ? _codigoTutorController.text.trim() 
             : null,
@@ -148,6 +154,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
+        _navigateToAppropriateScreen(completeUser);
       }
     } catch (e) {
       // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
@@ -495,5 +504,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ),
       ),
     );
+  }
+
+  void _navigateToAppropriateScreen(dynamic completeUser) {
+    // Determinar el tipo de usuario y navegar
+    if (completeUser.tipoUsuario == TipoUsuario.tutor) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const TutorMainScreen()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+      );
+    }
   }
 } 
