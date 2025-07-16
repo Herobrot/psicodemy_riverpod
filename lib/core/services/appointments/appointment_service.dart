@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../api_service.dart';
 import '../auth/auth_service.dart';
+import '../../types/tipo_usuario.dart';
 import 'models/appointment_model.dart';
 import 'exceptions/appointment_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart';
