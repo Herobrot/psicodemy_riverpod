@@ -12,9 +12,9 @@ class ApiService {
 
   ApiService({
     http.Client? client,
-    FlutterSecureStorage? secureStorage,
+    required FlutterSecureStorage secureStorage,
   }) : _client = client ?? http.Client(),
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+       _secureStorage = secureStorage;
 
   // Headers básicos para todas las requests
   Map<String, String> get _baseHeaders => {

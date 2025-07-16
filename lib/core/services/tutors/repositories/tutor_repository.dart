@@ -3,6 +3,7 @@ import '../tutor_service.dart';
 import '../models/tutor_model.dart';
 import '../exceptions/tutor_exception.dart';
 import 'tutor_repository_interface.dart';
+import '../../auth/providers/secure_storage_provider.dart';
 
 /// Implementación del repositorio de tutores
 class TutorRepository implements TutorRepositoryInterface {
@@ -191,5 +192,6 @@ final tutorRepositoryProvider = Provider<TutorRepository>((ref) {
 
 /// Provider para el servicio de tutores
 final tutorServiceProvider = Provider<TutorService>((ref) {
-  return TutorService();
+  final storage = ref.watch(secureStorageProvider);
+  return TutorService(secureStorage: storage);
 }); 

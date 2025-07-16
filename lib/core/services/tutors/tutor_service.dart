@@ -13,9 +13,9 @@ class TutorService {
 
   TutorService({
     http.Client? client,
-    FlutterSecureStorage? secureStorage,
-  }) : _client = client ?? http.Client(),
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    required FlutterSecureStorage secureStorage,
+  })  : _client = client ?? http.Client(),
+        _secureStorage = secureStorage;
 
   /// Headers básicos para todas las requests
   Map<String, String> get _baseHeaders => {
