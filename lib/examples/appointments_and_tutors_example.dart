@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/services/appointments/models/appointment_model.dart';
 import '../core/services/appointments/providers/appointment_providers.dart';
-import '../core/services/tutors/models/tutor_model.dart';
 import '../core/services/tutors/providers/tutor_providers.dart';
 
 /// Ejemplo de cómo usar los servicios de citas y tutores

@@ -1,10 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../appointment_service.dart';
 import '../models/appointment_model.dart';
 import '../exceptions/appointment_exception.dart';
 import 'appointment_repository_interface.dart';
 import '../../auth/auth_service.dart';
-import '../../auth/models/complete_user_model.dart';
 
 /// Implementación del repositorio de citas
 class AppointmentRepository implements AppointmentRepositoryInterface {

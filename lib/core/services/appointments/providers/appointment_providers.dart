@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../appointment_service.dart';
 import '../repositories/appointment_repository.dart';

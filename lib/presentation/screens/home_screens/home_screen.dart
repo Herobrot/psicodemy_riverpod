@@ -502,9 +502,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Aniversario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF333))),
+                const Text('Aniversario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0x000ff333))),
                 const SizedBox(height: 4),
-                const Text('Celebremos juntos', style: TextStyle(fontSize: 14, color: Color(0xFF666))),
+                const Text('Celebremos juntos', style: TextStyle(fontSize: 14, color: Color(0x000ff666))),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
