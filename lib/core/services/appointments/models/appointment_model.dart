@@ -230,7 +230,7 @@ class AppointmentError {
   Map<String, dynamic> toJson() => _$AppointmentErrorToJson(this);
 }
 
-/// Extensión para obtener el nombre en español del estado
+// Extensión para mostrar nombres legibles de EstadoCita
 extension EstadoCitaExtension on EstadoCita {
   String get displayName {
     switch (this) {
@@ -238,12 +238,12 @@ extension EstadoCitaExtension on EstadoCita {
         return 'Pendiente';
       case EstadoCita.confirmada:
         return 'Confirmada';
-      case EstadoCita.cancelada:
-        return 'Cancelada';
       case EstadoCita.completada:
         return 'Completada';
+      case EstadoCita.cancelada:
+        return 'Cancelada';
       case EstadoCita.noAsistio:
         return 'No asistió';
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 
@@ -13,6 +14,8 @@ class TutorAppointmentsScreen extends ConsumerStatefulWidget {
 
 class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScreen> {
   String? _selectedAlumnoId;
+  
+
   AppointmentModel? _selectedAppointment;
   bool _showHistorial = false;
 
@@ -112,14 +115,41 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
       isScrollControlled: true,
       builder: (context) => _AppointmentDetailSheet(
         appointment: appointment,
-        onStatusChanged: (newStatus) async {
-          await ref.read(updateAppointmentStatusProvider({
-            'id': appointment.id,
-            'estado': newStatus,
-          }).future);
-          ref.refresh(appointmentListProvider);
-          Navigator.pop(context);
-        },
+                  onStatusChanged: (newStatus) async {
+            print('🔄 Actualizando cita ${appointment.id} a estado: $newStatus');
+            
+            try {
+              await ref.read(updateAppointmentStatusProvider({
+                'id': appointment.id,
+                'request': UpdateStatusRequest(estadoCita: newStatus),
+              }).future);
+              
+              print('✅ Estado actualizado exitosamente');
+              ref.refresh(appointmentListProvider);
+              Navigator.pop(context);
+              
+              // Mostrar mensaje de éxito
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Estado de la cita actualizado exitosamente'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            } catch (e) {
+              print('❌ Error al actualizar estado: $e');
+              // Mostrar mensaje de error al usuario
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error al actualizar el estado: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          },
         onEditTodo: (toDo, finishToDo) async {
           await ref.read(updateAppointmentProvider({
             'id': appointment.id,
