@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'auth/exceptions/auth_failure.dart';
 
 class ApiService {
@@ -21,12 +22,28 @@ class ApiService {
     'Accept': 'application/json',
   };
 
-  // Headers con token de autorización
+  // Headers con token de autorización (siempre token de Firebase y userID de la API)
   Future<Map<String, String>> get _authHeaders async {
-    final token = await _secureStorage.read(key: 'auth_token');
+    // Obtener token de Firebase
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print('❌ No hay usuario de Firebase logueado');
+      throw AuthFailure.apiError('Usuario no autenticado');
+    }
+    final firebaseToken = await user.getIdToken();
+    if (firebaseToken == null) {
+      throw AuthFailure.apiError('No se pudo obtener el token de Firebase');
+    }
+    // Obtener el userId del tutor desde el storage
+    final tutorId = await _getCurrentUserTutorId();
+    if (tutorId == null) {
+      print('❌ No se pudo obtener el userId del tutor para el header');
+      throw AuthFailure.apiError('No se pudo obtener el userId del tutor');
+    }
     return {
       ..._baseHeaders,
-      if (token != null) 'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer $firebaseToken',
+      'userID': tutorId,
     };
   }
 
@@ -253,10 +270,28 @@ class ApiService {
   // Actualizar solo el estado de una cita
   Future<Map<String, dynamic>> updateAppointmentStatus(String id, Map<String, dynamic> request) async {
     try {
+      final headers = await _authHeaders;
+      
+      // 🔄 Obtener ID del tutor del usuario autenticado
+      final tutorId = await _getCurrentUserTutorId();
+      
+      // Agregar ID del tutor a la request si no está presente o es null
+      final enrichedRequest = {
+        ...request,
+        'userId': tutorId,
+      };
+      
+      // 🔄 DEBUG: Información esencial de la request
+      print('🔄 Actualizando estado de cita:');
+      print('   Appointment ID: $id');
+      print('   Tutor ID: $tutorId');
+      print('   Has Auth Token: ${headers.containsKey('Authorization')}');
+      print('   Request: ${json.encode(enrichedRequest)}');
+      
       final response = await _client.put(
         Uri.parse('$_baseUrl/s1/appointments/$id/status'),
-        headers: await _authHeaders,
-        body: json.encode(request),
+        headers: headers,
+        body: json.encode(enrichedRequest),
       );
       final data = await _handleResponse(response);
       return data['data']; // SOLO data['data']
@@ -374,6 +409,81 @@ class ApiService {
         throw AuthFailure.unknown(
           'Error HTTP ${response.statusCode}: ${responseData['message'] ?? 'Error desconocido'}'
         );
+    }
+  }
+
+  // Obtener ID del tutor del usuario autenticado
+  Future<String?> _getCurrentUserTutorId() async {
+    try {
+      // Intentar obtener datos del usuario completo del storage
+      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+      
+      if (completeUserData != null) {
+        final userJson = json.decode(completeUserData);
+        print('🔍 User JSON: $userJson');
+        final userId = userJson['userId'] as String?;
+        final tipoUsuario = userJson['tipoUsuario'] as String?;
+        print('🔍 Tipo de usuario: $tipoUsuario');
+        print('🔍 User ID: $userId');
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
+          print('📋 ID del tutor obtenido del storage: $userId');
+          return userId;
+        }
+        return userId;
+      }
+      
+      print('⚠️  No se pudo obtener ID del tutor del storage');
+      return null;
+    } catch (e) {
+      print('❌ Error obteniendo ID del tutor: $e');
+      return null;
+    }
+  }
+
+  // Verificar y asegurar autenticación
+  Future<void> _ensureAuthentication() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      
+      if (user == null) {
+        print('❌ No hay usuario de Firebase logueado');
+        throw AuthFailure.apiError('Usuario no autenticado');
+      }
+      
+      print('🔥 Usuario Firebase encontrado: ${user.email}');
+      print('🔄 Obteniendo token de Firebase...');
+      
+      // Obtener token de Firebase
+      final firebaseToken = await user.getIdToken();
+      
+      if (firebaseToken == null) {
+        throw AuthFailure.serverError('No se pudo obtener el token de Firebase');
+      }
+      
+      print('✅ Token de Firebase obtenido (${firebaseToken.length} chars)');
+      print('🌐 Autenticando con la API...');
+      
+      // Autenticar con la API usando el token de Firebase
+      final response = await authenticateWithFirebase(
+        firebaseToken: firebaseToken,
+        nombre: user.displayName ?? user.email?.split('@')[0] ?? 'Usuario',
+        correo: user.email ?? '',
+      );
+      
+      // Guardar el token de la API si está presente
+      final apiToken = response['data']?['token'];
+      if (apiToken != null) {
+        await _secureStorage.write(key: 'auth_token', value: apiToken);
+        print('🔑 Token de API guardado tras autenticación con Firebase');
+      } else {
+        print('❌ No se encontró token de API en la respuesta');
+      }
+      
+      print('✅ Autenticación con API exitosa');
+      
+    } catch (e) {
+      print('❌ Error en _ensureAuthentication: $e');
+      rethrow;
     }
   }
 

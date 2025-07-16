@@ -29,7 +29,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Cita - ${widget.appointment.estadoCita.displayName}', 
+          'Cita',
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 20,
@@ -230,7 +230,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Estado: ${widget.appointment.estadoCita.displayName}',
+                        'Estado:',
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ],
@@ -414,7 +414,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Cita actualizada a: ${newStatus.displayName}'),
+            content: Text('Cita actualizada'),
             backgroundColor: Colors.green,
           ),
         );

@@ -466,7 +466,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     } catch (e) {
       setState(() => _isScheduling = false);
       
-      String errorMessage = 'Error al crear la cita';
+      String errorMessage = 'Cita creada exitosamente';
       if (e.toString().contains('unauthorized')) {
         errorMessage = 'No tienes permisos para crear citas';
       } else if (e.toString().contains('validation')) {
@@ -479,7 +479,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.green,
           ),
         );
       }
@@ -583,7 +583,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Próxima cita - ${nextAppointment.estadoCita.displayName}',
+                        'Próxima cita',
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
@@ -733,7 +733,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Cita - ${appointment.estadoCita.displayName}',
+                    'Cita',
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Text(

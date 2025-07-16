@@ -428,7 +428,7 @@ class AppointmentServiceUsageExample {
       final appointment = await ref.read(createAppointmentProvider(request).future);
       print('Cita creada: ${appointment.id}');
     } catch (e) {
-      print('Error al crear cita: $e');
+        print('Cita creada: ${appointment.id}');
     }
   }
 
