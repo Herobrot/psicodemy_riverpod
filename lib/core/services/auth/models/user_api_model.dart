@@ -1,4 +1,4 @@
-import '../../../types/tipo_usuario.dart';
+import '../../../constants/enums/tipo_usuario.dart';
 
 class UserApiModel {
   final String userId;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
-import '../../../core/types/tipo_usuario.dart';
+import '../../../core/constants/enums/tipo_usuario.dart';
 import 'sign_in_screen.dart';
 import '../main_screen.dart';
 import '../tutor_screens/tutor_main_screen.dart';

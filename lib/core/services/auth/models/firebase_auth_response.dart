@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../../../types/tipo_usuario.dart';
+import '../../../constants/enums/tipo_usuario.dart';
 
 part 'firebase_auth_response.g.dart';
 
