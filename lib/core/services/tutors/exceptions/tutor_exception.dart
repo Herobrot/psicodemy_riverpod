@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'tutor_failure.dart';
 
 part 'tutor_exception.g.dart';
 
@@ -15,48 +16,34 @@ class TutorException implements Exception {
     this.details,
   });
 
-  // Factores de errores comunes
+  // Factory para crear desde TutorFailure
+  factory TutorException.fromFailure(TutorFailure failure) => TutorException(
+    type: failure.type,
+    message: failure.message ?? '',
+    details: null,
+  );
+
+  // Factories delegando a TutorFailure y usando fromFailure
   factory TutorException.serverError([String? message]) =>
-      TutorException(
-        type: 'serverError',
-        message: message ?? 'Error interno del servidor',
-      );
+      TutorException.fromFailure(TutorFailure.serverError(message));
 
   factory TutorException.unauthorized([String? message]) =>
-      TutorException(
-        type: 'unauthorized',
-        message: message ?? 'No autorizado',
-      );
+      TutorException.fromFailure(TutorFailure.unauthorized(message));
 
   factory TutorException.notFound([String? message]) =>
-      TutorException(
-        type: 'notFound',
-        message: message ?? 'Tutores no encontrados',
-      );
+      TutorException.fromFailure(TutorFailure.notFound(message));
 
   factory TutorException.networkError([String? message]) =>
-      TutorException(
-        type: 'networkError',
-        message: message ?? 'Error de conexión',
-      );
+      TutorException.fromFailure(TutorFailure.networkError(message));
 
   factory TutorException.emptyResponse([String? message]) =>
-      TutorException(
-        type: 'emptyResponse',
-        message: message ?? 'No se encontraron tutores',
-      );
+      TutorException.fromFailure(TutorFailure.emptyResponse(message));
 
   factory TutorException.parseError([String? message]) =>
-      TutorException(
-        type: 'parseError',
-        message: message ?? 'Error al procesar la respuesta',
-      );
+      TutorException.fromFailure(TutorFailure.parseError(message));
 
   factory TutorException.unknown([String? message]) =>
-      TutorException(
-        type: 'unknown',
-        message: message ?? 'Error desconocido',
-      );
+      TutorException.fromFailure(TutorFailure.unknown(message));
 
   factory TutorException.fromJson(Map<String, dynamic> json) =>
       _$TutorExceptionFromJson(json);
