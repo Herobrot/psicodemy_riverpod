@@ -10,6 +10,17 @@ TutorModel _$TutorModelFromJson(Map<String, dynamic> json) => TutorModel(
   id: json['id'] as String,
   nombre: json['nombre'] as String,
   correo: json['correo'] as String,
+  fotoPerfil: json['fotoPerfil'] as String?,
+  telefono: json['telefono'] as String?,
+  especialidad: json['especialidad'] as String?,
+  descripcion: json['descripcion'] as String?,
+  isOnline: json['isOnline'] as bool?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
 );
 
 Map<String, dynamic> _$TutorModelToJson(TutorModel instance) =>
@@ -17,6 +28,13 @@ Map<String, dynamic> _$TutorModelToJson(TutorModel instance) =>
       'id': instance.id,
       'nombre': instance.nombre,
       'correo': instance.correo,
+      'fotoPerfil': instance.fotoPerfil,
+      'telefono': instance.telefono,
+      'especialidad': instance.especialidad,
+      'descripcion': instance.descripcion,
+      'isOnline': instance.isOnline,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
 TutorData _$TutorDataFromJson(Map<String, dynamic> json) => TutorData(

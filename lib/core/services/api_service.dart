@@ -7,7 +7,7 @@ import 'auth/exceptions/auth_failure.dart';
 import '../constants/api_routes.dart';
 
 class ApiService {
-  static const String _baseUrl = String.fromEnvironment('API_URL');
+  static const String _baseUrl = 'https://api.psicodemy.com';
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 

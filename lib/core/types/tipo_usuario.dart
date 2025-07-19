@@ -1,4 +1,0 @@
-enum TipoUsuario {
-  tutor,
-  alumno,
-}

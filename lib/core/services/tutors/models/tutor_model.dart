@@ -8,11 +8,25 @@ class TutorModel {
   final String id;
   final String nombre;
   final String correo;
+  final String? fotoPerfil;
+  final String? telefono;
+  final String? especialidad;
+  final String? descripcion;
+  final bool? isOnline;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const TutorModel({
     required this.id,
     required this.nombre,
     required this.correo,
+    this.fotoPerfil,
+    this.telefono,
+    this.especialidad,
+    this.descripcion,
+    this.isOnline,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory TutorModel.fromJson(Map<String, dynamic> json) =>
@@ -22,7 +36,7 @@ class TutorModel {
 
   @override
   String toString() {
-    return 'TutorModel(id: $id, nombre: $nombre, correo: $correo)';
+    return 'TutorModel(id: $id, nombre: $nombre, correo: $correo, fotoPerfil: $fotoPerfil, telefono: $telefono, especialidad: $especialidad)';
   }
 
   @override
@@ -31,12 +45,20 @@ class TutorModel {
     return other is TutorModel &&
         other.id == id &&
         other.nombre == nombre &&
-        other.correo == correo;
+        other.correo == correo &&
+        other.fotoPerfil == fotoPerfil &&
+        other.telefono == telefono &&
+        other.especialidad == especialidad;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ nombre.hashCode ^ correo.hashCode;
+    return id.hashCode ^ 
+           nombre.hashCode ^ 
+           correo.hashCode ^ 
+           fotoPerfil.hashCode ^ 
+           telefono.hashCode ^ 
+           especialidad.hashCode;
   }
 }
 

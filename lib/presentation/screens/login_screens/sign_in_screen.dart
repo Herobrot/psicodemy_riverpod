@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
-import '../../../core/types/tipo_usuario.dart';
+import '../../../core/constants/enums/tipo_usuario.dart';
 import '../../providers/simple_auth_providers.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';

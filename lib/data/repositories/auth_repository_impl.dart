@@ -4,7 +4,7 @@ import '../../domain/entities/user_firebase_entity.dart';
 import '../../domain/repositories/auth_repository_interface.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/services/auth/models/complete_user_model.dart';
-import '../../core/types/tipo_usuario.dart';
+import '../../core/constants/enums/tipo_usuario.dart';
 
 // part 'auth_repository_impl.g.dart';
 
