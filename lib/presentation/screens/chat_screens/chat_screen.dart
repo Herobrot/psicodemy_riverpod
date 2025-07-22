@@ -1123,10 +1123,10 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                         ),
                       ),
                     ],
-                    if (widget.tutor.correo != null && widget.tutor.correo!.isNotEmpty) ...[
+                    if (widget.tutor.correo.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        widget.tutor.correo!,
+                        widget.tutor.correo,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,

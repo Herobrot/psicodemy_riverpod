@@ -12,40 +12,35 @@ abstract class ChatException implements Exception {
 class ChatApiException extends ChatException {
   final int statusCode;
 
-  ChatApiException(String message, this.statusCode, {String? code, List<String>? details})
-      : super(message, code: code, details: details);
+  ChatApiException(super.message, this.statusCode, {super.code, super.details});
 
   @override
   String toString() => 'ChatApiException: $message (Status: $statusCode)';
 }
 
 class ChatNetworkException extends ChatException {
-  ChatNetworkException(String message, {String? code, List<String>? details})
-      : super(message, code: code, details: details);
+  ChatNetworkException(super.message, {super.code, super.details});
 
   @override
   String toString() => 'ChatNetworkException: $message';
 }
 
 class ChatValidationException extends ChatException {
-  ChatValidationException(String message, {String? code, List<String>? details})
-      : super(message, code: code, details: details);
+  ChatValidationException(super.message, {super.code, super.details});
 
   @override
   String toString() => 'ChatValidationException: $message';
 }
 
 class ChatUnauthorizedException extends ChatException {
-  ChatUnauthorizedException(String message, {String? code, List<String>? details})
-      : super(message, code: code, details: details);
+  ChatUnauthorizedException(super.message, {super.code, super.details});
 
   @override
   String toString() => 'ChatUnauthorizedException: $message';
 }
 
 class ChatNotFoundException extends ChatException {
-  ChatNotFoundException(String message, {String? code, List<String>? details})
-      : super(message, code: code, details: details);
+  ChatNotFoundException(super.message, {super.code, super.details});
 
   @override
   String toString() => 'ChatNotFoundException: $message';

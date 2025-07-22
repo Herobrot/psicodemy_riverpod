@@ -43,7 +43,7 @@ class TutorRepository implements TutorRepositoryInterface {
       throw TutorException.parseError('Error al procesar la respuesta');
     } on TutorException catch (e) {
       print('❌ TutorException en getTutors: $e');
-      throw e;
+      rethrow;
     } catch (e) {
       print('❌ Error desconocido en getTutors: $e');
       throw TutorException.unknown(e.toString());
@@ -61,7 +61,7 @@ class TutorRepository implements TutorRepositoryInterface {
       }
     } on TutorException catch (e) {
       print('❌ TutorException en getTutorById: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getTutorById: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -85,7 +85,7 @@ class TutorRepository implements TutorRepositoryInterface {
       }
     } on TutorException catch (e) {
       print('❌ TutorException en getTutorByEmail: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getTutorByEmail: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -105,7 +105,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return tutors.where((tutor) => tutor.nombre.toLowerCase().contains(name.toLowerCase())).toList();
     } on TutorException catch (e) {
       print('❌ TutorException en searchTutorsByName: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en searchTutorsByName: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -125,7 +125,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return tutors.length;
     } on TutorException catch (e) {
       print('❌ TutorException en getTutorCount: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getTutorCount: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -145,7 +145,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return tutor != null;
     } on TutorException catch (e) {
       print('❌ TutorException en isEmailTutor: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en isEmailTutor: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -164,7 +164,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return await getTutors();
     } on TutorException catch (e) {
       print('❌ TutorException en getActiveTutors: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getActiveTutors: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -184,7 +184,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return tutors.take(limit).toList();
     } on TutorException catch (e) {
       print('❌ TutorException en getTopRatedTutors: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getTopRatedTutors: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -203,7 +203,7 @@ class TutorRepository implements TutorRepositoryInterface {
       return await getTutors();
     } on TutorException catch (e) {
       print('❌ TutorException en getAvailableTutorsForDate: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getAvailableTutorsForDate: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -229,7 +229,7 @@ class TutorRepository implements TutorRepositoryInterface {
       };
     } on TutorException catch (e) {
       print('❌ TutorException en getTutorStats: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en getTutorStats: $e');
       throw TutorException.networkError('Sin conexión a internet');
@@ -250,7 +250,7 @@ class TutorRepository implements TutorRepositoryInterface {
       await getTutors();
     } on TutorException catch (e) {
       print('❌ TutorException en refreshTutorCache: $e');
-      throw e;
+      rethrow;
     } on SocketException catch (e) {
       print('❌ Error de red en refreshTutorCache: $e');
       throw TutorException.networkError('Sin conexión a internet');

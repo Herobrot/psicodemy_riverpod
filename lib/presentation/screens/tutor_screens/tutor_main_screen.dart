@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'tutor_home_screen.dart';
 import '../chat_screens/chat_screen.dart';
 import '../forum_screens/forum_screen.dart';
-import '../quotes_screens/quotes_screen.dart';
 import '../settings_screens/settings_screen.dart';
 import 'tutor_appointments_screen.dart';
 
