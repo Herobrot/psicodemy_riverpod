@@ -24,10 +24,10 @@ class TutorRepository implements TutorRepositoryInterface {
         return _cachedTutors!;
       }
       final result = await _apiService.getTutorsFromApi();
-      if (result['data'] == null) {
+      if (result == null) {
         throw TutorException.emptyResponse('No se recibieron datos de tutores');
       }
-      final tutorListResponse = TutorListResponse.fromJson(result);
+      final tutorListResponse = TutorListResponse.fromList(result);
       if (!tutorListResponse.isSuccess) {
         throw TutorException.serverError(tutorListResponse.message);
       }

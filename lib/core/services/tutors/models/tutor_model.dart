@@ -107,6 +107,18 @@ class TutorListResponse {
 
   /// Verificar si la respuesta es exitosa
   bool get isSuccess => status == 'success';
+
+  factory TutorListResponse.fromList(List<dynamic> list) {
+    return TutorListResponse(
+      data: TutorData(
+        users: list.map((e) => TutorModel.fromJson(e as Map<String, dynamic>)).toList(),
+        total: list.length,
+        userType: 'tutor',
+      ),
+      message: 'Tutores obtenidos exitosamente',
+      status: 'success',
+    );
+  }
 }
 
 /// Respuesta de error para tutores

@@ -443,13 +443,14 @@ class ApiService {
   }
 
   // Obtener la lista de tutores desde la API
-  Future<Map<String, dynamic>> getTutorsFromApi() async {
+  Future<List<dynamic>> getTutorsFromApi() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/auth/users/tutor'),
+        Uri.parse('$_baseUrl/auth/tutors'),
         headers: await _authHeaders,
       );
-      return await _handleResponse(response);
+      final data = await _handleResponse(response);
+      return data['data']['tutors'] as List<dynamic>; // SOLO la lista de tutores
     } catch (e) {
       throw _handleError(e);
     }
