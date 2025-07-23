@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
+import '../../widgets/filtro_citas_widget.dart';
 
 class TutorAppointmentsScreen extends ConsumerStatefulWidget {
   const TutorAppointmentsScreen({super.key});
@@ -15,7 +16,15 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   
 
   AppointmentModel? _selectedAppointment;
-  bool _showHistorial = false;
+  bool _showFiltroAvanzado = false;
+
+  // Paginación local
+  int _currentPage = 1;
+  static const int _pageSize = 6;
+
+  // Estado para filtros
+  EstadoCita _estadoFiltro = EstadoCita.confirmada;
+  String _busquedaAlumno = '';
 
   @override
   Widget build(BuildContext context) {
@@ -26,53 +35,115 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
         title: const Text('Citas como Tutor'),
         actions: [
           IconButton(
-            icon: Icon(_showHistorial ? Icons.list : Icons.history),
-            tooltip: _showHistorial ? 'Ver todas' : 'Ver historial por alumno',
+            icon: Icon(_showFiltroAvanzado ? Icons.filter_alt_off : Icons.filter_alt),
+            tooltip: _showFiltroAvanzado ? 'Ocultar filtros avanzados' : 'Mostrar filtros avanzados',
             onPressed: () {
               setState(() {
-                _showHistorial = !_showHistorial;
-                _selectedAlumnoId = null;
+                _showFiltroAvanzado = !_showFiltroAvanzado;
               });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Recargar citas',
+            onPressed: () {
+              ref.refresh(appointmentListProvider);
             },
           ),
         ],
       ),
       body: appointmentsAsync.when(
         data: (appointments) {
-          final alumnos = {
-            for (var a in appointments) a.idAlumno: a
-          };
           List<AppointmentModel> filtered = appointments;
-          if (_showHistorial && _selectedAlumnoId != null) {
-            filtered = appointments.where((a) => a.idAlumno == _selectedAlumnoId).toList();
-          }
+
+          // Aplicar filtros de estado y búsqueda por ID de alumno
+          filtered = filtered
+              .where((a) => a.estadoCita == _estadoFiltro)
+              .where((a) => a.idAlumno.contains(_busquedaAlumno))
+              .toList();
+
+          // Si quieres mantener el filtro por alumno específico, puedes dejar esto opcional
+          // if (_selectedAlumnoId != null) {
+          //   filtered = filtered.where((a) => a.idAlumno == _selectedAlumnoId).toList();
+          // } 
           filtered.sort((a, b) => b.fechaCita.compareTo(a.fechaCita));
+
+          // Paginación local
+          final totalPages = (filtered.length / _pageSize).ceil().clamp(1, 999);
+          final start = (_currentPage - 1) * _pageSize;
+          final end = (_currentPage * _pageSize).clamp(0, filtered.length);
+          final pageItems = filtered.sublist(start, end);
 
           return Column(
             children: [
-              if (_showHistorial)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedAlumnoId,
-                    hint: const Text('Selecciona un alumno'),
-                    items: alumnos.entries.map((entry) => DropdownMenuItem(
-                      value: entry.key,
-                      child: Text('Alumno: ${entry.key}'),
-                    )).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedAlumnoId = value);
-                    },
-                  ),
+              if (_showFiltroAvanzado)
+                FiltroCitasWidget(
+                  estadoSeleccionado: _estadoFiltro,
+                  onEstadoChanged: (nuevoEstado) {
+                    setState(() {
+                      _estadoFiltro = nuevoEstado;
+                      _currentPage = 1;
+                    });
+                  },
+                  textoBusqueda: _busquedaAlumno,
+                  onTextoBusquedaChanged: (nuevoTexto) {
+                    setState(() {
+                      _busquedaAlumno = nuevoTexto;
+                      _currentPage = 1;
+                    });
+                  },
+                  estadosDisponibles: EstadoCita.values,
                 ),
+              _HeaderSection(
+                total: filtered.length,
+                currentPage: _currentPage,
+                totalPages: totalPages,
+                onPrev: _currentPage > 1
+                    ? () => setState(() => _currentPage--)
+                    : null,
+                onNext: _currentPage < totalPages
+                    ? () => setState(() => _currentPage++)
+                    : null,
+              ),
+              // Si quieres mantener el filtro por alumno específico, puedes dejar esto opcional
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              //   child: DropdownButtonFormField<String>(
+              //     value: _selectedAlumnoId,
+              //     hint: const Text('Selecciona un alumno'),
+              //     items: alumnos.entries.map((entry) => DropdownMenuItem(
+              //       value: entry.key,
+              //       child: Text('Alumno: ${entry.key}'),
+              //     )).toList(),
+              //     onChanged: (value) {
+              //       setState(() {
+              //         _selectedAlumnoId = value;
+              //         _currentPage = 1;
+              //       });
+              //     },
+              //   ),
+              // ),
               Expanded(
-                child: filtered.isEmpty
+                child: pageItems.isEmpty
                   ? const Center(child: Text('No hay citas para mostrar'))
-                  : ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (context, i) => _buildAppointmentCard(filtered[i]),
+                  : ListView.separated(
+                      itemCount: pageItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemBuilder: (context, i) => _buildAppointmentCard(pageItems[i]),
                     ),
               ),
+              if (filtered.isNotEmpty)
+                _PaginationControls(
+                  currentPage: _currentPage,
+                  totalPages: totalPages,
+                  onPrev: _currentPage > 1
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                  onNext: _currentPage < totalPages
+                      ? () => setState(() => _currentPage++)
+                      : null,
+                ),
             ],
           );
         },
@@ -83,24 +154,113 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   }
 
   Widget _buildAppointmentCard(AppointmentModel appointment) {
+    Color estadoColor;
+    IconData estadoIcon;
+    switch (appointment.estadoCita) {
+      case EstadoCita.pendiente:
+        estadoColor = Colors.orange;
+        estadoIcon = Icons.hourglass_empty_rounded;
+        break;
+      case EstadoCita.confirmada:
+        estadoColor = Colors.blue;
+        estadoIcon = Icons.check_circle_outline;
+        break;
+      case EstadoCita.completada:
+        estadoColor = Colors.green;
+        estadoIcon = Icons.verified;
+        break;
+      case EstadoCita.cancelada:
+        estadoColor = Colors.red;
+        estadoIcon = Icons.cancel_outlined;
+        break;
+      case EstadoCita.noAsistio:
+        estadoColor = Colors.grey;
+        estadoIcon = Icons.block;
+        break;
+    }
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: ListTile(
-        title: Text('Alumno: ${appointment.idAlumno}'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Fecha: ${_formatDate(appointment.fechaCita)}'),
-            Text('Estado: ${appointment.estadoCita.displayName}'),
-            if (appointment.toDo != null && appointment.toDo!.isNotEmpty)
-              Text('Por hacer: ${appointment.toDo!}', style: const TextStyle(fontSize: 12)),
-            if (appointment.finishToDo != null && appointment.finishToDo!.isNotEmpty)
-              Text('Hecho: ${appointment.finishToDo!}', style: const TextStyle(fontSize: 12, color: Colors.green)),
-          ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios),
-          onPressed: () => _showAppointmentDetail(appointment),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _showAppointmentDetail(appointment),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: estadoColor.withValues(alpha: 0.15),
+                radius: 28,
+                child: Icon(estadoIcon, color: estadoColor),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Alumno: ',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                        ),
+                        Text(
+                          appointment.idAlumno,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(_formatDate(appointment.fechaCita)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Chip(
+                          label: Text(appointment.estadoCita.displayName),
+                          backgroundColor: estadoColor.withValues(alpha: 0.15),
+                          labelStyle: TextStyle(color: estadoColor, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    if ((appointment.toDo != null && appointment.toDo!.isNotEmpty) ||
+                        (appointment.finishToDo != null && appointment.finishToDo!.isNotEmpty))
+                      const SizedBox(height: 6),
+                    if (appointment.toDo != null && appointment.toDo!.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(Icons.list_alt, size: 16, color: Colors.orange[700]),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text('Por hacer: ${appointment.toDo!}', style: const TextStyle(fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    if (appointment.finishToDo != null && appointment.finishToDo!.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(Icons.check, size: 16, color: Colors.green[700]),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text('Hecho: ${appointment.finishToDo!}', style: const TextStyle(fontSize: 13, color: Colors.green)),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios, size: 20),
+                onPressed: () => _showAppointmentDetail(appointment),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -111,43 +271,38 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => _AppointmentDetailSheet(
         appointment: appointment,
-                  onStatusChanged: (newStatus) async {
-            print('🔄 Actualizando cita ${appointment.id} a estado: $newStatus');
-            
-            try {
-              await ref.read(updateAppointmentStatusProvider({
-                'id': appointment.id,
-                'request': UpdateStatusRequest(estadoCita: newStatus),
-              }).future);
-              
-              print('✅ Estado actualizado exitosamente');
-              ref.refresh(appointmentListProvider);
-              Navigator.pop(context);
-              
-              // Mostrar mensaje de éxito
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Estado de la cita actualizado exitosamente'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-            } catch (e) {
-              print('❌ Error al actualizar estado: $e');
-              // Mostrar mensaje de error al usuario
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error al actualizar el estado: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+        onStatusChanged: (newStatus) async {
+          try {
+            await ref.read(updateAppointmentStatusProvider({
+              'id': appointment.id,
+              'request': UpdateStatusRequest(estadoCita: newStatus),
+            }).future);
+            if (!mounted) return;
+            ref.refresh(appointmentListProvider);
+            Navigator.pop(context);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Estado de la cita actualizado exitosamente'),
+                  backgroundColor: Colors.green,
+                ),
+              );
             }
-          },
+          } catch (e) {
+            if (!mounted) return;
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error al actualizar el estado: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
         onEditTodo: (toDo, finishToDo) async {
           await ref.read(updateAppointmentProvider({
             'id': appointment.id,
@@ -156,6 +311,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
               finishToDo: finishToDo,
             ),
           }).future);
+          if (!mounted) return;
           ref.refresh(appointmentListProvider);
           Navigator.pop(context);
         },
@@ -204,64 +360,281 @@ class _AppointmentDetailSheetState extends State<_AppointmentDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final estado = widget.appointment.estadoCita;
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16, right: 16, top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Detalle de la cita', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Text('Alumno: ${widget.appointment.idAlumno}'),
-            Text('Fecha: ${widget.appointment.fechaCita}'),
-            Text('Estado: ${estado.displayName}'),
-            const Divider(),
-            TextField(
-              controller: _todoController,
-              decoration: const InputDecoration(labelText: 'Por hacer (to-do)'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _finishTodoController,
-              decoration: const InputDecoration(labelText: 'Hecho (finish to-do)'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (estado == EstadoCita.pendiente) ...[
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => widget.onStatusChanged(EstadoCita.confirmada),
-                      child: const Text('Confirmar'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => widget.onStatusChanged(EstadoCita.cancelada),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Cancelar'),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => widget.onEditTodo(
-                _todoController.text,
-                _finishTodoController.text,
-              ),
-              child: const Text('Guardar tareas'),
-            ),
-          ],
+    Color estadoColor;
+    IconData estadoIcon;
+    switch (estado) {
+      case EstadoCita.pendiente:
+        estadoColor = Colors.orange;
+        estadoIcon = Icons.hourglass_empty_rounded;
+        break;
+      case EstadoCita.confirmada:
+        estadoColor = Colors.blue;
+        estadoIcon = Icons.check_circle_outline;
+        break;
+      case EstadoCita.completada:
+        estadoColor = Colors.green;
+        estadoIcon = Icons.verified;
+        break;
+      case EstadoCita.cancelada:
+        estadoColor = Colors.red;
+        estadoIcon = Icons.cancel_outlined;
+        break;
+      case EstadoCita.noAsistio:
+        estadoColor = Colors.grey;
+        estadoIcon = Icons.block;
+        break;
+    }
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        margin: EdgeInsets.only(top: 40),
+        padding: EdgeInsets.only(
+          left: 0, right: 0, top: 0,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
+        child: Center(
+          child: Card(
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: estadoColor.withValues(alpha: 0.15),
+                          radius: 28,
+                          child: Icon(estadoIcon, color: estadoColor, size: 32),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Alumno:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                            Text(widget.appointment.idAlumno, style: const TextStyle(fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(_formatDate(widget.appointment.fechaCita)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Chip(
+                          label: Text(estado.displayName),
+                          backgroundColor: estadoColor.withValues(alpha: 0.15),
+                          labelStyle: TextStyle(color: estadoColor, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Divider(),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _todoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Por hacer (to-do)',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.list_alt),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _finishTodoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Hecho (finish to-do)',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.check),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.save),
+                            label: const Text('Guardar tareas'),
+                            onPressed: () => widget.onEditTodo(
+                              _todoController.text,
+                              _finishTodoController.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildEstadoActions(context, estado, estadoColor),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildEstadoActions(BuildContext context, EstadoCita estado, Color estadoColor) {
+    final actions = <Widget>[];
+    // Acciones según el estado actual
+    if (estado == EstadoCita.pendiente) {
+      actions.addAll([
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.check_circle_outline),
+            label: const Text('Confirmar'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            onPressed: () => widget.onStatusChanged(EstadoCita.confirmada),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.cancel_outlined),
+            label: const Text('Cancelar'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => widget.onStatusChanged(EstadoCita.cancelada),
+          ),
+        ),
+      ]);
+    } else if (estado == EstadoCita.confirmada) {
+      actions.addAll([
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.verified),
+            label: const Text('Completar'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () => widget.onStatusChanged(EstadoCita.completada),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.block),
+            label: const Text('No asistió'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+            onPressed: () => widget.onStatusChanged(EstadoCita.noAsistio),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.cancel_outlined),
+            label: const Text('Cancelar'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => widget.onStatusChanged(EstadoCita.cancelada),
+          ),
+        ),
+      ]);
+    }
+    // Si la cita está completada, cancelada o no asistió, no hay acciones.
+    if (actions.isEmpty) {
+      return Center(
+        child: Text(
+          'No hay acciones disponibles para este estado.',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      );
+    }
+    return Row(children: actions);
+  }
+}
+
+// COMPONENTES AUXILIARES
+
+class _HeaderSection extends StatelessWidget {
+  final int total;
+  final int currentPage;
+  final int totalPages;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+
+  const _HeaderSection({
+    required this.total,
+    required this.currentPage,
+    required this.totalPages,
+    this.onPrev,
+    this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.blueGrey[50],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Text(
+            'Total: $total',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: onPrev,
+            color: onPrev != null ? Colors.blue : Colors.grey,
+          ),
+          Text('Página $currentPage de $totalPages'),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: onNext,
+            color: onNext != null ? Colors.blue : Colors.grey,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaginationControls extends StatelessWidget {
+  final int currentPage;
+  final int totalPages;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+
+  const _PaginationControls({
+    required this.currentPage,
+    required this.totalPages,
+    this.onPrev,
+    this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: onPrev,
+            color: onPrev != null ? Colors.blue : Colors.grey,
+          ),
+          Text('Página $currentPage de $totalPages'),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: onNext,
+            color: onNext != null ? Colors.blue : Colors.grey,
+          ),
+        ],
       ),
     );
   }
