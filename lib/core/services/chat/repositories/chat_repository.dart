@@ -11,16 +11,13 @@ import '../../api_service.dart';
 import '../../../constants/api_routes.dart';
 
 class ChatRepository implements ChatRepositoryInterface {
-  final http.Client _client;
   final SecureStorageRepository _secureStorage;
   final ApiService _apiService;
 
   ChatRepository({
-    http.Client? client,
     required SecureStorageRepository secureStorage,
     required ApiService apiService,
-  }) : _client = client ?? http.Client(),
-       _secureStorage = secureStorage,
+  }) : _secureStorage = secureStorage,
        _apiService = apiService;
 
   // Headers básicos para todas las requests
@@ -103,21 +100,14 @@ class ChatRepository implements ChatRepositoryInterface {
     String? conversationId,
   }) async {
     try {
-      final requestBody = {
-        'mensaje': mensaje,
-        'usuario_id': usuarioId,
-        if (chatEstudianteId != null) 'chat_estudiante_id': chatEstudianteId,
-        if (recipientId != null) 'recipient_id': recipientId,
-        if (conversationId != null) 'conversation_id': conversationId,
-      };
-
-      final response = await _client.post(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatMessage}'),
-        headers: await _authHeaders,
-        body: json.encode(requestBody),
+      final data = await _apiService.sendChatMessage(
+        mensaje: mensaje,
+        usuarioId: usuarioId,
+        chatEstudianteId: chatEstudianteId,
+        recipientId: recipientId,
+        conversationId: conversationId,
       );
-
-      return await _handleResponse(response);
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -130,22 +120,12 @@ class ChatRepository implements ChatRepositoryInterface {
     int limit = 20,
   }) async {
     try {
-      final queryParams = {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
-
-      final uri = Uri.parse('https://api.psicodemy.com${ApiRoutes.chatHistory(estudianteId)}')
-          .replace(queryParameters: queryParams);
-
-      final response = await _client.get(
-        uri,
-        headers: await _authHeaders,
+      final data = await _apiService.getChatHistory(
+        estudianteId: estudianteId,
+        page: page,
+        limit: limit,
       );
-
-      final data = await _handleResponse(response);
       final messages = data['data']['messages'] as List;
-      
       return messages.map((json) => ChatMessageModel.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -159,22 +139,12 @@ class ChatRepository implements ChatRepositoryInterface {
     int limit = 20,
   }) async {
     try {
-      final queryParams = {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
-
-      final uri = Uri.parse('https://api.psicodemy.com${ApiRoutes.chatHistoryMessages(estudianteId)}')
-          .replace(queryParameters: queryParams);
-
-      final response = await _client.get(
-        uri,
-        headers: await _authHeaders,
+      final data = await _apiService.getChatMessages(
+        estudianteId: estudianteId,
+        page: page,
+        limit: limit,
       );
-
-      final data = await _handleResponse(response);
       final messages = data['data']['messages'] as List;
-      
       return messages.map((json) => ChatMessageModel.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -186,17 +156,9 @@ class ChatRepository implements ChatRepositoryInterface {
     required String estudianteId,
   }) async {
     try {
-      final requestBody = {
-        'estudiante_id': estudianteId,
-      };
-
-      final response = await _client.post(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatAttempt}'),
-        headers: await _authHeaders,
-        body: json.encode(requestBody),
+      final data = await _apiService.registerChatAttempt(
+        estudianteId: estudianteId,
       );
-
-      final data = await _handleResponse(response);
       return ChatAttemptModel.fromJson(data['data']);
     } catch (e) {
       throw _handleError(e);
@@ -208,14 +170,10 @@ class ChatRepository implements ChatRepositoryInterface {
     required String estudianteId,
   }) async {
     try {
-      final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatAttempts(estudianteId)}'),
-        headers: await _authHeaders,
+      final data = await _apiService.getChatAttempts(
+        estudianteId: estudianteId,
       );
-
-      final data = await _handleResponse(response);
       final attempts = data['data'] as List;
-      
       return attempts.map((json) => ChatAttemptModel.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -225,12 +183,8 @@ class ChatRepository implements ChatRepositoryInterface {
   @override
   Future<Map<String, dynamic>> getChatStatus() async {
     try {
-      final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatStatus}'),
-        headers: await _authHeaders,
-      );
-
-      return await _handleResponse(response);
+      final data = await _apiService.getChatStatus();
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -239,12 +193,8 @@ class ChatRepository implements ChatRepositoryInterface {
   @override
   Future<Map<String, dynamic>> getAiInfo() async {
     try {
-      final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatAiInfo}'),
-        headers: await _authHeaders,
-      );
-
-      return await _handleResponse(response);
+      final data = await _apiService.getAiInfo();
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -255,17 +205,8 @@ class ChatRepository implements ChatRepositoryInterface {
     required String mensaje,
   }) async {
     try {
-      final requestBody = {
-        'mensaje': mensaje,
-      };
-
-      final response = await _client.post(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.chatAiTest}'),
-        headers: await _authHeaders,
-        body: json.encode(requestBody),
-      );
-
-      return await _handleResponse(response);
+      final data = await _apiService.testAi(mensaje: mensaje);
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -279,20 +220,12 @@ class ChatRepository implements ChatRepositoryInterface {
     String? conversationId,
   }) async {
     try {
-      final requestBody = {
-        'mensaje': mensaje,
-        'usuario_id': usuarioId,
-        'recipient_id': recipientId,
-        if (conversationId != null) 'conversation_id': conversationId,
-      };
-
-      final response = await _client.post(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.conversationsMessage}'),
-        headers: await _authHeaders,
-        body: json.encode(requestBody),
+      final data = await _apiService.sendPrivateMessage(
+        mensaje: mensaje,
+        usuarioId: usuarioId,
+        recipientId: recipientId,
+        conversationId: conversationId,
       );
-
-      final data = await _handleResponse(response);
       return ChatMessageModel.fromJson(data['data']['message']);
     } catch (e) {
       throw _handleError(e);
@@ -306,22 +239,12 @@ class ChatRepository implements ChatRepositoryInterface {
     int limit = 20,
   }) async {
     try {
-      final queryParams = {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
-
-      final uri = Uri.parse('https://api.psicodemy.com${ApiRoutes.userConversations(usuarioId)}')
-          .replace(queryParameters: queryParams);
-
-      final response = await _client.get(
-        uri,
-        headers: await _authHeaders,
+      final data = await _apiService.getUserConversations(
+        usuarioId: usuarioId,
+        page: page,
+        limit: limit,
       );
-
-      final data = await _handleResponse(response);
       final conversations = data['data']['conversations'] as List;
-      
       return conversations.map((json) => ConversationModel.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -336,21 +259,13 @@ class ChatRepository implements ChatRepositoryInterface {
     int limit = 50,
   }) async {
     try {
-      final queryParams = {
-        'usuario_id': usuarioId,
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
-
-      final uri = Uri.parse('https://api.psicodemy.com${ApiRoutes.conversationMessages(conversationId)}')
-          .replace(queryParameters: queryParams);
-
-      final response = await _client.get(
-        uri,
-        headers: await _authHeaders,
+      final data = await _apiService.getConversationMessages(
+        conversationId: conversationId,
+        usuarioId: usuarioId,
+        page: page,
+        limit: limit,
       );
-
-      return await _handleResponse(response);
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -359,12 +274,8 @@ class ChatRepository implements ChatRepositoryInterface {
   @override
   Future<Map<String, dynamic>> getConversationsStatus() async {
     try {
-      final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.conversationsStatus}'),
-        headers: await _authHeaders,
-      );
-
-      return await _handleResponse(response);
+      final data = await _apiService.getConversationsStatus();
+      return data;
     } catch (e) {
       throw _handleError(e);
     }
@@ -373,48 +284,10 @@ class ChatRepository implements ChatRepositoryInterface {
   @override
   Future<Map<String, dynamic>> getWebSocketInfo() async {
     try {
-      final response = await _client.get(
-        Uri.parse('https://api.psicodemy.com${ApiRoutes.wsInfo}'),
-        headers: await _authHeaders,
-      );
-
-      return await _handleResponse(response);
+      final data = await _apiService.getWebSocketInfo();
+      return data;
     } catch (e) {
       throw _handleError(e);
-    }
-  }
-
-  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      try {
-        return json.decode(response.body);
-      } catch (e) {
-        throw ChatApiException('Error al parsear la respuesta JSON', response.statusCode);
-      }
-    } else {
-      throw _handleApiError(response);
-    }
-  }
-
-  ChatException _handleApiError(http.Response response) {
-    try {
-      final errorData = json.decode(response.body);
-      final message = errorData['message'] ?? 'Error desconocido';
-      final code = errorData['error']?['code'];
-      final details = errorData['error']?['details']?.cast<String>();
-
-      switch (response.statusCode) {
-        case 400:
-          return ChatValidationException(message, code: code, details: details);
-        case 401:
-          return ChatUnauthorizedException(message, code: code, details: details);
-        case 404:
-          return ChatNotFoundException(message, code: code, details: details);
-        default:
-          return ChatApiException(message, response.statusCode, code: code, details: details);
-      }
-    } catch (e) {
-      return ChatApiException('Error en la API', response.statusCode);
     }
   }
 

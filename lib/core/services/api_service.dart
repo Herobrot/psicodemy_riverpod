@@ -450,9 +450,210 @@ class ApiService {
         headers: await _authHeaders,
       );
       final data = await _handleResponse(response);
-      return data['data']['tutors'] as List<dynamic>; // SOLO la lista de tutores
+      return data['data']['tutors'] as List<dynamic>;
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  // ================= MÉTODOS DE CHAT (S3) =================
+
+  // Enviar mensaje de chat
+  Future<Map<String, dynamic>> sendChatMessage({
+    required String mensaje,
+    required String usuarioId,
+    String? chatEstudianteId,
+    String? recipientId,
+    String? conversationId,
+  }) async {
+    final requestBody = {
+      'mensaje': mensaje,
+      'usuario_id': usuarioId,
+      if (chatEstudianteId != null) 'chat_estudiante_id': chatEstudianteId,
+      if (recipientId != null) 'recipient_id': recipientId,
+      if (conversationId != null) 'conversation_id': conversationId,
+    };
+    final response = await _client.post(
+      Uri.parse('$_baseUrl${ApiRoutes.chatMessage}'),
+      headers: await _authHeaders,
+      body: json.encode(requestBody),
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener historial de chat
+  Future<Map<String, dynamic>> getChatHistory({
+    required String estudianteId,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    final uri = Uri.parse('$_baseUrl${ApiRoutes.chatHistory(estudianteId)}')
+        .replace(queryParameters: queryParams);
+    final response = await _client.get(
+      uri,
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener mensajes de chat
+  Future<Map<String, dynamic>> getChatMessages({
+    required String estudianteId,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    final uri = Uri.parse('$_baseUrl${ApiRoutes.chatHistoryMessages(estudianteId)}')
+        .replace(queryParameters: queryParams);
+    final response = await _client.get(
+      uri,
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Registrar intento de chat
+  Future<Map<String, dynamic>> registerChatAttempt({
+    required String estudianteId,
+  }) async {
+    final requestBody = {
+      'estudiante_id': estudianteId,
+    };
+    final response = await _client.post(
+      Uri.parse('$_baseUrl${ApiRoutes.chatAttempt}'),
+      headers: await _authHeaders,
+      body: json.encode(requestBody),
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener intentos de chat
+  Future<Map<String, dynamic>> getChatAttempts({
+    required String estudianteId,
+  }) async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl${ApiRoutes.chatAttempts(estudianteId)}'),
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener estado del chat
+  Future<Map<String, dynamic>> getChatStatus() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl${ApiRoutes.chatStatus}'),
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener info de la IA
+  Future<Map<String, dynamic>> getAiInfo() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl${ApiRoutes.chatAiInfo}'),
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Probar IA
+  Future<Map<String, dynamic>> testAi({
+    required String mensaje,
+  }) async {
+    final requestBody = {
+      'mensaje': mensaje,
+    };
+    final response = await _client.post(
+      Uri.parse('$_baseUrl${ApiRoutes.chatAiTest}'),
+      headers: await _authHeaders,
+      body: json.encode(requestBody),
+    );
+    return await _handleResponse(response);
+  }
+
+  // Enviar mensaje privado (conversaciones)
+  Future<Map<String, dynamic>> sendPrivateMessage({
+    required String mensaje,
+    required String usuarioId,
+    required String recipientId,
+    String? conversationId,
+  }) async {
+    final requestBody = {
+      'mensaje': mensaje,
+      'usuario_id': usuarioId,
+      'recipient_id': recipientId,
+      if (conversationId != null) 'conversation_id': conversationId,
+    };
+    final response = await _client.post(
+      Uri.parse('$_baseUrl${ApiRoutes.conversationsMessage}'),
+      headers: await _authHeaders,
+      body: json.encode(requestBody),
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener conversaciones de usuario
+  Future<Map<String, dynamic>> getUserConversations({
+    required String usuarioId,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    final uri = Uri.parse('$_baseUrl${ApiRoutes.userConversations(usuarioId)}')
+        .replace(queryParameters: queryParams);
+    final response = await _client.get(
+      uri,
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener mensajes de una conversación
+  Future<Map<String, dynamic>> getConversationMessages({
+    required String conversationId,
+    required String usuarioId,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final queryParams = {
+      'usuario_id': usuarioId,
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    final uri = Uri.parse('$_baseUrl${ApiRoutes.conversationMessages(conversationId)}')
+        .replace(queryParameters: queryParams);
+    final response = await _client.get(
+      uri,
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener estado de las conversaciones
+  Future<Map<String, dynamic>> getConversationsStatus() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl${ApiRoutes.conversationsStatus}'),
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
+  }
+
+  // Obtener info de WebSocket
+  Future<Map<String, dynamic>> getWebSocketInfo() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl${ApiRoutes.wsInfo}'),
+      headers: await _authHeaders,
+    );
+    return await _handleResponse(response);
   }
 } 
