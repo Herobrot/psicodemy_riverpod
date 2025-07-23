@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
 import '../../../core/services/chat/models/chat_message_model.dart';
 import '../../../core/services/chat/models/conversation_model.dart';
 import '../../../core/services/auth/repositories/auth_repository.dart';
+import '../../providers/simple_auth_providers.dart';
 import '../../providers/chat_providers.dart';
+import '../../../core/services/api_service_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -17,6 +20,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final tutorsAsync = ref.watch(tutorsProvider);
+    // Obtener el usuario actual (userId de la API)
+    final currentUserAsync = ref.watch(authRepositoryProvider).getCurrentUser().asStream();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -49,7 +54,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          
           // Icono de chat grande
           Container(
             width: 120,
@@ -64,9 +68,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               color: Colors.black87,
             ),
           ),
-          
           const SizedBox(height: 16),
-          
           // Título
           const Text(
             'Chat',
@@ -76,9 +78,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               color: Colors.black87,
             ),
           ),
-          
           const SizedBox(height: 8),
-          
           // Subtítulo
           Text(
             'Elige con quien quieres hablar',
@@ -87,13 +87,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               color: Colors.grey[600],
             ),
           ),
-          
           const SizedBox(height: 32),
-          
-          // Lista de contactos
+          // Solo la lista de conversaciones (elimina la de contactos)
           Expanded(
             child: tutorsAsync.when(
-              data: (tutors) => _buildContactsList(tutors),
+              data: (tutors) => StreamBuilder(
+                stream: currentUserAsync,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return const SizedBox();
+                  }
+                  final userId = snapshot.data?.userId;
+                  if (userId == null) return const SizedBox();
+                  final conversationsAsync = ref.watch(userConversationsProvider(userId));
+                  return conversationsAsync.when(
+                    data: (conversations) => _buildConversationsList(conversations, userId),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(child: Text('Error al cargar conversaciones: $error')),
+                  );
+                },
+              ),
               loading: () => const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -140,81 +153,221 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildContactsList(List<TutorModel> tutors) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: tutors.length + 1, // +1 para el contacto de IA
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          // Contacto fijo de IA
-          return _buildAiContact();
-        } else {
-          // Contactos de tutores
-          final tutor = tutors[index - 1];
-          return _buildTutorItem(tutor);
-        }
-      },
+  Widget _buildConversationsList(List<ConversationModel> conversations, String userId) {
+    print('Conversaciones recibidas de la API para $userId: ${conversations.length}');
+    for (var c in conversations) {
+      print(' - ID: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
+    }
+    final isAlumno = ref.watch(isAlumnoProvider);
+    final tutorsAsync = ref.watch(tutorsProvider);
+    final apiService = ref.read(apiServiceProvider);
+    // Caché local para alumnos
+    final Map<String, Map<String, dynamic>> alumnoCache = {};
+    // --- Agregar conversación especial de IA al inicio ---
+    final iaConversation = ConversationModel(
+      id: 'ia_chat',
+      participant1Id: userId,
+      participant2Id: 'asistente_ia',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isActive: true,
     );
-  }
-
-  Widget _buildAiContact() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF008080), // Color teal para IA
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF008080).withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.smart_toy,
-            size: 30,
-            color: Color(0xFF008080),
-          ),
-        ),
-        title: const Text(
-          'Asistente IA',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
-        subtitle: const Text(
-          'Chat inteligente disponible 24/7',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white70,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white,
-          size: 16,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AiChatScreen(),
-            ),
-          );
-        },
-      ),
+    final allConversations = [iaConversation, ...conversations];
+    // ---
+    return tutorsAsync.when(
+      data: (tutors) {
+        // Mostrar todas las conversaciones (más la de IA) sin filtros
+        final filteredConversations = allConversations;
+        print('Conversaciones que se muestran en pantalla: ${filteredConversations.length}');
+        for (var c in filteredConversations) {
+          print(' - MOSTRADA: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
+        }
+        return ListView.builder(
+          // Permitir scroll independiente
+          // shrinkWrap: true,
+          // physics: const NeverScrollableScrollPhysics(),
+          itemCount: filteredConversations.length,
+          itemBuilder: (context, index) {
+            final conversation = filteredConversations[index];
+            print('Construyendo widget para conversación: ${conversation.id} | ${conversation.participant1Id} <-> ${conversation.participant2Id}');
+            // --- Si es la conversación de IA, renderiza especial ---
+            if (conversation.id == 'ia_chat') {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF008080),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF008080).withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.smart_toy,
+                        size: 30,
+                        color: Color(0xFF008080),
+                      ),
+                    ),
+                    title: const Text(
+                      'Asistente IA',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Chat inteligente disponible 24/7',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AiChatScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+            // --- Resto de conversaciones normales ---
+            final otherId = conversation.participant1Id == userId ? conversation.participant2Id : conversation.participant1Id;
+            final tutor = tutors.firstWhere(
+              (t) => t.id == otherId,
+              orElse: () => TutorModel(
+                id: otherId,
+                nombre: '',
+                correo: '',
+                fotoPerfil: null,
+                telefono: null,
+                especialidad: null,
+                descripcion: null,
+                isOnline: null,
+                createdAt: null,
+                updatedAt: null,
+              ),
+            );
+            final isOtherTutor = tutors.any((t) => t.id == otherId);
+            // El future ahora siempre consulta el perfil del otro usuario (o el propio si es consigo mismo)
+            return FutureBuilder<Map<String, dynamic>?>(
+              future: (alumnoCache[otherId] != null
+                  ? Future.value(alumnoCache[otherId])
+                  : apiService.getUserProfile(otherId).then((data) {
+                      alumnoCache[otherId] = data;
+                      return data;
+                    })),
+              builder: (context, snapshot) {
+                String nombre = tutor.nombre;
+                String? fotoPerfil = tutor.fotoPerfil;
+                // Si hay datos de la API (ya sea alumno, tutor o uno mismo), úsalos
+                if (snapshot.hasData && snapshot.data != null && snapshot.data!.isNotEmpty) {
+                  nombre = snapshot.data!['nombre'] ?? snapshot.data!['email'] ?? (otherId == userId ? 'Tú mismo' : '');
+                  fotoPerfil = snapshot.data!['fotoPerfil'] ?? null;
+                }
+                // Si no hay nombre, intenta usar el email o un texto por defecto
+                if ((nombre.isEmpty || nombre == 'Usuario') && snapshot.hasData && snapshot.data != null) {
+                  nombre = snapshot.data!['email'] ?? (otherId == userId ? 'Tú mismo' : '');
+                }
+                if (nombre.isEmpty) {
+                  nombre = otherId == userId ? 'Tú mismo' : 'Sin nombre';
+                }
+                print('Construyendo Container para conversación: ${conversation.id} | Nombre: $nombre | otherId: $otherId');
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: CircleAvatar(
+                      radius: 25,
+                      backgroundImage: fotoPerfil != null && fotoPerfil.isNotEmpty
+                          ? NetworkImage(fotoPerfil)
+                          : null,
+                      backgroundColor: Colors.grey[300],
+                      child: fotoPerfil == null || fotoPerfil.isEmpty
+                          ? Text(
+                              nombre.isNotEmpty ? nombre[0].toUpperCase() : 'U',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
+                    ),
+                    title: Text(
+                      nombre.isNotEmpty ? nombre : (otherId == userId ? 'Tú mismo' : 'Usuario'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    subtitle: Text('ID: ${conversation.id}'),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.black87,
+                      size: 16,
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConversationScreen(
+                            conversation: conversation,
+                            otherUser: TutorModel(
+                              id: otherId,
+                              nombre: nombre,
+                              correo: '',
+                              fotoPerfil: fotoPerfil,
+                              telefono: null,
+                              especialidad: null,
+                              descripcion: null,
+                              isOnline: null,
+                              createdAt: null,
+                              updatedAt: null,
+                            ),
+                            currentUserId: userId,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error al cargar tutores: $error')),
     );
   }
 
@@ -297,6 +450,14 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Limpiar cache global si existe
+    if (mounted) {
+      try {
+        // Si tienes acceso a alumnoCache aquí, límpialo
+        // Si no, ignora este bloque y solo deja el comentario
+        // alumnoCache.clear();
+      } catch (_) {}
+    }
     _loadChatHistory();
   }
 
@@ -1274,6 +1435,335 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
           if (isFromUser) const SizedBox(width: 8),
         ],
       ),
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'enviado':
+        return Icons.check;
+      case 'entregado':
+        return Icons.done_all;
+      case 'leido':
+        return Icons.done_all;
+      case 'fallido':
+        return Icons.error;
+      default:
+        return Icons.schedule;
+    }
+  }
+
+  Widget _buildMessageInput() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Colors.grey[300]!),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: TextField(
+                controller: _messageController,
+                decoration: const InputDecoration(
+                  hintText: 'Escribe tu mensaje...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.grey),
+                ),
+                onSubmitted: (_) => _sendMessage(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF2196F3),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_forward, color: Colors.white),
+              onPressed: _sendMessage,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+} 
+
+// Pantalla genérica de conversación
+class ConversationScreen extends ConsumerStatefulWidget {
+  final ConversationModel conversation;
+  final TutorModel otherUser;
+  final String currentUserId;
+
+  const ConversationScreen({
+    Key? key,
+    required this.conversation,
+    required this.otherUser,
+    required this.currentUserId,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<ConversationScreen> createState() => _ConversationScreenState();
+}
+
+class _ConversationScreenState extends ConsumerState<ConversationScreen> {
+  final TextEditingController _messageController = TextEditingController();
+  final List<ChatMessageModel> _messages = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final conversationData = await ref.read(conversationMessagesProvider({
+        'conversationId': widget.conversation.id,
+        'usuarioId': widget.currentUserId,
+      }).future);
+      if (conversationData['data'] != null && conversationData['data']['messages'] != null) {
+        final messages = conversationData['data']['messages'] as List;
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages.map((json) => ChatMessageModel.fromJson(json)));
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _messages.clear();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error al cargar la conversación: $e';
+      });
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+    final messageText = _messageController.text.trim();
+    _messageController.clear();
+    final localMessage = ChatMessageModel(
+      id: DateTime.now().toString(),
+      mensaje: messageText,
+      estado: 'enviado',
+      fecha: DateTime.now(),
+      usuarioId: widget.currentUserId,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isAiResponse: false,
+      recipientId: widget.otherUser.id,
+      conversationId: widget.conversation.id,
+    );
+    setState(() {
+      _messages.add(localMessage);
+    });
+    try {
+      final serverMessage = await ref.read(chatServiceProvider).sendPrivateMessage(
+        mensaje: messageText,
+        usuarioId: widget.currentUserId,
+        recipientId: widget.otherUser.id,
+        conversationId: widget.conversation.id,
+      );
+      setState(() {
+        final index = _messages.indexWhere((m) => m.id == localMessage.id);
+        if (index != -1) {
+          _messages[index] = serverMessage;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        final index = _messages.indexWhere((m) => m.id == localMessage.id);
+        if (index != -1) {
+          _messages[index] = localMessage.copyWith(estado: 'fallido');
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar mensaje: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundImage: widget.otherUser.fotoPerfil != null && widget.otherUser.fotoPerfil!.isNotEmpty
+                  ? NetworkImage(widget.otherUser.fotoPerfil!)
+                  : null,
+              backgroundColor: Colors.grey[300],
+              child: widget.otherUser.fotoPerfil == null || widget.otherUser.fotoPerfil!.isEmpty
+                  ? Text(
+                      widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre[0].toUpperCase() : 'U',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre : 'Usuario',
+              style: const TextStyle(color: Colors.black87),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              color: Colors.grey[50],
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
+                      ? Center(child: Text(_errorMessage!))
+                      : _buildMessagesList(),
+            ),
+          ),
+          _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessagesList() {
+    if (_messages.isEmpty) {
+      return const Center(
+        child: Text(
+          'No hay mensajes aún.\n¡Inicia la conversación!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[index];
+        final isFromUser = message.usuarioId == widget.currentUserId;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: isFromUser 
+                ? MainAxisAlignment.end 
+                : MainAxisAlignment.start,
+            children: [
+              if (!isFromUser) ...[
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: widget.otherUser.fotoPerfil != null && widget.otherUser.fotoPerfil!.isNotEmpty
+                      ? NetworkImage(widget.otherUser.fotoPerfil!)
+                      : null,
+                  backgroundColor: Colors.grey[300],
+                  child: widget.otherUser.fotoPerfil == null || widget.otherUser.fotoPerfil!.isEmpty
+                      ? Text(
+                          widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre[0].toUpperCase() : 'U',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isFromUser 
+                        ? const Color(0xFF2196F3)
+                        : const Color(0xFFE91E63),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        message.mensaje,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatTime(message.fecha),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
+                          if (isFromUser) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              _getStatusIcon(message.estado),
+                              size: 12,
+                              color: Colors.white70,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (isFromUser) const SizedBox(width: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 

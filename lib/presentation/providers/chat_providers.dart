@@ -5,6 +5,7 @@ import '../../core/services/chat/models/conversation_model.dart';
 import '../../core/services/chat/models/chat_attempt_model.dart';
 import '../../core/services/tutors/tutor_service.dart';
 import '../../core/services/tutors/models/tutor_model.dart';
+import '../providers/simple_auth_providers.dart';
 
 // Provider para obtener todos los tutores
 final tutorsProvider = FutureProvider<List<TutorModel>>((ref) async {
@@ -24,7 +25,23 @@ final tutorsErrorProvider = StateProvider<String?>((ref) => null);
 // Provider para las conversaciones del usuario
 final userConversationsProvider = FutureProvider.family<List<ConversationModel>, String>((ref, usuarioId) async {
   final chatService = ref.watch(chatServiceProvider);
-  return await chatService.getUserConversations(usuarioId: usuarioId);
+  final isTutor = ref.watch(isTutorProvider);
+  print('userConversationsProvider: usuarioId= [32m$usuarioId [0m, isTutor= [32m$isTutor [0m');
+  final conversations = await chatService.getUserConversations(usuarioId: usuarioId);
+
+  if (isTutor) {
+    print('Mostrando TODAS las conversaciones para el tutor');
+    // Si es tutor, muestra todas las conversaciones
+    return conversations;
+  } else {
+    print('Filtrando solo tutores para alumno');
+    // Si es alumno, filtra solo las conversaciones donde el otro participante es tutor
+    // Suponiendo que participant2Id es el tutor (ajusta si tu modelo es diferente)
+    // Si tienes una lista de tutores, puedes comparar con sus IDs
+    final tutors = await ref.read(tutorsProvider.future);
+    final tutorIds = tutors.map((t) => t.id).toSet();
+    return conversations.where((c) => tutorIds.contains(c.participant2Id) || tutorIds.contains(c.participant1Id)).toList();
+  }
 });
 
 // Provider para los mensajes de una conversación específica
