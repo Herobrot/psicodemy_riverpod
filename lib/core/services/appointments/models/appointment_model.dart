@@ -38,6 +38,10 @@ class AppointmentModel {
   final String? toDo;
   @JsonKey(name: 'finish_to_do')
   final String? finishToDo;
+  @JsonKey(name: 'checklist')
+  final List<dynamic>? checklist;
+  @JsonKey(name: 'reason')
+  final String? reason;
 
   const AppointmentModel({
     required this.id,
@@ -50,6 +54,8 @@ class AppointmentModel {
     this.deletedAt,
     this.toDo,
     this.finishToDo,
+    this.checklist,
+    this.reason,
   });
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) =>

@@ -20,6 +20,8 @@ AppointmentModel _$AppointmentModelFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['deleted_at'] as String),
       toDo: json['to_do'] as String?,
       finishToDo: json['finish_to_do'] as String?,
+      checklist: json['checklist'] as List<dynamic>?,
+      reason: json['reason'] as String?,
     );
 
 Map<String, dynamic> _$AppointmentModelToJson(AppointmentModel instance) =>
@@ -34,6 +36,8 @@ Map<String, dynamic> _$AppointmentModelToJson(AppointmentModel instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'to_do': instance.toDo,
       'finish_to_do': instance.finishToDo,
+      'checklist': instance.checklist,
+      'reason': instance.reason,
     };
 
 const _$EstadoCitaEnumMap = {
