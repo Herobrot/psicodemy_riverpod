@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
-import '../quotes_screens/quotes_screen.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
 import '../../../core/services/appointments/repositories/appointment_repository.dart';
@@ -15,6 +13,9 @@ import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/tutors/repositories/tutor_repository.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
+import '../../../data/models/forum_post.dart';
+import '../../../data/datasources/forum_api_service.dart';
+import '../forum_screens/forum_screen.dart';
 
 // Provider para obtener las citas del alumno actual
 final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
@@ -192,14 +193,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(height: 16),
           _buildCredentialCard(),
           const SizedBox(height: 16),
-          _buildAppointmentCard(), // << Este es el botón que navegará
+          _buildAppointmentCard(),
           const SizedBox(height: 16),
-          _buildDoctorsSection(),
-          const SizedBox(height: 16),
-          _buildBootcampCard(),
-          const SizedBox(height: 16),
-          _buildAnniversaryCard(),
-          const SizedBox(height: 20),
+          ForumSummaryWidget(), // <-- Integración del widget de resumen de foro
+          const SizedBox(height: 16)
         ],
       ),
     );
@@ -545,118 +542,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
 
-  Widget _buildDoctorsSection() {
-    return Row(
-      children: [
-        Expanded(child: _buildDoctorCard('Dr. Alma', 'Como sentirse mejor', 'Aunque la vida sea complicada, todo puede mejorar')),
-        const SizedBox(width: 12),
-        Expanded(child: _buildDoctorCard('Dr. Carlos', 'Aprende a amarte', 'El amor propio puede ser un gran aliado')),
-      ],
-    );
-  }
+// --- Widget reutilizable para resumen de publicaciones del foro ---
+class ForumSummaryWidget extends StatelessWidget {
+  const ForumSummaryWidget({super.key});
 
-  Widget _buildDoctorCard(String name, String title, String description) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 8)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face'),
-                fit: BoxFit.cover,
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<ForumPost>>(
+      future: ForumApiService.fetchPosts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const Text('Error al cargar publicaciones del foro');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text('No hay publicaciones de foro disponibles.');
+        }
+        final posts = snapshot.data!.take(3).toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Últimas publicaciones del foro',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...posts.map((post) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                leading: post.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          formatForumImageUrl(post.imageUrl!)!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const Icon(Icons.forum, size: 40, color: Colors.blue),
+                title: Text(post.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ForumPostDetailScreen(post: post),
+                    ),
+                  );
+                },
+              ),
+            )),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ForumScreen()),
+                  );
+                },
+                child: const Text('Ver todo el foro →'),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          const SizedBox(height: 4),
-          Text(description, style: const TextStyle(fontSize: 11, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 8),
-          Text(name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBootcampCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF6B9D),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.calendar_today, color: Colors.white, size: 20),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('BootCamp ISO4000', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                Text('26/10/26', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-            child: const Text('IR →', style: TextStyle(color: Color(0xFFFF6B9D), fontSize: 12, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnniversaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF4E6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFE0B3)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Aniversario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0x000ff333))),
-                const SizedBox(height: 4),
-                const Text('Celebremos juntos', style: TextStyle(fontSize: 14, color: Color(0x000ff666))),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: const Color(0xFF4A90E2), borderRadius: BorderRadius.circular(16)),
-                  child: const Text('Ver más →', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 80,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=200&h=200&fit=crop'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }
