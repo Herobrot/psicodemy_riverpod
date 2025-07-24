@@ -30,15 +30,15 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       id: m.id,
       tutorId: m.idTutor,
       studentId: m.idAlumno,
-      studentName: '', // Asignar si tienes el campo en el modelo o hacer otra consulta
-      topic: '', // Asignar si tienes el campo en el modelo o hacer otra consulta
+      studentName: m.idAlumno, // Si tienes el nombre real, cámbialo aquí
+      topic: m.reason ?? '',
       scheduledDate: m.fechaCita,
-      timeSlot: '', // Asignar si tienes el campo en el modelo o hacer otra consulta
+      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
       status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
       notes: m.reason,
       createdAt: m.createdAt,
       updatedAt: m.updatedAt,
-      completedAt: null, // Asignar si tienes el campo en el modelo
+      completedAt: null,
     )).toList();
   }
 
@@ -137,8 +137,31 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<Map<String, int>> getAppointmentStats(String tutorId) async {
-    // TODO: Implementar usando AppointmentService
-    throw UnimplementedError();
+    final appointments = await getTutorAppointments(tutorId);
+    final now = DateTime.now();
+    int hoy = 0;
+    int pendientes = 0;
+    int completadas = 0;
+
+    for (final cita in appointments) {
+      if (cita.scheduledDate.year == now.year &&
+          cita.scheduledDate.month == now.month &&
+          cita.scheduledDate.day == now.day) {
+        hoy++;
+      }
+      if (cita.status == AppointmentStatus.pending || cita.status == AppointmentStatus.confirmed) {
+        pendientes++;
+      }
+      if (cita.status == AppointmentStatus.completed) {
+        completadas++;
+      }
+    }
+
+    return {
+      'Hoy': hoy,
+      'Pendiente': pendientes,
+      'Completada': completadas,
+    };
   }
 
   @override
