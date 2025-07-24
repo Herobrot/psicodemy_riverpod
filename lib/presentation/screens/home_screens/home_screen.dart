@@ -34,6 +34,7 @@ final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((
 // Provider para obtener la próxima cita del alumno
 final nextAppointmentProvider = FutureProvider<AppointmentModel?>((ref) async {
   final appointments = await ref.watch(myAppointmentsAsStudentProvider.future);
+  print('appointments here: $appointments');
   
   if (appointments.isEmpty) return null;
   
@@ -82,6 +83,14 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String? formatForumImageUrl(String? originalUrl) {
+  if (originalUrl == null) return null;
+  final idx = originalUrl.indexOf('/prueba');
+  if (idx == -1) return originalUrl;
+  final path = originalUrl.substring(idx + '/prueba'.length); // omite '/prueba'
+  return 'https://pub-5d5ebeeeb5f14f0ca828d1fc5e53e0a2.r2.dev$path';
 }
 
 class HomeScreen extends ConsumerStatefulWidget {
