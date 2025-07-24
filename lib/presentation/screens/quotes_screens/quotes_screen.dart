@@ -6,7 +6,23 @@ import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
 import '../../../core/services/tutors/providers/tutor_providers.dart';
+import '../../../core/services/appointments/repositories/appointment_repository.dart';
+import '../../../core/services/appointments/appointment_service.dart';
+import '../../../core/services/api_service_provider.dart';
+import '../../../core/services/auth/auth_service.dart';
 import 'detail_quotes_screen.dart';
+
+// Provider para obtener las citas del alumno actual
+final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
+  final apiService = ref.watch(apiServiceProvider);
+  final appointmentService = AppointmentService(apiService);
+  final authService = ref.watch(authServiceProvider);
+  final appointmentRepository = AppointmentRepository(appointmentService, authService);
+  
+  return await appointmentRepository.getMyAppointmentsAsStudent(
+    limit: 50, // Obtener más citas para el calendario
+  );
+});
 
 class CitasScreen extends ConsumerStatefulWidget {
   const CitasScreen({super.key});
@@ -30,14 +46,14 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     // Cargar tutores y citas del alumno al inicializar
     Future.microtask(() {
       ref.read(tutorListProvider.notifier).loadTutors();
-      ref.refresh(appointmentListProvider);
+      ref.refresh(myAppointmentsAsStudentProvider);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final appointmentsAsync = ref.watch(appointmentListProvider);
+    final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
     
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -125,7 +141,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                   const SizedBox(height: 8),
                   Consumer(
                     builder: (context, ref, child) {
-                      final appointmentsAsync = ref.watch(appointmentListProvider);
+                      final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
                       
                       return appointmentsAsync.when(
                         data: (appointments) => TableCalendar(
@@ -134,7 +150,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                           focusedDay: _focusedDay,
                           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                           eventLoader: (day) {
-                            // Mostrar citas del día
+                            // Mostrar citas del día del alumno actual
                             return appointments.where((appointment) => isSameDay(appointment.fechaCita, day)).toList();
                           },
                           onDaySelected: (selectedDay, focusedDay) {
@@ -412,27 +428,6 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         _selectedTime!.minute,
       );
 
-      // Verificar conflictos de horario
-      final hasConflict = await ref.read(
-        scheduleConflictProvider({
-          'tutorId': _selectedTutor!.id,
-          'fechaCita': fechaCita,
-        }).future,
-      );
-
-      if (hasConflict == true) {
-        setState(() => _isScheduling = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('El tutor no está disponible en ese horario'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-
       // Crear la cita
       final request = CreateAppointmentRequest(
         idTutor: _selectedTutor!.id,
@@ -443,8 +438,8 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
 
       final appointment = await ref.read(createAppointmentProvider(request).future);
 
-      // Actualizar la lista de citas
-      ref.refresh(appointmentListProvider);
+      // Actualizar la lista de citas del alumno
+      ref.refresh(myAppointmentsAsStudentProvider);
 
       setState(() => _isScheduling = false);
 
@@ -466,7 +461,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     } catch (e) {
       setState(() => _isScheduling = false);
       
-      String errorMessage = 'Cita creada exitosamente';
+      String errorMessage = 'Error al crear la cita';
       if (e.toString().contains('unauthorized')) {
         errorMessage = 'No tienes permisos para crear citas';
       } else if (e.toString().contains('validation')) {
@@ -479,7 +474,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -508,9 +503,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildMainAppointmentCard() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentsAsync = ref.watch(appointmentListProvider);
+        final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
         
-        // Buscar la próxima cita confirmada
+        // Buscar la próxima cita confirmada del alumno actual
         final now = DateTime.now();
         final upcomingAppointments = appointmentsAsync.when(
           data: (appointments) => appointments
@@ -621,7 +616,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildAppointmentsList() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentsAsync = ref.watch(appointmentListProvider);
+        final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
         
         return appointmentsAsync.when(
           data: (appointments) {
@@ -651,8 +646,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
               );
             }
             
+            // Ordenar citas por fecha (más recientes primero)
+            final sortedAppointments = List<AppointmentModel>.from(appointments)
+              ..sort((a, b) => b.fechaCita.compareTo(a.fechaCita));
+            
             return Column(
-              children: appointments
+              children: sortedAppointments
                   .take(5) // Mostrar solo las últimas 5 citas
                   .map((appointment) => _buildAppointmentCard(appointment))
                   .toList(),
@@ -691,7 +690,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ref.refresh(appointmentListProvider);
+                    ref.refresh(myAppointmentsAsStudentProvider);
                   },
                   child: const Text('Reintentar'),
                 ),

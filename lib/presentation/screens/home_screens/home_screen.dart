@@ -1,20 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/login_services/fcm_service.dart';
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
 import '../quotes_screens/quotes_screen.dart';
+import '../../../core/services/appointments/models/appointment_model.dart';
+import '../../../core/services/appointments/providers/appointment_providers.dart';
+import '../../../core/services/tutors/models/tutor_model.dart';
+import '../../../core/services/tutors/providers/tutor_providers.dart';
+import '../../../core/services/appointments/repositories/appointment_repository.dart';
+import '../../../core/services/appointments/appointment_service.dart';
+import '../../../core/services/api_service_provider.dart';
+import '../../../core/services/auth/auth_service.dart';
+import '../../../core/services/tutors/repositories/tutor_repository.dart';
 
-class HomeScreen extends StatefulWidget {
+// Provider para obtener las citas del alumno actual
+final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
+  final apiService = ref.watch(apiServiceProvider);
+  final appointmentService = AppointmentService(apiService);
+  final authService = ref.watch(authServiceProvider);
+  final appointmentRepository = AppointmentRepository(appointmentService, authService);
+  
+  return await appointmentRepository.getMyAppointmentsAsStudent(
+    estadoCita: EstadoCita.confirmada,
+    fechaDesde: DateTime.now(),
+    limit: 10,
+  );
+});
+
+// Provider para obtener la próxima cita del alumno
+final nextAppointmentProvider = FutureProvider<AppointmentModel?>((ref) async {
+  final appointments = await ref.watch(myAppointmentsAsStudentProvider.future);
+  
+  if (appointments.isEmpty) return null;
+  
+  // Ordenar por fecha y obtener la más cercana
+  appointments.sort((a, b) => a.fechaCita.compareTo(b.fechaCita));
+  return appointments.first;
+});
+
+// Provider para obtener el tutor de una cita
+final tutorForAppointmentProvider = FutureProvider.family<TutorModel?, String>((ref, tutorId) async {
+  final tutorRepository = ref.watch(tutorRepositoryProvider);
+  return await tutorRepository.getTutorById(tutorId);
+});
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isLoading = true;
 
   @override
@@ -116,8 +157,6 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           _buildCredentialCard(),
           const SizedBox(height: 16),
-          _buildFCMTokenCard(),
-          const SizedBox(height: 16),
           _buildAppointmentCard(), // << Este es el botón que navegará
           const SizedBox(height: 16),
           _buildDoctorsSection(),
@@ -189,171 +228,310 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAppointmentCard() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CitasScreen()),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4A90E2),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.access_time, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tu cita con el Mtro Ali',
+    return Consumer(
+      builder: (context, ref, child) {
+        final nextAppointmentAsync = ref.watch(nextAppointmentProvider);
+        
+        return nextAppointmentAsync.when(
+          data: (appointment) {
+            if (appointment == null) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'No tienes citas próximas',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Agenda una nueva cita',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        'AGENDAR →',
+                        style: TextStyle(
+                          color: Color(0xFF4A90E2),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            // Obtener información del tutor
+            final tutorAsync = ref.watch(tutorForAppointmentProvider(appointment.idTutor));
+            
+            return tutorAsync.when(
+              data: (tutor) {
+                final tutorName = tutor?.nombre ?? 'Tutor';
+                final timeUntilAppointment = appointment.fechaCita.difference(DateTime.now());
+                final hoursUntilAppointment = timeUntilAppointment.inHours;
+                final daysUntilAppointment = timeUntilAppointment.inDays;
+                
+                String timeText;
+                if (daysUntilAppointment > 0) {
+                  timeText = 'Faltan $daysUntilAppointment días para tu cita';
+                } else if (hoursUntilAppointment > 0) {
+                  timeText = 'Faltan $hoursUntilAppointment horas para tu cita';
+                } else {
+                  timeText = 'Tu cita es en menos de 1 hora';
+                }
+                
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CitasScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A90E2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tu cita con $tutorName',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                timeText,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            'VER CITA →',
+                            style: TextStyle(
+                              color: Color(0xFF4A90E2),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              loading: () => Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.access_time, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Cargando información de la cita...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              error: (error, stack) => Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.access_time, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tu próxima cita',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Información no disponible',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        'VER CITA →',
+                        style: TextStyle(
+                          color: Color(0xFF4A90E2),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4A90E2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.access_time, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cargando citas...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          error: (error, stack) => Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4A90E2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.access_time, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Error al cargar citas',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Intenta de nuevo más tarde',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    'VER CITA →',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                      color: Color(0xFF4A90E2),
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Text(
-                    'Faltan 25 Horas para tu cita',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Text(
-                'VER CITA →',
-                style: TextStyle(
-                  color: Color(0xFF4A90E2),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFCMTokenCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF32CD32), Color(0xFF90EE90)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'FCM Token (Para Notificaciones)',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Obtén tu token para enviar notificaciones de prueba',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _showFCMToken,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF32CD32),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    'Obtener Mi Token FCM',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showFCMToken() async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-
-      final token = await FCMService.getToken();
-
-      if (mounted) Navigator.of(context).pop();
-
-      if (token != null && mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Tu Token FCM'),
-            content: SelectableText(token),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: token));
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Token copiado al portapapeles'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: const Text('Copiar'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cerrar'),
-              ),
-            ],
           ),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: No se pudo obtener el token FCM'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
-    }
+      },
+    );
   }
 
   Widget _buildCredentialCard() {
