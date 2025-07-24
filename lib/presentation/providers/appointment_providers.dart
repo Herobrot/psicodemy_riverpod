@@ -87,6 +87,9 @@ final nextStudentAppointmentProvider = FutureProvider.family<AppointmentEntity?,
   );
   // Combinar y ordenar
   final todas = [...pendientes, ...confirmadas];
+  print('CITAS pendientes: ' + pendientes.toString());
+  print('CITAS confirmadas: ' + confirmadas.toString());
+  print('CITAS todas (combinadas): ' + todas.toString());
   todas.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   return todas.isNotEmpty ? todas.first : null;
 });

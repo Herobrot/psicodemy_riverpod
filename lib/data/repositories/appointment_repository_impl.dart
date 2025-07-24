@@ -139,8 +139,48 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required DateTime fechaDesde,
     int limit = 10,
   }) async {
-    // TODO: Implementar usando AppointmentService
-    throw UnimplementedError();
+    // Mapear AppointmentStatus a EstadoCita
+    EstadoCita estado;
+    switch (estadoCita) {
+      case AppointmentStatus.pending:
+        estado = EstadoCita.pendiente;
+        break;
+      case AppointmentStatus.confirmed:
+        estado = EstadoCita.confirmada;
+        break;
+      case AppointmentStatus.completed:
+        estado = EstadoCita.completada;
+        break;
+      case AppointmentStatus.cancelled:
+        estado = EstadoCita.cancelada;
+        break;
+      case AppointmentStatus.inProgress:
+        estado = EstadoCita.pendiente;
+        break;
+      case AppointmentStatus.rescheduled:
+        estado = EstadoCita.pendiente;
+        break;
+    }
+    final List<AppointmentModel> models = await _appointmentService.getAppointments(
+      idAlumno: studentId,
+      estadoCita: estado,
+      fechaDesde: fechaDesde,
+      limit: limit,
+    );
+    return models.map((m) => AppointmentEntity(
+      id: m.id,
+      tutorId: m.idTutor,
+      studentId: m.idAlumno,
+      studentName: '',
+      topic: '',
+      scheduledDate: m.fechaCita,
+      timeSlot: '',
+      status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
+      notes: m.reason,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt,
+      completedAt: null,
+    )).toList();
   }
 
   @override

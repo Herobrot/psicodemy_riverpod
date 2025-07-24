@@ -15,6 +15,9 @@ import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/tutors/repositories/tutor_repository.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
+import '../../../data/datasources/forum_api_service.dart';
+import '../../../data/models/forum_post.dart';
+import '../../screens/forum_screens/forum_screen.dart';
 
 // Provider para obtener las citas del alumno actual
 final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
@@ -33,6 +36,7 @@ final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((
 // Provider para obtener la próxima cita del alumno
 final nextAppointmentProvider = FutureProvider<AppointmentModel?>((ref) async {
   final appointments = await ref.watch(myAppointmentsAsStudentProvider.future);
+  print('appointments here: $appointments');
   
   if (appointments.isEmpty) return null;
   
@@ -81,6 +85,14 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String? formatForumImageUrl(String? originalUrl) {
+  if (originalUrl == null) return null;
+  final idx = originalUrl.indexOf('/prueba');
+  if (idx == -1) return originalUrl;
+  final path = originalUrl.substring(idx + '/prueba'.length); // omite '/prueba'
+  return 'https://pub-5d5ebeeeb5f14f0ca828d1fc5e53e0a2.r2.dev$path';
 }
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -547,43 +559,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildDoctorsSection() {
-    return Row(
-      children: [
-        Expanded(child: _buildDoctorCard('Dr. Alma', 'Como sentirse mejor', 'Aunque la vida sea complicada, todo puede mejorar')),
-        const SizedBox(width: 12),
-        Expanded(child: _buildDoctorCard('Dr. Carlos', 'Aprende a amarte', 'El amor propio puede ser un gran aliado')),
-      ],
+    // Reemplazamos la sección de doctores por publicaciones del foro
+    return _buildForumPostsSection();
+  }
+
+  Widget _buildForumPostsSection() {
+    return FutureBuilder<List<ForumPost>>(
+      future: ForumApiService.fetchPosts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error al cargar publicaciones: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No hay publicaciones recientes.'));
+        }
+        final posts = snapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Publicaciones recientes del foro',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ...posts.take(2).map((post) => _buildForumPostCard(post)).toList(),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildDoctorCard(String name, String title, String description) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+  Widget _buildForumPostCard(ForumPost post) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 8)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face'),
-                fit: BoxFit.cover,
-              ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ForumPostDetailScreen(post: post),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (post.imageUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    formatForumImageUrl(post.imageUrl!)!,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Text(post.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 4),
+              Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.person, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(post.authorName, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt.year}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          const SizedBox(height: 4),
-          Text(description, style: const TextStyle(fontSize: 11, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 8),
-          Text(name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
-        ],
+        ),
       ),
     );
   }
