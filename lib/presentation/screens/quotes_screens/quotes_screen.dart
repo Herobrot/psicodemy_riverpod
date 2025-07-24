@@ -32,13 +32,15 @@ class CitasScreen extends ConsumerStatefulWidget {
 }
 
 class _CitasScreenState extends ConsumerState<CitasScreen> {
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isScheduling = false;
 
   TutorModel? _selectedTutor;
   TimeOfDay? _selectedTime;
-  String _todoText = '';
+  String _razonCita = '';
+  List<ChecklistItem> _checklistCita = [];
 
   @override
   void initState() {
@@ -55,145 +57,149 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
     
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {
-            // TODO: Implementar menú lateral
-          },
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'lib/src/shared_imgs/chat.png',
-              height: 28,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.psychology, size: 28, color: Color(0xFF4CAF50));
-              },
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Psicodemy',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87),
+            onPressed: () {
+              // TODO: Implementar menú lateral
+            },
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'lib/src/shared_imgs/chat.png',
+                height: 28,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.psychology, size: 28, color: Color(0xFF4CAF50));
+                },
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Psicodemy',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: GestureDetector(
+                onTap: () {
+                  // TODO: Ir a perfil
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: user?.photoURL != null 
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                  child: user?.photoURL == null 
+                    ? Text(
+                        user?.email?.isNotEmpty == true 
+                          ? user!.email![0].toUpperCase() 
+                          : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+                ),
               ),
             ),
           ],
         ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {
-                // TODO: Ir a perfil
-              },
-              child: CircleAvatar(
-                radius: 18,
-                backgroundImage: user?.photoURL != null 
-                  ? NetworkImage(user!.photoURL!)
-                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                child: user?.photoURL == null 
-                  ? Text(
-                      user?.email?.isNotEmpty == true 
-                        ? user!.email![0].toUpperCase() 
-                        : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
+        body: _isScheduling
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Creando cita...'),
+                  ],
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ListView(
+                  children: [
+                    _buildMainAppointmentCard(),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'CALENDARIO DE CITAS',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
+                        
+                        return appointmentsAsync.when(
+                          data: (appointments) => TableCalendar(
+                            firstDay: DateTime.utc(2022, 1, 1),
+                            lastDay: DateTime.utc(2026, 12, 31),
+                            focusedDay: _focusedDay,
+                            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                            eventLoader: (day) {
+                              // Mostrar citas del día del alumno actual
+                              return appointments.where((appointment) => isSameDay(appointment.fechaCita, day)).toList();
+                            },
+                            onDaySelected: (selectedDay, focusedDay) {
+                              setState(() {
+                                _selectedDay = selectedDay;
+                                _focusedDay = focusedDay;
+                              });
+                              _selectedTutor = null;
+                              _selectedTime = null;
+                              _razonCita = '';
+                              _checklistCita = [];
+                              _showTutorDialog();
+                            },
+                            calendarFormat: CalendarFormat.month,
+                            headerStyle: const HeaderStyle(
+                              formatButtonVisible: false,
+                              titleCentered: true,
+                            ),
+                            calendarStyle: const CalendarStyle(
+                              selectedDecoration: BoxDecoration(
+                                color: Color(0xFF4A90E2),
+                                shape: BoxShape.circle,
+                              ),
+                              todayDecoration: BoxDecoration(
+                                color: Colors.grey,
+                                shape: BoxShape.circle,
+                              ),
+                              markerDecoration: BoxDecoration(
+                                color: Color(0xFF5CC9C0),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (e, _) => Center(child: Text('Error: ${e.toString()}')),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAppointmentsList(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
       ),
-      body: _isScheduling
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Creando cita...'),
-                ],
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView(
-                children: [
-                  _buildMainAppointmentCard(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'CALENDARIO DE CITAS',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final appointmentsAsync = ref.watch(myAppointmentsAsStudentProvider);
-                      
-                      return appointmentsAsync.when(
-                        data: (appointments) => TableCalendar(
-                          firstDay: DateTime.utc(2022, 1, 1),
-                          lastDay: DateTime.utc(2026, 12, 31),
-                          focusedDay: _focusedDay,
-                          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                          eventLoader: (day) {
-                            // Mostrar citas del día del alumno actual
-                            return appointments.where((appointment) => isSameDay(appointment.fechaCita, day)).toList();
-                          },
-                          onDaySelected: (selectedDay, focusedDay) {
-                            setState(() {
-                              _selectedDay = selectedDay;
-                              _focusedDay = focusedDay;
-                            });
-                            _selectedTutor = null;
-                            _selectedTime = null;
-                            _todoText = '';
-                            _showTutorDialog();
-                          },
-                          calendarFormat: CalendarFormat.month,
-                          headerStyle: const HeaderStyle(
-                            formatButtonVisible: false,
-                            titleCentered: true,
-                          ),
-                          calendarStyle: const CalendarStyle(
-                            selectedDecoration: BoxDecoration(
-                              color: Color(0xFF4A90E2),
-                              shape: BoxShape.circle,
-                            ),
-                            todayDecoration: BoxDecoration(
-                              color: Colors.grey,
-                              shape: BoxShape.circle,
-                            ),
-                            markerDecoration: BoxDecoration(
-                              color: Color(0xFF5CC9C0),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (e, _) => Center(child: Text('Error: ${e.toString()}')),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildAppointmentsList(),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
     );
   }
 
@@ -297,14 +303,11 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Describe qué quieres trabajar (opcional)',
-                            border: OutlineInputBorder(),
-                            hintText: 'Ej: Revisar álgebra básica',
-                          ),
-                          maxLines: 2,
-                          onChanged: (value) => _todoText = value,
+                        AppointmentChecklistForm(
+                          onChanged: (reason, checklist) {
+                            _razonCita = reason;
+                            _checklistCita = checklist;
+                          },
                         ),
                         const SizedBox(height: 20),
                         Row(
@@ -339,7 +342,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     _selectedTime = null;
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Dialog(
@@ -359,7 +362,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                           alignment: Alignment.topRight,
                           child: IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.pop(dialogContext),
                           ),
                         ),
                         Text(
@@ -388,7 +391,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _selectedTime != null ? _agendarCita : null,
+                          onPressed: _selectedTime != null
+                              ? () {
+                                  Navigator.pop(dialogContext);
+                                  _agendarCita();
+                                }
+                              : null,
                           child: const Text('Agendar Cita'),
                         ),
                       ],
@@ -404,15 +412,16 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   }
 
   Future<void> _agendarCita() async {
-    Navigator.pop(context);
     
     if (_selectedTutor == null || _selectedTime == null || _selectedDay == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor completa todos los campos'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      Future.delayed(Duration.zero, () {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Text('Por favor completa todos los campos'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
       return;
     }
 
@@ -433,32 +442,34 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         idTutor: _selectedTutor!.id,
         idAlumno: FirebaseAuth.instance.currentUser?.uid ?? '',
         fechaCita: fechaCita,
-        toDo: _todoText.isNotEmpty ? _todoText : null,
+        checklist: _checklistCita,
+        reason: _razonCita.isNotEmpty ? _razonCita : null,
       );
 
-      final appointment = await ref.read(createAppointmentProvider(request).future);
+      await ref.read(createAppointmentProvider(request).future);
 
       // Actualizar la lista de citas del alumno
       ref.refresh(myAppointmentsAsStudentProvider);
 
       setState(() => _isScheduling = false);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      Future.delayed(Duration.zero, () {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
           const SnackBar(
             content: Text('¡Cita creada exitosamente!'),
             backgroundColor: Colors.green,
           ),
         );
-      }
+      });
 
       // Limpiar selecciones
       _selectedTutor = null;
       _selectedTime = null;
       _selectedDay = null;
-      _todoText = '';
+      _razonCita = '';
+      _checklistCita = [];
 
-    } catch (e) {
+    } catch (e, stack) {
       setState(() => _isScheduling = false);
       
       String errorMessage = 'Error al crear la cita';
@@ -470,14 +481,18 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         errorMessage = 'Conflicto de horario';
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      // Imprimir el error y el stacktrace para depuración
+      print('🚨 Error en _agendarCita: $e');
+      print('🚨 Stacktrace: $stack');
+
+      Future.delayed(Duration.zero, () {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: Colors.red,
           ),
         );
-      }
+      });
     }
   }
 
@@ -739,11 +754,11 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     '${appointment.fechaCita.day}/${appointment.fechaCita.month}/${appointment.fechaCita.year} - ${appointment.fechaCita.hour.toString().padLeft(2, '0')}:${appointment.fechaCita.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  if (appointment.toDo != null && appointment.toDo!.isNotEmpty)
+                  if (appointment.checklist.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        appointment.toDo!,
+                        '${appointment.checklist.where((item) => !item.completed).length} tareas pendientes, ${appointment.checklist.where((item) => item.completed).length} completadas',
                         style: const TextStyle(color: Colors.white60, fontSize: 10),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -801,5 +816,169 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       case EstadoCita.noAsistio:
         return Icons.person_off;
     }
+  }
+}
+
+class AppointmentChecklistForm extends StatefulWidget {
+  final void Function(String reason, List<ChecklistItem> checklist) onChanged;
+  const AppointmentChecklistForm({super.key, required this.onChanged});
+
+  @override
+  State<AppointmentChecklistForm> createState() => _AppointmentChecklistFormState();
+}
+
+class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
+  final TextEditingController _reasonController = TextEditingController();
+  final List<ChecklistItem> _checklist = [];
+
+  void _addTask() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('Agregar tarea'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(labelText: 'Descripción'),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() {
+                    _checklist.add(ChecklistItem(description: controller.text.trim(), completed: false));
+                  });
+                  widget.onChanged(_reasonController.text, _checklist);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Agregar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editTask(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: _checklist[index].description);
+        return AlertDialog(
+          title: const Text('Editar tarea'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(labelText: 'Descripción'),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() {
+                    _checklist[index] = ChecklistItem(description: controller.text.trim(), completed: _checklist[index].completed);
+                  });
+                  widget.onChanged(_reasonController.text, _checklist);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _removeTask(int index) {
+    setState(() {
+      _checklist.removeAt(index);
+    });
+    widget.onChanged(_reasonController.text, _checklist);
+  }
+
+  void _toggleCompleted(int index) {
+    setState(() {
+      _checklist[index] = ChecklistItem(
+        description: _checklist[index].description,
+        completed: !_checklist[index].completed,
+      );
+    });
+    widget.onChanged(_reasonController.text, _checklist);
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _reasonController,
+          decoration: const InputDecoration(
+            labelText: 'Razón de la cita (opcional)',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 2,
+          onChanged: (_) => widget.onChanged(_reasonController.text, _checklist),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Tareas a realizar', style: TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _addTask,
+              tooltip: 'Agregar tarea',
+            ),
+          ],
+        ),
+        if (_checklist.isEmpty)
+          const Text('No hay tareas agregadas.'),
+        ..._checklist.asMap().entries.map((entry) {
+          final i = entry.key;
+          final item = entry.value;
+          return ListTile(
+            leading: Checkbox(
+              value: item.completed,
+              onChanged: (_) => _toggleCompleted(i),
+            ),
+            title: Text(item.description),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _editTask(i),
+                  tooltip: 'Editar',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _removeTask(i),
+                  tooltip: 'Eliminar',
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
   }
 }

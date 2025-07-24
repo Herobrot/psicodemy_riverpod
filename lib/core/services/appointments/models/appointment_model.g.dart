@@ -6,6 +6,18 @@ part of 'appointment_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+ChecklistItem _$ChecklistItemFromJson(Map<String, dynamic> json) =>
+    ChecklistItem(
+      description: json['description'] as String,
+      completed: json['completed'] as bool,
+    );
+
+Map<String, dynamic> _$ChecklistItemToJson(ChecklistItem instance) =>
+    <String, dynamic>{
+      'description': instance.description,
+      'completed': instance.completed,
+    };
+
 AppointmentModel _$AppointmentModelFromJson(Map<String, dynamic> json) =>
     AppointmentModel(
       id: json['id'] as String,
@@ -18,8 +30,12 @@ AppointmentModel _$AppointmentModelFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
-      toDo: json['to_do'] as String?,
-      finishToDo: json['finish_to_do'] as String?,
+      checklist:
+          (json['checklist'] as List<dynamic>?)
+              ?.map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      reason: json['reason'] as String?,
     );
 
 Map<String, dynamic> _$AppointmentModelToJson(AppointmentModel instance) =>
@@ -32,8 +48,8 @@ Map<String, dynamic> _$AppointmentModelToJson(AppointmentModel instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
-      'to_do': instance.toDo,
-      'finish_to_do': instance.finishToDo,
+      'checklist': instance.checklist,
+      'reason': instance.reason,
     };
 
 const _$EstadoCitaEnumMap = {
@@ -50,7 +66,12 @@ CreateAppointmentRequest _$CreateAppointmentRequestFromJson(
   idTutor: json['id_tutor'] as String,
   idAlumno: json['id_alumno'] as String,
   fechaCita: DateTime.parse(json['fecha_cita'] as String),
-  toDo: json['to_do'] as String?,
+  checklist:
+      (json['checklist'] as List<dynamic>?)
+          ?.map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
+  reason: json['reason'] as String?,
 );
 
 Map<String, dynamic> _$CreateAppointmentRequestToJson(
@@ -59,7 +80,8 @@ Map<String, dynamic> _$CreateAppointmentRequestToJson(
   'id_tutor': instance.idTutor,
   'id_alumno': instance.idAlumno,
   'fecha_cita': instance.fechaCita.toIso8601String(),
-  'to_do': instance.toDo,
+  'checklist': instance.checklist,
+  'reason': instance.reason,
 };
 
 UpdateAppointmentRequest _$UpdateAppointmentRequestFromJson(
@@ -69,8 +91,12 @@ UpdateAppointmentRequest _$UpdateAppointmentRequestFromJson(
   fechaCita: json['fecha_cita'] == null
       ? null
       : DateTime.parse(json['fecha_cita'] as String),
-  toDo: json['to_do'] as String?,
-  finishToDo: json['finish_to_do'] as String?,
+  checklist:
+      (json['checklist'] as List<dynamic>?)
+          ?.map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
+  reason: json['reason'] as String?,
 );
 
 Map<String, dynamic> _$UpdateAppointmentRequestToJson(
@@ -78,8 +104,8 @@ Map<String, dynamic> _$UpdateAppointmentRequestToJson(
 ) => <String, dynamic>{
   'estado_cita': _$EstadoCitaEnumMap[instance.estadoCita],
   'fecha_cita': instance.fechaCita?.toIso8601String(),
-  'to_do': instance.toDo,
-  'finish_to_do': instance.finishToDo,
+  'checklist': instance.checklist,
+  'reason': instance.reason,
 };
 
 UpdateStatusRequest _$UpdateStatusRequestFromJson(Map<String, dynamic> json) =>

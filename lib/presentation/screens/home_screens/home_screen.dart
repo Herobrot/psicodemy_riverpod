@@ -3,19 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../services/login_services/fcm_service.dart';
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
 import '../quotes_screens/quotes_screen.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
-import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
-import '../../../core/services/tutors/providers/tutor_providers.dart';
 import '../../../core/services/appointments/repositories/appointment_repository.dart';
 import '../../../core/services/appointments/appointment_service.dart';
 import '../../../core/services/api_service_provider.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/tutors/repositories/tutor_repository.dart';
+import '../../providers/appointment_providers.dart';
+import '../../../domain/entities/appointment_entity.dart';
 
 // Provider para obtener las citas del alumno actual
 final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
@@ -47,6 +46,42 @@ final tutorForAppointmentProvider = FutureProvider.family<TutorModel?, String>((
   final tutorRepository = ref.watch(tutorRepositoryProvider);
   return await tutorRepository.getTutorById(tutorId);
 });
+
+// Widget para mostrar detalles de la cita y permitir cancelarla
+class AppointmentDetailScreen extends ConsumerWidget {
+  final AppointmentEntity appointment;
+  const AppointmentDetailScreen({required this.appointment, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Detalle de la cita')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tutor: ${appointment.tutorId}'),
+            Text('Fecha: ${appointment.scheduledDate}'),
+            Text('Estado: ${appointment.statusText}'),
+            if (appointment.notes != null) Text('Notas: ${appointment.notes}'),
+            const Spacer(),
+            if (appointment.status == AppointmentStatus.pending || appointment.status == AppointmentStatus.confirmed)
+              ElevatedButton(
+                onPressed: () async {
+                  final actions = ref.read(appointmentActionsProvider);
+                  await actions.cancelAppointment(appointment.id);
+                  Navigator.pop(context, true);
+                },
+                child: const Text('Cancelar cita'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -230,8 +265,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildAppointmentCard() {
     return Consumer(
       builder: (context, ref, child) {
-        final nextAppointmentAsync = ref.watch(nextAppointmentProvider);
-        
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          return const SizedBox.shrink();
+        }
+        final nextAppointmentAsync = ref.watch(nextStudentAppointmentProvider(user.uid));
         return nextAppointmentAsync.when(
           data: (appointment) {
             if (appointment == null) {
@@ -287,116 +325,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               );
             }
-            
-            // Obtener información del tutor
-            final tutorAsync = ref.watch(tutorForAppointmentProvider(appointment.idTutor));
-            
-            return tutorAsync.when(
-              data: (tutor) {
-                final tutorName = tutor?.nombre ?? 'Tutor';
-                final timeUntilAppointment = appointment.fechaCita.difference(DateTime.now());
-                final hoursUntilAppointment = timeUntilAppointment.inHours;
-                final daysUntilAppointment = timeUntilAppointment.inDays;
-                
-                String timeText;
-                if (daysUntilAppointment > 0) {
-                  timeText = 'Faltan $daysUntilAppointment días para tu cita';
-                } else if (hoursUntilAppointment > 0) {
-                  timeText = 'Faltan $hoursUntilAppointment horas para tu cita';
-                } else {
-                  timeText = 'Tu cita es en menos de 1 hora';
-                }
-                
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CitasScreen()),
-                    );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4A90E2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.access_time, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tu cita con $tutorName',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                timeText,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            'VER CITA →',
-                            style: TextStyle(
-                              color: Color(0xFF4A90E2),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+            final timeUntilAppointment = appointment.scheduledDate.difference(DateTime.now());
+            final hoursUntilAppointment = timeUntilAppointment.inHours;
+            final daysUntilAppointment = timeUntilAppointment.inDays;
+            String timeText;
+            if (daysUntilAppointment > 0) {
+              timeText = 'Faltan $daysUntilAppointment días para tu cita';
+            } else if (hoursUntilAppointment > 0) {
+              timeText = 'Faltan $hoursUntilAppointment horas para tu cita';
+            } else {
+              timeText = 'Tu cita es en menos de 1 hora';
+            }
+            return GestureDetector(
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AppointmentDetailScreen(appointment: appointment),
                   ),
                 );
+                if (result == true) {
+                  ref.refresh(nextStudentAppointmentProvider(user.uid));
+                }
               },
-              loading: () => Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A90E2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.access_time, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cargando información de la cita...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              error: (error, stack) => Container(
+              child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -407,21 +359,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     const Icon(Icons.access_time, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Tu próxima cita',
-                            style: TextStyle(
+                            'Tu cita',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
-                            'Información no disponible',
-                            style: TextStyle(
+                            timeText,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
                             ),

@@ -246,54 +246,60 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Text(
-                widget.appointment.toDo?.isNotEmpty == true
-                    ? '• ${widget.appointment.toDo}'
-                    : 'No hay tareas específicas definidas para esta cita',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: widget.appointment.toDo?.isNotEmpty == true 
-                      ? Colors.black87 
-                      : Colors.grey.shade600,
-                  fontStyle: widget.appointment.toDo?.isNotEmpty == true 
-                      ? FontStyle.normal 
-                      : FontStyle.italic,
+            if (widget.appointment.checklist.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
-              ),
-            ),
-            
+                child: const Text(
+                  'No hay tareas específicas definidas para esta cita',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              )
+            else ...[
+              ...widget.appointment.checklist
+                  .where((item) => !item.completed)
+                  .map((item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.radio_button_unchecked, size: 18, color: Colors.orange),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(item.description, style: const TextStyle(fontSize: 14))),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ],
             // Tareas completadas (si existen)
-            if (widget.appointment.finishToDo?.isNotEmpty == true) ...[
+            if (widget.appointment.checklist.any((item) => item.completed)) ...[
               const SizedBox(height: 16),
               const Text(
                 'Tareas Completadas',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade300),
-                ),
-                child: Text(
-                  '✓ ${widget.appointment.finishToDo}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.green.shade800,
-                  ),
-                ),
-              ),
+              ...widget.appointment.checklist
+                  .where((item) => item.completed)
+                  .map((item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle, size: 18, color: Colors.green),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(item.description, style: const TextStyle(fontSize: 14, color: Colors.green))),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ],
+            if (widget.appointment.reason != null && widget.appointment.reason!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text('Razón: ${widget.appointment.reason}', style: const TextStyle(color: Colors.red)),
             ],
             
             const Spacer(),

@@ -72,7 +72,7 @@ abstract class AppointmentRepositoryInterface {
   Future<AppointmentModel> cancelAppointment(String id);
 
   /// Completar una cita
-  Future<AppointmentModel> completeAppointment(String id, {String? finishToDo});
+  Future<AppointmentModel> completeAppointment(String id, {Checklist? checklist, String? reason});
 
   /// Marcar como no asistida
   Future<AppointmentModel> markAsNoShow(String id);

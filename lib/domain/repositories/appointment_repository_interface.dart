@@ -30,4 +30,15 @@ abstract class AppointmentRepository {
   
   // Stream de citas en tiempo real
   Stream<List<AppointmentEntity>> watchTutorAppointments(String tutorId);
+
+  // Obtener todas las citas de un alumno
+  Future<List<AppointmentEntity>> getStudentAppointments(String studentId);
+
+  // Obtener citas de un alumno con filtros
+  Future<List<AppointmentEntity>> getStudentAppointmentsFiltered({
+    required String studentId,
+    required AppointmentStatus estadoCita,
+    required DateTime fechaDesde,
+    int limit = 10,
+  });
 } 

@@ -214,7 +214,14 @@ class ApiService {
       final uri = Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}').replace(queryParameters: queryParams);
       final response = await _client.get(uri, headers: await _authHeaders);
       final data = await _handleResponse(response);
-      return (data['data'] as List<dynamic>); // SOLO data['data']
+      // Corrección: la lista de citas está en data['data']['data']
+      if (data['data'] is Map && data['data']['data'] is List) {
+        return data['data']['data'] as List<dynamic>;
+      } else if (data['data'] is List) {
+        return data['data'] as List<dynamic>;
+      } else {
+        return [];
+      }
     } catch (e) {
       throw _handleError(e);
     }
@@ -326,6 +333,8 @@ class ApiService {
     try {
       print('🔍 ApiService: Intentando decodificar JSON');
       final decoded = json.decode(response.body);
+      print('🔍 [DEBUG] Objeto crudo recibido de la API:');
+      print(decoded);
       if (decoded == null) {
         print('❌ ApiService: El servidor retornó null');
         throw AuthFailure.unknown('El servidor retornó null');
@@ -347,6 +356,10 @@ class ApiService {
         if (responseData['token'] != null) {
           print('🔑 ApiService: Guardando token de autenticación');
           await _secureStorage.write(key: 'auth_token', value: responseData['token']);
+        }
+        // Normalizar data['data'] si está anidado
+        if (responseData['data'] is Map && responseData['data']['data'] != null) {
+          responseData['data'] = responseData['data']['data'];
         }
         return responseData;
       

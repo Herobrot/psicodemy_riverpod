@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../widgets/filtro_citas_widget.dart';
+import 'tutor_appointment_detail_screen.dart';
 
 class TutorAppointmentsScreen extends ConsumerStatefulWidget {
   const TutorAppointmentsScreen({super.key});
@@ -183,7 +184,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _showAppointmentDetail(appointment),
+        onTap: () => _navigateToDetail(appointment),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -229,35 +230,26 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                         ),
                       ],
                     ),
-                    if ((appointment.toDo != null && appointment.toDo!.isNotEmpty) ||
-                        (appointment.finishToDo != null && appointment.finishToDo!.isNotEmpty))
-                      const SizedBox(height: 6),
-                    if (appointment.toDo != null && appointment.toDo!.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(Icons.list_alt, size: 16, color: Colors.orange[700]),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text('Por hacer: ${appointment.toDo!}', style: const TextStyle(fontSize: 13)),
-                          ),
-                        ],
-                      ),
-                    if (appointment.finishToDo != null && appointment.finishToDo!.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(Icons.check, size: 16, color: Colors.green[700]),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text('Hecho: ${appointment.finishToDo!}', style: const TextStyle(fontSize: 13, color: Colors.green)),
-                          ),
-                        ],
+                    if (appointment.checklist.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.list_alt, size: 16, color: Colors.orange[700]),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Tareas: ${appointment.checklist.where((item) => !item.completed).length} pendientes, ${appointment.checklist.where((item) => item.completed).length} completadas',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
               ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios, size: 20),
-                onPressed: () => _showAppointmentDetail(appointment),
+                onPressed: () => _navigateToDetail(appointment),
               ),
             ],
           ),
@@ -266,55 +258,11 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     );
   }
 
-  void _showAppointmentDetail(AppointmentModel appointment) {
-    setState(() => _selectedAppointment = appointment);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentDetailSheet(
-        appointment: appointment,
-        onStatusChanged: (newStatus) async {
-          try {
-            await ref.read(updateAppointmentStatusProvider({
-              'id': appointment.id,
-              'request': UpdateStatusRequest(estadoCita: newStatus),
-            }).future);
-            if (!mounted) return;
-            ref.refresh(appointmentListProvider);
-            Navigator.pop(context);
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Estado de la cita actualizado exitosamente'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          } catch (e) {
-            if (!mounted) return;
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error al actualizar el estado: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        },
-        onEditTodo: (toDo, finishToDo) async {
-          await ref.read(updateAppointmentProvider({
-            'id': appointment.id,
-            'request': UpdateAppointmentRequest(
-              toDo: toDo,
-              finishToDo: finishToDo,
-            ),
-          }).future);
-          if (!mounted) return;
-          ref.refresh(appointmentListProvider);
-          Navigator.pop(context);
-        },
+  void _navigateToDetail(AppointmentModel appointment) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TutorAppointmentDetailScreen(appointment: appointment),
       ),
     );
   }
@@ -346,8 +294,8 @@ class _AppointmentDetailSheetState extends State<_AppointmentDetailSheet> {
   @override
   void initState() {
     super.initState();
-    _todoController = TextEditingController(text: widget.appointment.toDo);
-    _finishTodoController = TextEditingController(text: widget.appointment.finishToDo);
+    _todoController = TextEditingController(text: widget.appointment.checklist.where((item) => !item.completed).map((item) => item.description).join(', '));
+    _finishTodoController = TextEditingController(text: widget.appointment.checklist.where((item) => item.completed).map((item) => item.description).join(', '));
   }
 
   @override

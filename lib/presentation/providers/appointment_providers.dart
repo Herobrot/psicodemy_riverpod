@@ -2,10 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/appointment_entity.dart';
 import '../../domain/use_cases/appointment_use_cases.dart';
 import '../../data/repositories/appointment_repository_impl.dart';
+import '../../core/services/appointments/appointment_service.dart';
 
 // Provider para el repositorio de citas
 final appointmentRepositoryProvider = Provider<AppointmentRepositoryImpl>((ref) {
-  return AppointmentRepositoryImpl();
+  final appointmentService = ref.watch(appointmentServiceProvider);
+  return AppointmentRepositoryImpl(appointmentService);
 });
 
 // Provider para los casos de uso de citas
@@ -64,6 +66,30 @@ final appointmentByIdProvider = FutureProvider.family<AppointmentEntity?, String
 
 // Provider para acciones de citas
 final appointmentActionsProvider = Provider((ref) => AppointmentActions(ref));
+
+// Provider para la próxima cita del alumno (usuario actual)
+final nextStudentAppointmentProvider = FutureProvider.family<AppointmentEntity?, String>((ref, studentId) async {
+  final useCases = ref.watch(appointmentUseCasesProvider);
+  final ahora = DateTime.now();
+  // Traer citas pendientes
+  final pendientes = await useCases.getStudentAppointmentsFiltered(
+    studentId: studentId,
+    estadoCita: AppointmentStatus.pending,
+    fechaDesde: ahora,
+    limit: 5,
+  );
+  // Traer citas confirmadas
+  final confirmadas = await useCases.getStudentAppointmentsFiltered(
+    studentId: studentId,
+    estadoCita: AppointmentStatus.confirmed,
+    fechaDesde: ahora,
+    limit: 5,
+  );
+  // Combinar y ordenar
+  final todas = [...pendientes, ...confirmadas];
+  todas.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  return todas.isNotEmpty ? todas.first : null;
+});
 
 class AppointmentActions {
   final Ref _ref;

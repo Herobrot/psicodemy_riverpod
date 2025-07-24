@@ -195,11 +195,12 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   }
 
   @override
-  Future<AppointmentModel> completeAppointment(String id, {String? finishToDo}) async {
+  Future<AppointmentModel> completeAppointment(String id, {Checklist? checklist, String? reason}) async {
     try {
       final request = UpdateAppointmentRequest(
         estadoCita: EstadoCita.completada,
-        finishToDo: finishToDo,
+        checklist: checklist,
+        reason: reason,
       );
       return await _appointmentService.updateAppointment(id, request);
     } catch (e) {

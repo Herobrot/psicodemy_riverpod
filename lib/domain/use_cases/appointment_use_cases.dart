@@ -56,6 +56,26 @@ class AppointmentUseCases {
     return _appointmentRepository.watchTutorAppointments(tutorId);
   }
 
+  // Obtener todas las citas de un alumno
+  Future<List<AppointmentEntity>> getStudentAppointments(String studentId) async {
+    return await _appointmentRepository.getStudentAppointments(studentId);
+  }
+
+  // Obtener citas de un alumno con filtros
+  Future<List<AppointmentEntity>> getStudentAppointmentsFiltered({
+    required String studentId,
+    required AppointmentStatus estadoCita,
+    required DateTime fechaDesde,
+    int limit = 10,
+  }) async {
+    return await _appointmentRepository.getStudentAppointmentsFiltered(
+      studentId: studentId,
+      estadoCita: estadoCita,
+      fechaDesde: fechaDesde,
+      limit: limit,
+    );
+  }
+
   // Casos de uso específicos para la UI
 
   // Obtener citas agrupadas por fecha

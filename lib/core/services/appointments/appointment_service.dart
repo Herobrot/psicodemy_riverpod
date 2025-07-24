@@ -1,6 +1,13 @@
 import '../api_service.dart';
 import 'models/appointment_model.dart';
 import 'exceptions/appointment_exception.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../api_service_provider.dart';
+
+final appointmentServiceProvider = Provider<AppointmentService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  return AppointmentService(apiService);
+});
 
 class AppointmentService {
   final ApiService _apiService;
@@ -10,7 +17,8 @@ class AppointmentService {
   Future<AppointmentModel> createAppointment(CreateAppointmentRequest request) async {
     try {
       final data = await _apiService.createAppointment(request.toJson());
-      return AppointmentModel.fromJson(data);
+      final citaJson = data['data'] ?? data; // Soporta ambos casos
+      return AppointmentModel.fromJson(citaJson);
     } catch (e) {
       throw AppointmentException.simple(e.toString());
     }
@@ -35,6 +43,7 @@ class AppointmentService {
         page: page,
         limit: limit,
       );
+      // data ya es una lista de mapas
       return data.map<AppointmentModel>((json) => AppointmentModel.fromJson(json)).toList();
     } catch (e) {
       throw AppointmentException.simple(e.toString());

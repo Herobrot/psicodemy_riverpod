@@ -16,6 +16,24 @@ enum EstadoCita {
   noAsistio,
 }
 
+/// Modelo para un ítem de checklist
+@JsonSerializable()
+class ChecklistItem {
+  final String description;
+  final bool completed;
+
+  const ChecklistItem({
+    required this.description,
+    required this.completed,
+  });
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) => _$ChecklistItemFromJson(json);
+  Map<String, dynamic> toJson() => _$ChecklistItemToJson(this);
+}
+
+/// Alias de tipo para una lista de ChecklistItem
+typedef Checklist = List<ChecklistItem>;
+
 /// Modelo principal para las citas
 @JsonSerializable()
 class AppointmentModel {
@@ -34,10 +52,10 @@ class AppointmentModel {
   final DateTime updatedAt;
   @JsonKey(name: 'deleted_at')
   final DateTime? deletedAt;
-  @JsonKey(name: 'to_do')
-  final String? toDo;
-  @JsonKey(name: 'finish_to_do')
-  final String? finishToDo;
+  @JsonKey(defaultValue: [], name: 'checklist')
+  final Checklist checklist;
+  @JsonKey(name: 'reason')
+  final String? reason;
 
   const AppointmentModel({
     required this.id,
@@ -48,8 +66,8 @@ class AppointmentModel {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
-    this.toDo,
-    this.finishToDo,
+    this.checklist = const [],
+    this.reason,
   });
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) =>
@@ -86,14 +104,17 @@ class CreateAppointmentRequest {
   final String idAlumno;
   @JsonKey(name: 'fecha_cita')
   final DateTime fechaCita;
-  @JsonKey(name: 'to_do')
-  final String? toDo;
+  @JsonKey(defaultValue: [], name: 'checklist')
+  final Checklist checklist;
+  @JsonKey(name: 'reason')
+  final String? reason;
 
   const CreateAppointmentRequest({
     required this.idTutor,
     required this.idAlumno,
     required this.fechaCita,
-    this.toDo,
+    this.checklist = const [],
+    this.reason,
   });
 
   factory CreateAppointmentRequest.fromJson(Map<String, dynamic> json) =>
@@ -109,16 +130,16 @@ class UpdateAppointmentRequest {
   final EstadoCita? estadoCita;
   @JsonKey(name: 'fecha_cita')
   final DateTime? fechaCita;
-  @JsonKey(name: 'to_do')
-  final String? toDo;
-  @JsonKey(name: 'finish_to_do')
-  final String? finishToDo;
+  @JsonKey(defaultValue: [], name: 'checklist')
+  final Checklist? checklist;
+  @JsonKey(name: 'reason')
+  final String? reason;
 
   const UpdateAppointmentRequest({
     this.estadoCita,
     this.fechaCita,
-    this.toDo,
-    this.finishToDo,
+    this.checklist,
+    this.reason,
   });
 
   factory UpdateAppointmentRequest.fromJson(Map<String, dynamic> json) =>
