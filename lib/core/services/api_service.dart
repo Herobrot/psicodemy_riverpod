@@ -205,16 +205,18 @@ class ApiService {
         'page': page.toString(),
         'limit': limit.toString(),
       };
-      if (idTutor != null) queryParams['id_tutor'] = idTutor;
+           final tutorId = await _getCurrentUserTutorId();
+      if (idTutor != null) queryParams['id_tutor'] = tutorId ?? idTutor ?? '';
       if (idAlumno != null) queryParams['id_alumno'] = idAlumno;
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
       if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
       if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
 
       final uri = Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}').replace(queryParameters: queryParams);
+      print('uri de citas: $uri');
       final response = await _client.get(uri, headers: await _authHeaders);
       final data = await _handleResponse(response);
-      // Corrección: la lista de citas está en data['data']['data']
+      print('data de citas recibida: $data');
       if (data['data'] is Map && data['data']['data'] is List) {
         return data['data']['data'] as List<dynamic>;
       } else if (data['data'] is List) {

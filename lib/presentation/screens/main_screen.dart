@@ -27,7 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: _currentIndex, 
         children: _screens,
       ),
       bottomNavigationBar: Container(

@@ -2,6 +2,9 @@ import '../../domain/entities/appointment_entity.dart';
 import '../../domain/repositories/appointment_repository_interface.dart';
 import '../../core/services/appointments/appointment_service.dart';
 import '../../core/services/appointments/models/appointment_model.dart';
+import '../../core/services/auth/repositories/secure_storage_repository.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../core/services/auth/models/complete_user_model.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
   final AppointmentService _appointmentService;
@@ -10,7 +13,19 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<List<AppointmentEntity>> getTutorAppointments(String tutorId) async {
-    final List<AppointmentModel> models = await _appointmentService.getAppointments(idTutor: tutorId);
+    // Ignorar el parámetro tutorId y obtener siempre el userId de la API desde el storage
+    String? realTutorId;
+    final storage = SecureStorageRepositoryImpl(const FlutterSecureStorage());
+    final savedUserData = await storage.read('complete_user_data');
+    if (savedUserData != null) {
+      try {
+        final userData = CompleteUserModel.fromJson(savedUserData);
+        realTutorId = userData.userId;
+      } catch (e) {
+        // Si falla, dejar realTutorId como null
+      }
+    }
+    final List<AppointmentModel> models = await _appointmentService.getAppointments(idTutor: realTutorId);
     return models.map((m) => AppointmentEntity(
       id: m.id,
       tutorId: m.idTutor,

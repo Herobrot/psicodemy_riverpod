@@ -112,6 +112,8 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
           _buildPendingAppointmentsSection(tutorId),
           const SizedBox(height: 16),
           _buildTodayAppointmentsSection(tutorId),
+          const SizedBox(height: 16),
+          _buildAllAppointmentsSection(tutorId), // <-- Nueva sección
           const SizedBox(height: 20),
         ],
       ),
@@ -176,6 +178,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
   }
 
   Widget _buildStatsCards(String tutorId) {
+    print('stats cards tutorId: $tutorId');
     final statsAsync = ref.watch(appointmentStatsProvider(tutorId));
     
     return statsAsync.when(
@@ -326,6 +329,54 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
                   _buildTodayAppointmentCard(appointment)
                 ).toList(),
               ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('Error: $error'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAllAppointmentsSection(String tutorId) {
+    final allAppointmentsAsync = ref.watch(tutorAppointmentsProvider(tutorId));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Todas las citas',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        allAppointmentsAsync.when(
+          data: (appointments) {
+            print('TOTAL CITAS DEL TUTOR: ${appointments.length}');
+            for (final cita in appointments) {
+              print('CITA: ' + cita.toString());
+            }
+            return appointments.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text(
+                        'No hay citas registradas',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                : Column(
+                    children: appointments.map((appointment) =>
+                      _buildAppointmentCard(appointment)
+                    ).toList(),
+                  );
+          },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
             child: Text('Error: $error'),
