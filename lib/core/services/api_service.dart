@@ -35,16 +35,23 @@ class ApiService {
     if (firebaseToken == null) {
       throw AuthFailure.apiError('No se pudo obtener el token de Firebase');
     }
-    // Obtener el userId del tutor desde el storage
-    final tutorId = await _getCurrentUserTutorId();
-    if (tutorId == null) {
-      print('❌ No se pudo obtener el userId del tutor para el header');
-      throw AuthFailure.apiError('No se pudo obtener el userId del tutor');
+    // Obtener el userId y userType del tutor desde el storage
+    final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+    String? userId;
+    String? userType;
+    if (completeUserData != null) {
+      final userJson = json.decode(completeUserData);
+      userId = userJson['userId'] as String?;
+      userType = userJson['tipoUsuario'] as String?;
+    }
+    if (userId == null || userType == null) {
+      print('❌ No se pudo obtener el userId o userType del tutor para el header');
+      throw AuthFailure.apiError('No se pudo obtener el userId o userType del tutor');
     }
     return {
       ..._baseHeaders,
       'Authorization': 'Bearer $firebaseToken',
-      'userID': tutorId,
+      'user': json.encode({'userId': userId, 'userType': userType}),
     };
   }
 
@@ -267,22 +274,21 @@ class ApiService {
       final tutorId = await _getCurrentUserTutorId();
       
       // Agregar ID del tutor a la request si no está presente o es null
-      final enrichedRequest = {
-        ...request,
-        'userId': tutorId,
-      };
+      if (request['userId'] == null) {
+        request['userId'] = tutorId;
+      }
       
       // 🔄 DEBUG: Información esencial de la request
       print('🔄 Actualizando estado de cita:');
       print('   Appointment ID: $id');
       print('   Tutor ID: $tutorId');
       print('   Has Auth Token: ${headers.containsKey('Authorization')}');
-      print('   Request: ${json.encode(enrichedRequest)}');
+      print('   Request: ${json.encode(request)}');
       
       final response = await _client.put(
         Uri.parse('$_baseUrl${ApiRoutes.appointmentIdStatus(id)}'),
         headers: headers,
-        body: json.encode(enrichedRequest),
+        body: json.encode(request),
       );
       final data = await _handleResponse(response);
       return data['data']; // SOLO data['data']

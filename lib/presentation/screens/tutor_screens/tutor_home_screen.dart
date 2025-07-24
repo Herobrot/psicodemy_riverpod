@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
-import '../appointment_detail_screen.dart';
+import 'tutor_appointment_detail_screen.dart';
+import '../home_screens/home_screen.dart';
+import '../../../core/services/appointments/models/appointment_model.dart';
 
 class TutorHomeScreen extends ConsumerStatefulWidget {
   const TutorHomeScreen({super.key});
@@ -241,7 +243,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             spreadRadius: 1,
             blurRadius: 8,
           ),
@@ -409,89 +411,72 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
 
   Widget _buildAppointmentCard(AppointmentEntity appointment) {
     final color = Color(appointment.statusColor);
-    
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: _entityToModel(appointment)),
           ),
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: color,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              spreadRadius: 1,
-              blurRadius: 8,
-            ),
-          ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 4,
-              height: 60,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(2),
-              ),
+            Icon(
+              _getStatusIcon(appointment.status),
+              color: Colors.white,
+              size: 20,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     appointment.studentName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     appointment.topic,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${appointment.timeSlot} - ${_formatDate(appointment.scheduledDate)}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                  Text(
+                    '${appointment.scheduledDate.day}/${appointment.scheduledDate.month}/${appointment.scheduledDate.year} - '
+                    '${appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${appointment.scheduledDate.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  if (appointment.notes != null && appointment.notes!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        appointment.notes!,
+                        style: const TextStyle(color: Colors.white60, fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                appointment.statusText,
+                'VER →',
                 style: TextStyle(
                   color: color,
+                  fontWeight: FontWeight.bold,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -499,6 +484,23 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         ),
       ),
     );
+  }
+
+  IconData _getStatusIcon(AppointmentStatus status) {
+    switch (status) {
+      case AppointmentStatus.pending:
+        return Icons.schedule;
+      case AppointmentStatus.confirmed:
+        return Icons.check_circle;
+      case AppointmentStatus.completed:
+        return Icons.done_all;
+      case AppointmentStatus.cancelled:
+        return Icons.cancel;
+      case AppointmentStatus.inProgress:
+        return Icons.timelapse;
+      case AppointmentStatus.rescheduled:
+        return Icons.update;
+    }
   }
 
   Widget _buildTodayAppointmentCard(AppointmentEntity appointment) {
@@ -509,7 +511,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: _entityToModel(appointment)),
           ),
         );
       },
@@ -521,7 +523,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               spreadRadius: 1,
               blurRadius: 8,
             ),
@@ -533,7 +535,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Icon(
@@ -575,7 +577,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -602,5 +604,43 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+
+  // Conversión de AppointmentEntity a AppointmentModel para DetalleCitaScreen
+  AppointmentModel _entityToModel(AppointmentEntity entity) {
+    // Mapear el estado
+    EstadoCita estado;
+    switch (entity.status) {
+      case AppointmentStatus.pending:
+        estado = EstadoCita.pendiente;
+        break;
+      case AppointmentStatus.confirmed:
+        estado = EstadoCita.confirmada;
+        break;
+      case AppointmentStatus.completed:
+        estado = EstadoCita.completada;
+        break;
+      case AppointmentStatus.cancelled:
+        estado = EstadoCita.cancelada;
+        break;
+      case AppointmentStatus.inProgress:
+        estado = EstadoCita.pendiente;
+        break;
+      case AppointmentStatus.rescheduled:
+        estado = EstadoCita.pendiente;
+        break;
+    }
+    return AppointmentModel(
+      id: entity.id,
+      idTutor: entity.tutorId,
+      idAlumno: entity.studentId,
+      estadoCita: estado,
+      fechaCita: entity.scheduledDate,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt ?? entity.createdAt,
+      deletedAt: null,
+      checklist: const [],
+      reason: entity.notes,
+    );
   }
 } 

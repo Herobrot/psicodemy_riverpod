@@ -6,7 +6,7 @@ import '../providers/appointment_providers.dart';
 // Widget para mostrar detalles de la cita y permitir cancelarla
 class AppointmentDetailScreen extends ConsumerWidget {
   final AppointmentEntity appointment;
-  const AppointmentDetailScreen({required this.appointment, Key? key}) : super(key: key);
+  const AppointmentDetailScreen({required this.appointment, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
