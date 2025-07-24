@@ -198,7 +198,7 @@ class ApiService {
     DateTime? fechaDesde,
     DateTime? fechaHasta,
     int page = 1,
-    int limit = 10,
+    int limit = 100,
   }) async {
     try {
       final queryParams = <String, String>{
