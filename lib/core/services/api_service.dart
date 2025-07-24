@@ -205,8 +205,8 @@ class ApiService {
         'page': page.toString(),
         'limit': limit.toString(),
       };
-           final tutorId = await _getCurrentUserTutorId();
-      if (idTutor != null) queryParams['id_tutor'] = tutorId ?? idTutor ?? '';
+      final tutorId = await _getCurrentUserTutorId();
+      if (idTutor != null) queryParams['id_tutor'] = tutorId ?? idTutor;
       if (idAlumno != null) queryParams['id_alumno'] = idAlumno;
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
       if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
