@@ -16,6 +16,7 @@ import '../../../domain/entities/appointment_entity.dart';
 import '../../../data/models/forum_post.dart';
 import '../../../data/datasources/forum_api_service.dart';
 import '../forum_screens/forum_screen.dart';
+import '../quotes_screens/detail_quotes_screen.dart';
 
 // Provider para obtener las citas del alumno actual
 final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
@@ -48,42 +49,6 @@ final tutorForAppointmentProvider = FutureProvider.family<TutorModel?, String>((
   final tutorRepository = ref.watch(tutorRepositoryProvider);
   return await tutorRepository.getTutorById(tutorId);
 });
-
-// Widget para mostrar detalles de la cita y permitir cancelarla
-class AppointmentDetailScreen extends ConsumerWidget {
-  final AppointmentEntity appointment;
-  const AppointmentDetailScreen({required this.appointment, Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Detalle de la cita')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tutor: ${appointment.tutorId}'),
-            Text('Fecha: ${appointment.scheduledDate}'),
-            Text('Estado: ${appointment.statusText}'),
-            if (appointment.notes != null) Text('Notas: ${appointment.notes}'),
-            const Spacer(),
-            if (appointment.status == AppointmentStatus.pending || appointment.status == AppointmentStatus.confirmed)
-              ElevatedButton(
-                onPressed: () async {
-                  final actions = ref.read(appointmentActionsProvider);
-                  await actions.cancelAppointment(appointment.id);
-                  Navigator.pop(context, true);
-                },
-                child: const Text('Cancelar cita'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 String? formatForumImageUrl(String? originalUrl) {
   if (originalUrl == null) return null;
@@ -347,7 +312,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AppointmentDetailScreen(appointment: appointment),
+                    builder: (_) => DetalleCitaScreen(appointment: _entityToModel(appointment)),
                   ),
                 );
                 if (result == true) {
@@ -622,4 +587,42 @@ class ForumSummaryWidget extends StatelessWidget {
       },
     );
   }
+}
+
+// Conversión de AppointmentEntity a AppointmentModel para DetalleCitaScreen
+AppointmentModel _entityToModel(AppointmentEntity entity) {
+  // Mapear el estado
+  EstadoCita estado;
+  switch (entity.status) {
+    case AppointmentStatus.pending:
+      estado = EstadoCita.pendiente;
+      break;
+    case AppointmentStatus.confirmed:
+      estado = EstadoCita.confirmada;
+      break;
+    case AppointmentStatus.completed:
+      estado = EstadoCita.completada;
+      break;
+    case AppointmentStatus.cancelled:
+      estado = EstadoCita.cancelada;
+      break;
+    case AppointmentStatus.inProgress:
+      estado = EstadoCita.pendiente;
+      break;
+    case AppointmentStatus.rescheduled:
+      estado = EstadoCita.pendiente;
+      break;
+  }
+  return AppointmentModel(
+    id: entity.id,
+    idTutor: entity.tutorId,
+    idAlumno: entity.studentId,
+    estadoCita: estado,
+    fechaCita: entity.scheduledDate,
+    createdAt: entity.createdAt,
+    updatedAt: entity.updatedAt ?? entity.createdAt,
+    deletedAt: null,
+    checklist: const [],
+    reason: entity.notes,
+  );
 }
