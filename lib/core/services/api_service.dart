@@ -158,6 +158,33 @@ class ApiService {
     }
   }
 
+  // Endpoint para obtener lista de usuarios
+  Future<Map<String, dynamic>> getUsersList({
+    int page = 1,
+    int limit = 100,
+    String? userType,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'page': page.toString(),
+        'limit': limit.toString(),
+        if (userType != null) 'userType': userType,
+      };
+
+      final uri = Uri.parse('$_baseUrl${ApiRoutes.authUsers('all')}')
+          .replace(queryParameters: queryParams);
+
+      final response = await _client.get(
+        uri,
+        headers: await _authHeaders,
+      );
+
+      return await _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Health check del servicio
   Future<Map<String, dynamic>> healthCheck() async {
     try {
