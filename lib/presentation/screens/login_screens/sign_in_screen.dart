@@ -51,6 +51,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Future<void> _signInWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!mounted) return;
 
     setState(() { 
       _isLoading = true; 
@@ -59,6 +60,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
     try {
       print('🔐 Iniciando sesión con email: ${_emailController.text.trim()}');
+      
+      // Mostrar mensaje de progreso al usuario
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conectando con el servidor...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
       final authService = ref.read(authServiceProvider);
       
       final completeUser = await authService.signInWithEmailAndPassword(
@@ -68,6 +81,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       print('✅ Inicio de sesión exitoso');
       print('Usuario objeto: $completeUser');
+      print('🔍 Tipo de usuario: ${completeUser.tipoUsuario}');
+      print('🔍 UserID: ${completeUser.userId}');
+      print('🔍 UID: ${completeUser.uid}');
+      
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -76,48 +93,58 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Invalida el provider de usuario para refrescar el estado
-        ref.invalidate(authRepositoryProvider);
-        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
-        _navigateToAppropriateScreen(completeUser);
+        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
+        // El AuthWrapper detectará automáticamente el cambio de estado y navegará
+        print('🔍 SignInScreen: Dejando que AuthWrapper maneje la navegación');
+        
+        // Pequeño delay para asegurar que el estado se actualice
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     } catch (e) {
       print('❌ Error en inicio de sesión: $e');
       print('❌ Tipo de error: ${e.runtimeType}');
       
-      // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
-      try {
-        final authActions = ref.read(authActionsProvider);
-        await authActions.signOut();
-      } catch (signOutError) {
-        print('❌ Error al cerrar sesión después del error: $signOutError');
-      }
-      
-      String errorMessage;
-      if (e.toString().contains('AuthFailure')) {
-        // Extraer el mensaje del AuthFailure
-        final errorString = e.toString();
-        if (errorString.contains('message:')) {
-          final startIndex = errorString.indexOf('message:') + 8;
-          final endIndex = errorString.indexOf(')', startIndex);
-          if (endIndex > startIndex) {
-            errorMessage = errorString.substring(startIndex, endIndex).trim();
+      if (mounted) {
+        // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
+        try {
+          final authActions = ref.read(authActionsProvider);
+          await authActions.signOut();
+        } catch (signOutError) {
+          print('❌ Error al cerrar sesión después del error: $signOutError');
+        }
+        
+        String errorMessage;
+        
+        // Manejar errores específicos
+        if (e.toString().contains('TimeoutException')) {
+          errorMessage = 'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
+        } else if (e.toString().contains('SocketException')) {
+          errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+        } else if (e.toString().contains('AuthFailure')) {
+          // Extraer el mensaje del AuthFailure
+          final errorString = e.toString();
+          if (errorString.contains('message:')) {
+            final startIndex = errorString.indexOf('message:') + 8;
+            final endIndex = errorString.indexOf(')', startIndex);
+            if (endIndex > startIndex) {
+              errorMessage = errorString.substring(startIndex, endIndex).trim();
+            } else {
+              errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+            }
           } else {
             errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
           }
         } else {
-          errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+          errorMessage = 'Error inesperado: ${e.toString()}';
         }
-      } else {
-        errorMessage = e.toString();
+        
+        setState(() {
+          _error = errorMessage;
+        });
+        
+        // Mostrar error en consola para debug
+        print('🚨 Error mostrado al usuario: $errorMessage');
       }
-      
-      setState(() {
-        _error = errorMessage;
-      });
-      
-      // Mostrar error en consola para debug
-      print('🚨 Error mostrado al usuario: $errorMessage');
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });
@@ -126,6 +153,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+    if (!mounted) return;
+    
     setState(() { 
       _isLoading = true; 
       _error = null; 
@@ -145,21 +174,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         );
         
-        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
-        _navigateToAppropriateScreen(completeUser);
+        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
       }
     } catch (e) {
       // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
-      try {
-        final authActions = ref.read(authActionsProvider);
-        await authActions.signOut();
-      } catch (signOutError) {
-        print('❌ Error al cerrar sesión después del error: $signOutError');
+      if (mounted) {
+        try {
+          final authActions = ref.read(authActionsProvider);
+          await authActions.signOut();
+        } catch (signOutError) {
+          print('❌ Error al cerrar sesión después del error: $signOutError');
+        }
+        
+        setState(() {
+          _error = e.toString();
+        });
       }
-      
-      setState(() {
-        _error = e.toString();
-      });
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });
@@ -402,21 +432,5 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  void _navigateToAppropriateScreen(dynamic completeUser, {void Function()? onNavigate}) {
-    // Determinar el tipo de usuario y navegar
-    if (completeUser.tipoUsuario == TipoUsuario.tutor) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const TutorMainScreen()),
-        (route) => false,
-      );
-    } else {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
-      );
-    }
-    if (onNavigate != null) onNavigate();
-  }
+
 } 

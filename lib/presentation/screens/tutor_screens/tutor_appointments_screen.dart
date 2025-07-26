@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/services/auth/models/complete_user_model.dart';
+import '../../../core/services/auth/repositories/secure_storage_repository.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
+import '../../../core/services/users/user_mapping_service.dart';
 import '../../widgets/filtro_citas_widget.dart';
+import '../../widgets/user_name_display.dart';
 import 'tutor_appointment_detail_screen.dart';
 
 class TutorAppointmentsScreen extends ConsumerStatefulWidget {
@@ -14,10 +19,13 @@ class TutorAppointmentsScreen extends ConsumerStatefulWidget {
 
 class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScreen> {
   String? _selectedAlumnoId;
+  String? realTutorId;
   
 
   AppointmentModel? _selectedAppointment;
   bool _showFiltroAvanzado = false;
+  bool _isRefreshing = false;
+  DateTime? _lastRefreshTime;
 
   // Paginación local
   int _currentPage = 1;
@@ -28,8 +36,107 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   String _busquedaAlumno = '';
 
   @override
-  Widget build(BuildContext context) {
-    final appointmentsAsync = ref.watch(appointmentListProvider);
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final storage = SecureStorageRepositoryImpl(const FlutterSecureStorage());
+    final savedUserData = await storage.read('complete_user_data');
+    if (savedUserData != null) {
+      try {
+        final userData = CompleteUserModel.fromJson(savedUserData);
+        setState(() {
+          realTutorId = userData.userId;
+        });
+      } catch (e) {
+      }
+    }
+    print('realTutorId: $realTutorId');
+  }
+
+  // Método para recargar las citas
+  void _refreshAppointments() {
+    print('🔄 Recargando citas...');
+    
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    ref.refresh(appointmentListProvider);
+    
+    // Mostrar feedback al usuario
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Recargando citas...'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.blue,
+      ),
+    );
+    
+    // Resetear el estado de carga después de un breve delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    });
+  }
+
+  // Método para limpiar filtros
+  void _clearFilters() {
+    setState(() {
+      _estadoFiltro = EstadoCita.confirmada;
+      _busquedaAlumno = '';
+      _currentPage = 1;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Filtros limpiados'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
+  // Método para resetear paginación
+  void _resetPagination() {
+    setState(() {
+      _currentPage = 1;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Volviendo a la primera página'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  // Método para actualizar nombres de usuarios
+  void _refreshUserNames() {
+    final userMappingService = ref.read(userMappingServiceProvider);
+    userMappingService.clearCache();
+    
+    // Invalidar todos los providers de nombres de usuario
+    ref.invalidate(userNameProvider);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Actualizando nombres de usuarios...'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.purple,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {  
+    final allAppointmentsAsync = ref.watch(appointmentListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,17 +152,85 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
             },
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: _isRefreshing 
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
             tooltip: 'Recargar citas',
-            onPressed: () {
-              ref.refresh(appointmentListProvider);
+            onPressed: _isRefreshing ? null : _refreshAppointments,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'refresh':
+                  _refreshAppointments();
+                  break;
+                case 'clear_filters':
+                  _clearFilters();
+                  break;
+                case 'reset_pagination':
+                  _resetPagination();
+                  break;
+                case 'refresh_users':
+                  _refreshUserNames();
+                  break;
+              }
             },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Recargar citas'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'clear_filters',
+                child: Row(
+                  children: [
+                    Icon(Icons.clear_all, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text('Limpiar filtros'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'reset_pagination',
+                child: Row(
+                  children: [
+                    Icon(Icons.first_page, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('Ir a primera página'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'refresh_users',
+                child: Row(
+                  children: [
+                    Icon(Icons.people, color: Colors.purple),
+                    SizedBox(width: 8),
+                    Text('Actualizar nombres'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      body: appointmentsAsync.when(
+      body: allAppointmentsAsync.when(
         data: (appointments) {
-          List<AppointmentModel> filtered = appointments;
+          // Filtrar citas del tutor actual
+          List<AppointmentModel> filtered = appointments.where((appointment) => 
+            appointment.idTutor == realTutorId
+          ).toList();
 
           // Aplicar filtros de estado y búsqueda por ID de alumno
           filtered = filtered
@@ -78,22 +253,66 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
           return Column(
             children: [
               if (_showFiltroAvanzado)
-                FiltroCitasWidget(
-                  estadoSeleccionado: _estadoFiltro,
-                  onEstadoChanged: (nuevoEstado) {
-                    setState(() {
-                      _estadoFiltro = nuevoEstado;
-                      _currentPage = 1;
-                    });
-                  },
-                  textoBusqueda: _busquedaAlumno,
-                  onTextoBusquedaChanged: (nuevoTexto) {
-                    setState(() {
-                      _busquedaAlumno = nuevoTexto;
-                      _currentPage = 1;
-                    });
-                  },
-                  estadosDisponibles: EstadoCita.values,
+                Column(
+                  children: [
+                    FiltroCitasWidget(
+                      estadoSeleccionado: _estadoFiltro,
+                      onEstadoChanged: (nuevoEstado) {
+                        setState(() {
+                          _estadoFiltro = nuevoEstado;
+                          _currentPage = 1;
+                        });
+                      },
+                      textoBusqueda: _busquedaAlumno,
+                      onTextoBusquedaChanged: (nuevoTexto) {
+                        setState(() {
+                          _busquedaAlumno = nuevoTexto;
+                          _currentPage = 1;
+                        });
+                      },
+                      estadosDisponibles: EstadoCita.values,
+                    ),
+                    // Botón de recarga adicional en el área de filtros
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _isRefreshing ? null : _refreshAppointments,
+                              icon: _isRefreshing 
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.refresh, size: 18),
+                              label: Text(_isRefreshing ? 'Recargando...' : 'Recargar citas'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: _clearFilters,
+                            icon: const Icon(Icons.clear_all, size: 18),
+                            label: const Text('Limpiar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               _HeaderSection(
                 total: filtered.length,
@@ -202,13 +421,13 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Alumno: ',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700]),
-                        ),
-                        Text(
-                          appointment.idAlumno,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        UserNameDisplay(
+                          userId: appointment.idAlumno,
+                          prefix: 'Alumno: ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ],
                     ),
@@ -272,7 +491,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   }
 }
 
-class _AppointmentDetailSheet extends StatefulWidget {
+class _AppointmentDetailSheet extends ConsumerStatefulWidget {
   final AppointmentModel appointment;
   final Future<void> Function(EstadoCita) onStatusChanged;
   final Future<void> Function(String?, String?) onEditTodo;
@@ -284,10 +503,10 @@ class _AppointmentDetailSheet extends StatefulWidget {
   });
 
   @override
-  State<_AppointmentDetailSheet> createState() => _AppointmentDetailSheetState();
+  ConsumerState<_AppointmentDetailSheet> createState() => _AppointmentDetailSheetState();
 }
 
-class _AppointmentDetailSheetState extends State<_AppointmentDetailSheet> {
+class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet> {
   late TextEditingController _todoController;
   late TextEditingController _finishTodoController;
 
@@ -364,7 +583,10 @@ class _AppointmentDetailSheetState extends State<_AppointmentDetailSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Alumno:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                            Text(widget.appointment.idAlumno, style: const TextStyle(fontWeight: FontWeight.w500)),
+                            UserNameDisplay(
+                              userId: widget.appointment.idAlumno,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                            ),
                             const SizedBox(height: 4),
                             Row(
                               children: [

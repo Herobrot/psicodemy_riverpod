@@ -62,8 +62,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         );
         
-        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
-        _navigateToAppropriateScreen(completeUser);
+        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
+        
+        // Pequeño delay para asegurar que el estado se actualice
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     } catch (e) {
       setState(() {
@@ -96,8 +98,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         );
         
-        // Navegar a la pantalla correspondiente basándose en el tipo de usuario
-        _navigateToAppropriateScreen(completeUser);
+        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
+        
+        // Pequeño delay para asegurar que el estado se actualice
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     } catch (e) {
       setState(() {
@@ -142,20 +146,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
   }
 
-  void _navigateToAppropriateScreen(dynamic completeUser) {
-    // Determinar el tipo de usuario y navegar
-    if (completeUser.tipoUsuario == TipoUsuario.tutor) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const TutorMainScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {

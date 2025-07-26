@@ -12,6 +12,7 @@ import '../exceptions/auth_failure.dart';
 import 'secure_storage_repository.dart';
 import '../../api_service.dart';
 import '../../api_service_provider.dart';
+import '../../../constants/timeout_config.dart';
 
 abstract class AuthRepository {
   Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password);
@@ -43,14 +44,14 @@ class AuthRepositoryImpl implements AuthRepository {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
-      );
+      ).timeout(TimeoutConfig.firebaseAuth);
       
       if (userCredential.user == null) {
         throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
       }
 
       // 2. Obtener token de Firebase
-      final firebaseToken = await userCredential.user!.getIdToken();
+      final firebaseToken = await userCredential.user!.getIdToken().timeout(TimeoutConfig.firebaseToken);
       
       // 🔍 DEBUG: Imprimir token de Firebase
       print('🔥 FIREBASE TOKEN (Sign In):');
@@ -85,7 +86,7 @@ class AuthRepositoryImpl implements AuthRepository {
       print('✅ AuthRepository: Usuario creado: ${user.toString()}');
       
       print('💾 AuthRepository: Guardando sesión de usuario');
-      await _storeUserSession(user);
+      await _storeUserSession(user).timeout(TimeoutConfig.storage);
       print('✅ AuthRepository: Sesión guardada exitosamente');
       
       return user;
