@@ -59,6 +59,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
     try {
       print('🔐 Iniciando sesión con email: ${_emailController.text.trim()}');
+      
+      // Mostrar mensaje de progreso al usuario
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conectando con el servidor...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
       final authService = ref.read(authServiceProvider);
       
       final completeUser = await authService.signInWithEmailAndPassword(
@@ -94,7 +106,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
       
       String errorMessage;
-      if (e.toString().contains('AuthFailure')) {
+      
+      // Manejar errores específicos
+      if (e.toString().contains('TimeoutException')) {
+        errorMessage = 'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+      } else if (e.toString().contains('AuthFailure')) {
         // Extraer el mensaje del AuthFailure
         final errorString = e.toString();
         if (errorString.contains('message:')) {
@@ -109,7 +127,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
         }
       } else {
-        errorMessage = e.toString();
+        errorMessage = 'Error inesperado: ${e.toString()}';
       }
       
       setState(() {

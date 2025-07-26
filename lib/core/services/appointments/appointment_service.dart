@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../api_service.dart';
 import 'models/appointment_model.dart';
 import 'exceptions/appointment_exception.dart';
@@ -11,16 +13,43 @@ final appointmentServiceProvider = Provider<AppointmentService>((ref) {
 
 class AppointmentService {
   final ApiService _apiService;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   AppointmentService(this._apiService);
 
   Future<AppointmentModel> createAppointment(CreateAppointmentRequest request) async {
     try {
       final data = await _apiService.createAppointment(request.toJson());
-      final citaJson = data['data'] ?? data; // Soporta ambos casos
+      final citaJson = data['data'] ?? data; 
       return AppointmentModel.fromJson(citaJson);
     } catch (e) {
       throw AppointmentException.simple(e.toString());
+    }
+  }
+  Future<String?> _getCurrentUserTutorId() async {
+    try {
+
+      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+      
+      if (completeUserData != null) {
+        final userJson = json.decode(completeUserData);
+        print('🔍 User JSON: $userJson');
+        final userId = userJson['userId'] as String?;
+        final tipoUsuario = userJson['tipoUsuario'] as String?;
+        print('🔍 Tipo de usuario: $tipoUsuario');
+        print('🔍 User ID: $userId');
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
+          print('📋 ID del tutor obtenido del storage: $userId');
+          return userId;
+        }
+        return userId;
+      }
+      
+      print('⚠️  No se pudo obtener ID del tutor del storage');
+      return null;
+    } catch (e) {
+      print('❌ Error obteniendo ID del tutor: $e');
+      return null;
     }
   }
 
@@ -35,7 +64,7 @@ class AppointmentService {
   }) async {
     try {
       final data = await _apiService.getAppointments(
-        idTutor: idTutor,
+        idTutor: await _getCurrentUserTutorId(),
         idAlumno: idAlumno,
         estadoCita: estadoCita?.name,
         fechaDesde: fechaDesde,
@@ -43,7 +72,6 @@ class AppointmentService {
         page: page,
         limit: limit,
       );
-      // data ya es una lista de mapas
       return data.map<AppointmentModel>((json) => AppointmentModel.fromJson(json)).toList();
     } catch (e) {
       throw AppointmentException.simple(e.toString());
@@ -107,7 +135,7 @@ class AppointmentService {
     DateTime fechaCita, {
     String? excludeAppointmentId,
   }) async {
-    // Buscar citas del tutor en un rango de ±1 hora
+
     final fechaInicio = fechaCita.subtract(const Duration(hours: 1));
     final fechaFin = fechaCita.add(const Duration(hours: 1));
     final appointments = await getAppointments(
@@ -117,7 +145,7 @@ class AppointmentService {
       estadoCita: EstadoCita.confirmada,
       limit: 100,
     );
-    // Filtrar citas que no estén canceladas y no sea la cita a excluir
+
     final activeAppointments = appointments.where((appointment) {
       if (excludeAppointmentId != null && appointment.id == excludeAppointmentId) {
         return false;

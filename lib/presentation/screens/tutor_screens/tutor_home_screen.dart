@@ -30,7 +30,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final tutorId = user?.uid ?? 'tutor1'; // Usar el UID del usuario o un valor por defecto
+    final tutorId = user?.uid ?? 'tutor1'; 
     
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),

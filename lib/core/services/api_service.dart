@@ -5,9 +5,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth/exceptions/auth_failure.dart';
 import '../constants/api_routes.dart';
+import '../constants/timeout_config.dart';
+import '../constants/enums/tipo_usuario.dart';
+import 'appointments/models/appointment_model.dart';
 
 class ApiService {
   static const String _baseUrl = 'https://api.psicodemy.com';
+  static const Duration _timeout = TimeoutConfig.apiCall;
+  
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 
@@ -84,7 +89,7 @@ class ApiService {
         Uri.parse('$_baseUrl${ApiRoutes.authFirebase}'),
         headers: _baseHeaders,
         body: json.encode(requestBody),
-      );
+      ).timeout(_timeout);
 
       // 🔍 DEBUG: Imprimir respuesta del servidor
       print('📡 API RESPONSE:');
@@ -124,7 +129,7 @@ class ApiService {
         Uri.parse('$_baseUrl${ApiRoutes.authValidate}'),
         headers: _baseHeaders,
         body: json.encode(requestBody),
-      );
+      ).timeout(_timeout);
 
       print('📡 ApiService: Respuesta recibida');
       print('📡 Status code: ${response.statusCode}');

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/services/auth/models/complete_user_model.dart';
+import '../../../core/services/auth/repositories/secure_storage_repository.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../widgets/filtro_citas_widget.dart';
@@ -14,6 +17,7 @@ class TutorAppointmentsScreen extends ConsumerStatefulWidget {
 
 class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScreen> {
   String? _selectedAlumnoId;
+  String? realTutorId;
   
 
   AppointmentModel? _selectedAppointment;
@@ -28,8 +32,29 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   String _busquedaAlumno = '';
 
   @override
-  Widget build(BuildContext context) {
-    final appointmentsAsync = ref.watch(appointmentListProvider);
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final storage = SecureStorageRepositoryImpl(const FlutterSecureStorage());
+    final savedUserData = await storage.read('complete_user_data');
+    if (savedUserData != null) {
+      try {
+        final userData = CompleteUserModel.fromJson(savedUserData);
+        setState(() {
+          realTutorId = userData.userId;
+        });
+      } catch (e) {
+      }
+    }
+    print('realTutorId: $realTutorId');
+  }
+
+  @override
+  Widget build(BuildContext context) {  
+    final allAppointmentsAsync = ref.watch(appointmentListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,9 +78,12 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
           ),
         ],
       ),
-      body: appointmentsAsync.when(
+      body: allAppointmentsAsync.when(
         data: (appointments) {
-          List<AppointmentModel> filtered = appointments;
+          // Filtrar citas del tutor actual
+          List<AppointmentModel> filtered = appointments.where((appointment) => 
+            appointment.idTutor == realTutorId
+          ).toList();
 
           // Aplicar filtros de estado y búsqueda por ID de alumno
           filtered = filtered
