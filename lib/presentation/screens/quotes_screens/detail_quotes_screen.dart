@@ -4,9 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../../core/services/tutors/providers/tutor_providers.dart';
+import '../../../domain/entities/appointment_entity.dart';
 
 class DetalleCitaScreen extends ConsumerStatefulWidget {
-  final AppointmentModel appointment;
+  final AppointmentEntity appointment;
   
   const DetalleCitaScreen({
     super.key,
@@ -28,9 +29,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Cita',
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black87,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -77,13 +78,13 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             // Información del tutor
             Consumer(
               builder: (context, ref, child) {
-                final tutorAsync = ref.watch(tutorByIdProvider(widget.appointment.idTutor));
+                final tutorAsync = ref.watch(tutorByIdProvider(widget.appointment.tutorId));
                 
                 return tutorAsync.when(
                   data: (tutor) => Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(widget.appointment.estadoCita),
+                      color: _getStatusColor(widget.appointment.status),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -96,7 +97,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: _getStatusColor(widget.appointment.estadoCita),
+                              color: _getStatusColor(widget.appointment.status),
                             ),
                           ),
                         ),
@@ -131,13 +132,14 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                               onPressed: tutor != null ? () => _contactTutor(tutor.correo, 'whatsapp') : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                minimumSize: const Size(100, 35),
+                                minimumSize: const Size(80, 30),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                               ),
                               child: Text(
                                 'WhatsApp',
                                 style: TextStyle(
-                                  color: _getStatusColor(widget.appointment.estadoCita),
-                                  fontSize: 12,
+                                  color: _getStatusColor(widget.appointment.status),
+                                  fontSize: 10,
                                 ),
                               ),
                             ),
@@ -146,13 +148,14 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                               onPressed: tutor != null ? () => _contactTutor(tutor.correo, 'email') : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                minimumSize: const Size(100, 35),
+                                minimumSize: const Size(80, 30),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                               ),
                               child: Text(
                                 'Correo',
                                 style: TextStyle(
-                                  color: _getStatusColor(widget.appointment.estadoCita),
-                                  fontSize: 12,
+                                  color: _getStatusColor(widget.appointment.status),
+                                  fontSize: 10,
                                 ),
                               ),
                             ),
@@ -171,7 +174,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                       children: [
                         CircularProgressIndicator(),
                         SizedBox(width: 12),
-                        Text('Cargando información del tutor...'),
+                        Expanded(
+                          child: Text('Cargando información del tutor...'),
+                        ),
                       ],
                     ),
                   ),
@@ -185,9 +190,11 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                       children: [
                         Icon(Icons.error, color: Colors.white),
                         SizedBox(width: 12),
-                        Text(
-                          'Error al cargar información del tutor',
-                          style: TextStyle(color: Colors.white),
+                        Expanded(
+                          child: Text(
+                            'Error al cargar información del tutor',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
@@ -208,7 +215,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tu cita es el ${widget.appointment.fechaCita.day} de ${_getMonthName(widget.appointment.fechaCita.month)} del ${widget.appointment.fechaCita.year}',
+                    'Tu cita es el ${widget.appointment.scheduledDate.day} de ${_getMonthName(widget.appointment.scheduledDate.month)} del ${widget.appointment.scheduledDate.year}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -217,21 +224,23 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Hora: ${widget.appointment.fechaCita.hour.toString().padLeft(2, '0')}:${widget.appointment.fechaCita.minute.toString().padLeft(2, '0')}',
+                    'Hora: ${widget.appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${widget.appointment.scheduledDate.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(color: Colors.white70),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Icon(
-                        _getStatusIcon(widget.appointment.estadoCita),
+                        _getStatusIcon(widget.appointment.status),
                         color: Colors.white,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Estado:',
-                        style: const TextStyle(color: Colors.white70),
+                      Expanded(
+                        child: Text(
+                          'Estado: ${widget.appointment.statusText}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ],
                   ),
@@ -240,13 +249,13 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Tareas por hacer
-            const Text(
-              'Por Hacer',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            if (widget.appointment.checklist.isEmpty)
+            // Información adicional
+            if (widget.appointment.topic.isNotEmpty) ...[
+              const Text(
+                'Tema',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -255,51 +264,35 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: const Text(
-                  'No hay tareas específicas definidas para esta cita',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                child: Text(
+                  widget.appointment.topic,
+                  style: const TextStyle(fontSize: 14),
                 ),
-              )
-            else ...[
-              ...widget.appointment.checklist
-                  .where((item) => !item.completed)
-                  .map((item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.radio_button_unchecked, size: 18, color: Colors.orange),
-                            const SizedBox(width: 8),
-                            Expanded(child: Text(item.description, style: const TextStyle(fontSize: 14))),
-                          ],
-                        ),
-                      ))
-                  .toList(),
-            ],
-            // Tareas completadas (si existen)
-            if (widget.appointment.checklist.any((item) => item.completed)) ...[
+              ),
               const SizedBox(height: 16),
+            ],
+            
+            // Notas
+            if (widget.appointment.notes != null && widget.appointment.notes!.isNotEmpty) ...[
               const Text(
-                'Tareas Completadas',
+                'Notas',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              ...widget.appointment.checklist
-                  .where((item) => item.completed)
-                  .map((item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.check_circle, size: 18, color: Colors.green),
-                            const SizedBox(width: 8),
-                            Expanded(child: Text(item.description, style: const TextStyle(fontSize: 14, color: Colors.green))),
-                          ],
-                        ),
-                      ))
-                  .toList(),
-            ],
-            if (widget.appointment.reason != null && widget.appointment.reason!.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Text(
+                  widget.appointment.notes!,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
               const SizedBox(height: 16),
-              Text('Razón: ${widget.appointment.reason}', style: const TextStyle(color: Colors.red)),
             ],
             
             const Spacer(),
@@ -315,14 +308,13 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        if (widget.appointment.estadoCita == EstadoCita.pendiente) ...[
+        if (widget.appointment.status == AppointmentStatus.pending) ...[
           Row(
             children: [
-              
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _updateAppointmentStatus(EstadoCita.cancelada),
+                  onPressed: () => _updateAppointmentStatus(AppointmentStatus.cancelled),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -332,7 +324,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ),
             ],
           ),
-        ] else if (widget.appointment.estadoCita == EstadoCita.confirmada) ...[
+        ] else if (widget.appointment.status == AppointmentStatus.confirmed) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -345,14 +337,16 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.green.shade600),
                 const SizedBox(width: 8),
-                const Text(
-                  'Cita confirmada - Contacta al tutor para cancelar',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: const Text(
+                    'Cita confirmada - Contacta al tutor para cancelar',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
           ),
-        ] else if (widget.appointment.estadoCita == EstadoCita.completada) ...[
+        ] else if (widget.appointment.status == AppointmentStatus.completed) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -365,14 +359,16 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.green.shade600),
                 const SizedBox(width: 8),
-                const Text(
-                  'Cita completada exitosamente',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: const Text(
+                    'Cita completada exitosamente',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
           ),
-        ] else if (widget.appointment.estadoCita == EstadoCita.cancelada) ...[
+        ] else if (widget.appointment.status == AppointmentStatus.cancelled) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -385,9 +381,11 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               children: [
                 Icon(Icons.cancel, color: Colors.red.shade600),
                 const SizedBox(width: 8),
-                const Text(
-                  'Esta cita fue cancelada',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: const Text(
+                    'Esta cita fue cancelada',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -397,7 +395,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
     );
   }
 
-  Future<void> _updateAppointmentStatus(EstadoCita newStatus) async {
+  Future<void> _updateAppointmentStatus(AppointmentStatus newStatus) async {
     try {
       showDialog(
         context: context,
@@ -407,27 +405,21 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         ),
       );
 
-      await ref.read(
-        updateAppointmentStatusProvider({
-          'id': widget.appointment.id,
-          'estado': newStatus,
-        }).future,
-      );
+      // TODO: Implementar actualización de estado para AppointmentEntity
+      // Por ahora solo cerramos el diálogo y mostramos un mensaje
+      await Future.delayed(const Duration(seconds: 1));
 
       if (mounted) {
         Navigator.pop(context); // Cerrar loading
         Navigator.pop(context); // Volver a la pantalla anterior
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cita actualizada'),
-            backgroundColor: Colors.green,
+          const SnackBar(
+            content: Text('Funcionalidad de actualización en desarrollo'),
+            backgroundColor: Colors.orange,
           ),
         );
       }
-
-      // Refrescar la lista de citas
-      ref.refresh(appointmentListProvider);
 
     } catch (e) {
       if (mounted) {
@@ -460,33 +452,37 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
     }
   }
 
-  Color _getStatusColor(EstadoCita estado) {
-    switch (estado) {
-      case EstadoCita.pendiente:
+  Color _getStatusColor(AppointmentStatus status) {
+    switch (status) {
+      case AppointmentStatus.pending:
         return Colors.orange;
-      case EstadoCita.confirmada:
+      case AppointmentStatus.confirmed:
         return const Color(0xFF5CC9C0);
-      case EstadoCita.completada:
+      case AppointmentStatus.completed:
         return Colors.green;
-      case EstadoCita.cancelada:
+      case AppointmentStatus.cancelled:
         return Colors.red;
-      case EstadoCita.noAsistio:
-        return Colors.grey;
+      case AppointmentStatus.inProgress:
+        return Colors.blueGrey;
+      case AppointmentStatus.rescheduled:
+        return Colors.purple;
     }
   }
 
-  IconData _getStatusIcon(EstadoCita estado) {
-    switch (estado) {
-      case EstadoCita.pendiente:
+  IconData _getStatusIcon(AppointmentStatus status) {
+    switch (status) {
+      case AppointmentStatus.pending:
         return Icons.schedule;
-      case EstadoCita.confirmada:
+      case AppointmentStatus.confirmed:
         return Icons.check_circle;
-      case EstadoCita.completada:
+      case AppointmentStatus.completed:
         return Icons.done_all;
-      case EstadoCita.cancelada:
+      case AppointmentStatus.cancelled:
         return Icons.cancel;
-      case EstadoCita.noAsistio:
-        return Icons.person_off;
+      case AppointmentStatus.inProgress:
+        return Icons.timelapse;
+      case AppointmentStatus.rescheduled:
+        return Icons.update;
     }
   }
 

@@ -4,51 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
-import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
-import '../../../core/services/appointments/repositories/appointment_repository.dart';
-import '../../../core/services/appointments/appointment_service.dart';
-import '../../../core/services/api_service_provider.dart';
-import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/tutors/repositories/tutor_repository.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
 import '../../../data/models/forum_post.dart';
 import '../../../data/datasources/forum_api_service.dart';
 import '../forum_screens/forum_screen.dart';
-import '../appointment_detail_screen.dart';
+import '../quotes_screens/detail_quotes_screen.dart';
 
-// Provider para obtener las citas del alumno actual
-final myAppointmentsAsStudentProvider = FutureProvider<List<AppointmentModel>>((ref) async {
-  final apiService = ref.watch(apiServiceProvider);
-  final appointmentService = AppointmentService(apiService);
-  final authService = ref.watch(authServiceProvider);
-  final appointmentRepository = AppointmentRepository(appointmentService, authService);
-  
-  return await appointmentRepository.getMyAppointmentsAsStudent(
-    estadoCita: EstadoCita.confirmada,
-    fechaDesde: DateTime.now(),
-    limit: 10,
-  );
-});
 
-// Provider para obtener la próxima cita del alumno
-final nextAppointmentProvider = FutureProvider<AppointmentModel?>((ref) async {
-  final appointments = await ref.watch(myAppointmentsAsStudentProvider.future);
-  print('appointments here: $appointments');
-  
-  if (appointments.isEmpty) return null;
-  
-  // Ordenar por fecha y obtener la más cercana
-  appointments.sort((a, b) => a.fechaCita.compareTo(b.fechaCita));
-  return appointments.first;
-});
 
-// Provider para obtener el tutor de una cita
-final tutorForAppointmentProvider = FutureProvider.family<TutorModel?, String>((ref, tutorId) async {
-  final tutorRepository = ref.watch(tutorRepositoryProvider);
-  return await tutorRepository.getTutorById(tutorId);
-});
+
+
+
 
 String? formatForumImageUrl(String? originalUrl) {
   if (originalUrl == null) return null;
@@ -307,7 +276,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AppointmentDetailScreen(appointment: appointment),
+                    builder: (_) => DetalleCitaScreen(appointment: appointment),
                   ),
                 );
                 if (result == true) {

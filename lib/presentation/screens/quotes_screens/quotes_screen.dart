@@ -898,7 +898,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildAppointmentCardEntity(AppointmentEntity appointment) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navegar a detalle de cita si es necesario
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DetalleCitaScreen(appointment: appointment),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -940,18 +945,19 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(
-                'VER →',
+              child: const Text(
+                'VER',
                 style: TextStyle(
-                  color: _getStatusColorEntity(appointment.status),
+                  color: Colors.black87,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
             ),
@@ -1138,20 +1144,27 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
               onChanged: (_) => _toggleCompleted(i),
             ),
             title: Text(item.description),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _editTask(i),
-                  tooltip: 'Editar',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _removeTask(i),
-                  tooltip: 'Eliminar',
-                ),
-              ],
+            trailing: SizedBox(
+              width: 100,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 20),
+                    onPressed: () => _editTask(i),
+                    tooltip: 'Editar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, size: 20),
+                    onPressed: () => _removeTask(i),
+                    tooltip: 'Eliminar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
