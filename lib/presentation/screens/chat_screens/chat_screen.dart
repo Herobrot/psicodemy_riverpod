@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/tutors/models/tutor_model.dart';
 import '../../../core/services/chat/models/chat_message_model.dart';
 import '../../../core/services/chat/models/conversation_model.dart';
 import '../../../core/services/auth/repositories/auth_repository.dart';
+import '../../../core/services/auth/models/complete_user_model.dart';
+import '../../../core/services/auth/models/user_model.dart';
 import '../../providers/simple_auth_providers.dart';
 import '../../providers/chat_providers.dart';
 import '../../../core/services/api_service_provider.dart';
+import '../settings_screens/settings_screen.dart';
+import '../../../core/services/auth/providers/firebase_auth_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -28,12 +33,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {
-            // TODO: Implementar menú
-          },
-        ),
+        
         title: const Text(
           'Chat',
           style: TextStyle(
@@ -43,10 +43,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
         actions: [
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/150?u=user'),
-            backgroundColor: Colors.grey[300],
+          Consumer(
+            builder: (context, ref, child) {
+              final user = ref.watch(currentUserProvider);
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: user?.photoURL != null 
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                  backgroundColor: Colors.grey[300],
+                  child: user?.photoURL == null 
+                    ? Text(
+                        user?.email?.isNotEmpty == true 
+                          ? user!.email![0].toUpperCase() 
+                          : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+                ),
+              );
+            },
           ),
           const SizedBox(width: 16),
         ],
@@ -176,21 +202,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // ---
     return tutorsAsync.when(
       data: (tutors) {
-        // Mostrar todas las conversaciones (más la de IA) sin filtros
         final filteredConversations = allConversations;
         print('Conversaciones que se muestran en pantalla: ${filteredConversations.length}');
         for (var c in filteredConversations) {
           print(' - MOSTRADA: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
         }
         return ListView.builder(
-          // Permitir scroll independiente
-          // shrinkWrap: true,
-          // physics: const NeverScrollableScrollPhysics(),
           itemCount: filteredConversations.length,
           itemBuilder: (context, index) {
             final conversation = filteredConversations[index];
             print('Construyendo widget para conversación: ${conversation.id} | ${conversation.participant1Id} <-> ${conversation.participant2Id}');
-            // --- Si es la conversación de IA, renderiza especial ---
             if (conversation.id == 'ia_chat') {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -254,7 +275,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               );
             }
-            // --- Resto de conversaciones normales ---
             final otherId = conversation.participant1Id == userId ? conversation.participant2Id : conversation.participant1Id;
             final tutor = tutors.firstWhere(
               (t) => t.id == otherId,
@@ -272,7 +292,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             );
             final isOtherTutor = tutors.any((t) => t.id == otherId);
-            // El future ahora siempre consulta el perfil del otro usuario (o el propio si es consigo mismo)
+            print('Construyendo Container para conversación: ${conversation} | otherId: $otherId');
             return FutureBuilder<Map<String, dynamic>?>(
               future: (alumnoCache[otherId] != null
                   ? Future.value(alumnoCache[otherId])
@@ -281,21 +301,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return data;
                     })),
               builder: (context, snapshot) {
-                String nombre = tutor.nombre;
-                String? fotoPerfil = tutor.fotoPerfil;
-                // Si hay datos de la API (ya sea alumno, tutor o uno mismo), úsalos
-                if (snapshot.hasData && snapshot.data != null && snapshot.data!.isNotEmpty) {
-                  nombre = snapshot.data!['nombre'] ?? snapshot.data!['email'] ?? (otherId == userId ? 'Tú mismo' : '');
-                  fotoPerfil = snapshot.data!['fotoPerfil'] ?? null;
-                }
-                // Si no hay nombre, intenta usar el email o un texto por defecto
-                if ((nombre.isEmpty || nombre == 'Usuario') && snapshot.hasData && snapshot.data != null) {
-                  nombre = snapshot.data!['email'] ?? (otherId == userId ? 'Tú mismo' : '');
-                }
-                if (nombre.isEmpty) {
-                  nombre = otherId == userId ? 'Tú mismo' : 'Sin nombre';
-                }
-                print('Construyendo Container para conversación: ${conversation.id} | Nombre: $nombre | otherId: $otherId');
+                print('snapshot: ${snapshot.data}');
+                String nombre = snapshot.data?['data']?['user']?['nombre'] ?? 
+                               snapshot.data?['data']?['user']?['correo'] ?? 
+                               (otherId == userId ? 'Tú mismo' : '');
+                String? fotoPerfil = snapshot.data?['data']?['user']?['fotoPerfil'] ?? null;
+
+                print('Construyendo Container para conversación: ${conversation} | Nombre: $nombre | otherId: $otherId');
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
@@ -450,11 +462,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Limpiar cache global si existe
-    if (mounted) {
+      if (mounted) {
       try {
-        // Si tienes acceso a alumnoCache aquí, límpialo
-        // Si no, ignora este bloque y solo deja el comentario
         // alumnoCache.clear();
       } catch (_) {}
     }
@@ -468,8 +477,41 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         _errorMessage = null;
       });
 
-      // Obtener el userID del usuario actual
-      final currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
+      CompleteUserModel? currentUser;
+      try {
+        currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
+      } catch (e) {
+        print('❌ Error obteniendo usuario actual: $e');
+        final firebaseAuth = FirebaseAuth.instance;
+        final firebaseUser = firebaseAuth.currentUser;
+        
+        if (firebaseUser != null) {
+          currentUser = CompleteUserModel(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            isEmailVerified: firebaseUser.emailVerified,
+            createdAt: DateTime.now(),
+            lastSignInAt: DateTime.now(),
+            userId: firebaseUser.uid, 
+            nombre: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Usuario',
+            tipoUsuario: null,
+            apiToken: null,
+            apiCreatedAt: null,
+            apiUpdatedAt: null,
+            firebaseUser: UserModel.fromFirebaseUser(firebaseUser),
+            apiUser: null,
+          );
+          print('✅ Usando datos básicos de Firebase como fallback');
+        } else {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Usuario no autenticado';
+          });
+          return;
+        }
+      }
       
       if (currentUser == null) {
         setState(() {
@@ -483,20 +525,18 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       if (userId == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser.uid}';
+          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
         });
         return;
       }
 
-      // Cargar historial de chat con IA usando el userID del usuario actual
-      final chatHistory = await ref.read(chatHistoryProvider(userId).future);
-      
+      // Para el chat de IA, no cargamos historial previo
       setState(() {
         _messages.clear();
-        _messages.addAll(chatHistory);
         _isLoading = false;
       });
     } catch (e) {
+      print('❌ Error general en _loadChatHistory: $e');
       setState(() {
         _isLoading = false;
         _errorMessage = 'Error al cargar el historial: $e';
@@ -510,8 +550,43 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     final messageText = _messageController.text.trim();
     _messageController.clear();
 
-    // Obtener el userID del usuario actual
-    final currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
+    CompleteUserModel? currentUser;
+    try {
+      currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
+    } catch (e) {
+      print('❌ Error obteniendo usuario actual en _sendMessage: $e');
+      final firebaseAuth = FirebaseAuth.instance;
+      final firebaseUser = firebaseAuth.currentUser;
+      
+      if (firebaseUser != null) {
+        currentUser = CompleteUserModel(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          isEmailVerified: firebaseUser.emailVerified,
+          createdAt: DateTime.now(),
+          lastSignInAt: DateTime.now(),
+          userId: firebaseUser.uid, 
+          nombre: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Usuario',
+          tipoUsuario: null,
+          apiToken: null,
+          apiCreatedAt: null,
+          apiUpdatedAt: null,
+          firebaseUser: UserModel.fromFirebaseUser(firebaseUser),
+          apiUser: null,
+        );
+        print('✅ Usando datos básicos de Firebase como fallback en _sendMessage');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Usuario no autenticado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
     
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -527,14 +602,13 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser.uid}'),
+          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    // Agregar mensaje localmente inmediatamente
     final localMessage = ChatMessageModel(
       id: DateTime.now().toString(),
       mensaje: messageText,
@@ -550,26 +624,22 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       _messages.add(localMessage);
     });
 
-    try {
-      // Enviar mensaje a IA usando el endpoint de chat
+    try { 
       final response = await ref.read(chatServiceProvider).sendChatMessage(
         mensaje: messageText,
         usuarioId: userId,
       );
 
-      // Actualizar el mensaje con la respuesta del servidor
       if (response['data'] != null && response['data']['message'] != null) {
         final serverMessage = ChatMessageModel.fromJson(response['data']['message']);
         
         setState(() {
-          // Reemplazar el mensaje local con el del servidor
           final index = _messages.indexWhere((m) => m.id == localMessage.id);
           if (index != -1) {
             _messages[index] = serverMessage;
           }
         });
 
-        // Si hay respuesta de IA, agregarla
         if (response['data']['ai_response'] != null) {
           final aiResponse = ChatMessageModel.fromJson(response['data']['ai_response']);
           setState(() {
@@ -578,7 +648,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         }
       }
     } catch (e) {
-      // Marcar mensaje como fallido
       setState(() {
         final index = _messages.indexWhere((m) => m.id == localMessage.id);
         if (index != -1) {
@@ -635,7 +704,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       ),
       body: Column(
         children: [
-          // Área de mensajes
           Expanded(
             child: Container(
               color: Colors.grey[50],
@@ -647,7 +715,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             ),
           ),
           
-          // Área de input
           _buildMessageInput(),
         ],
       ),
@@ -746,8 +813,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isFromUser 
-                    ? const Color(0xFF008080) // Teal para mensajes del usuario
-                    : Colors.white, // Blanco para mensajes de IA
+                    ? const Color(0xFF008080) 
+                    : Colors.white, 
                 borderRadius: BorderRadius.circular(20),
                 border: !isFromUser ? Border.all(color: const Color(0xFF008080)) : null,
               ),
@@ -857,7 +924,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   }
 }
 
-// Pantalla de chat con tutor (usando conversaciones 1:1)
 class TutorChatScreen extends ConsumerStatefulWidget {
   final TutorModel tutor;
 
@@ -903,7 +969,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       if (userId == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser.uid}';
+          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
         });
         return;
       }
@@ -979,7 +1045,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser.uid}'),
+          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1071,10 +1137,36 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
           ],
         ),
         actions: [
-          CircleAvatar(
-            radius: 16,
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/150?u=user'),
-            backgroundColor: Colors.grey[300],
+          Consumer(
+            builder: (context, ref, child) {
+              final user = ref.watch(currentUserProvider);
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundImage: user?.photoURL != null 
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                  backgroundColor: Colors.grey[300],
+                  child: user?.photoURL == null 
+                    ? Text(
+                        user?.email?.isNotEmpty == true 
+                          ? user!.email![0].toUpperCase() 
+                          : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+                ),
+              );
+            },
           ),
           const SizedBox(width: 16),
         ],

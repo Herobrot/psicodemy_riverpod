@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
-import '../appointment_detail_screen.dart';
+import 'tutor_appointment_detail_screen.dart';
+import '../../widgets/user_name_display.dart';
 
 class TutorHomeScreen extends ConsumerStatefulWidget {
   const TutorHomeScreen({super.key});
@@ -37,12 +38,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {
-            // TODO: Implementar menú lateral
-          },
-        ),
+        
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -415,7 +411,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: appointment),
           ),
         );
       },
@@ -448,11 +444,12 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    appointment.studentName,
+                  UserNameDisplay(
+                    userId: appointment.studentId,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -509,7 +506,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: appointment),
           ),
         );
       },
@@ -555,11 +552,12 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    appointment.studentName,
+                  UserNameDisplay(
+                    userId: appointment.studentId,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
                   Text(

@@ -171,7 +171,7 @@ class ApiService {
         if (userType != null) 'userType': userType,
       };
 
-      final uri = Uri.parse('$_baseUrl${ApiRoutes.authUsers('all')}')
+      final uri = Uri.parse('$_baseUrl/auth/users')
           .replace(queryParameters: queryParams);
 
       final response = await _client.get(
@@ -284,7 +284,15 @@ class ApiService {
         body: json.encode(request),
       );
       final data = await _handleResponse(response);
-      return data['data']; // SOLO data['data']
+      
+      // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
+      // Verificar si está envuelto en 'data' o es directo
+      if (data.containsKey('data')) {
+        return data['data'] as Map<String, dynamic>;
+      } else {
+        // Si no tiene 'data', asumir que es la respuesta directa
+        return data;
+      }
     } catch (e) {
       throw _handleError(e);
     }
@@ -312,12 +320,20 @@ class ApiService {
       print('   Request: ${json.encode(enrichedRequest)}');
       
       final response = await _client.put(
-        Uri.parse('$_baseUrl${ApiRoutes.appointmentIdStatus(id)}'),
+        Uri.parse('$_baseUrl${ApiRoutes.appointmentId(id)}'),
         headers: headers,
         body: json.encode(enrichedRequest),
       );
       final data = await _handleResponse(response);
-      return data['data']; // SOLO data['data']
+      
+      // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
+      // Verificar si está envuelto en 'data' o es directo
+      if (data.containsKey('data')) {
+        return data['data'] as Map<String, dynamic>;
+      } else {
+        // Si no tiene 'data', asumir que es la respuesta directa
+        return data;
+      }
     } catch (e) {
       throw _handleError(e);
     }

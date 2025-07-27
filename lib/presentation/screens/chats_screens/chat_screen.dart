@@ -1,30 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'tutor_profile_screen.dart';
 import '../../../components/footer_nav_bar.dart';
+import '../../providers/simple_auth_providers.dart';
+import '../settings_screens/settings_screen.dart';
 
-class ChatDetailScreen extends StatefulWidget {
+class ChatDetailScreen extends ConsumerStatefulWidget {
   const ChatDetailScreen({super.key});
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  ConsumerState<ChatDetailScreen> createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   int _currentIndex = 2;
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: const Icon(Icons.menu, color: Colors.black),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=6'),
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: user?.photoURL != null 
+                  ? NetworkImage(user!.photoURL!)
+                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                child: user?.photoURL == null 
+                  ? Text(
+                      user?.email?.isNotEmpty == true 
+                        ? user!.email![0].toUpperCase() 
+                        : 'U',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
+              ),
             ),
           ),
         ],

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/constants/enums/tipo_usuario.dart';
 import '../../providers/simple_auth_providers.dart';
+import '../../../core/services/auth/providers/google_sign_in_provider.dart';
+import '../../providers/simple_auth_providers.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
 import '../main_screen.dart';
@@ -97,8 +99,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         // El AuthWrapper detectará automáticamente el cambio de estado y navegará
         print('🔍 SignInScreen: Dejando que AuthWrapper maneje la navegación');
         
+        // Forzar actualización del estado de autenticación
+        print('🔍 SignInScreen: Forzando actualización del estado...');
+        ref.invalidate(currentCompleteUserProvider);
+        
         // Pequeño delay para asegurar que el estado se actualice
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 1000));
       }
     } catch (e) {
       print('❌ Error en inicio de sesión: $e');
@@ -161,10 +167,29 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     });
 
     try {
+      print('🔐 Iniciando sesión con Google...');
+      
+      // Mostrar mensaje de progreso al usuario
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conectando con Google...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
       final authService = ref.read(authServiceProvider);
       
       final completeUser = await authService.signInWithGoogle();
 
+      print('✅ Inicio de sesión con Google exitoso');
+      print('Usuario objeto: $completeUser');
+      print('🔍 Tipo de usuario: ${completeUser.tipoUsuario}');
+      print('🔍 UserID: ${completeUser.userId}');
+      print('🔍 UID: ${completeUser.uid}');
+      
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -175,20 +200,60 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         );
         
         // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
+        print('🔍 SignInScreen: Dejando que AuthWrapper maneje la navegación');
+        
+        // Forzar actualización del estado de autenticación
+        print('🔍 SignInScreen: Forzando actualización del estado...');
+        ref.invalidate(currentCompleteUserProvider);
+        
+        // Pequeño delay para asegurar que el estado se actualice
+        await Future.delayed(const Duration(milliseconds: 1000));
       }
     } catch (e) {
-      // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
+      print('❌ Error en inicio de sesión con Google: $e');
+      print('❌ Tipo de error: ${e.runtimeType}');
+      
       if (mounted) {
-        try {
-          final authActions = ref.read(authActionsProvider);
-          await authActions.signOut();
-        } catch (signOutError) {
-          print('❌ Error al cerrar sesión después del error: $signOutError');
+        // NO cerrar sesión automáticamente en caso de error
+        // Solo mostrar el error al usuario
+        
+        String errorMessage;
+        
+        // Manejar errores específicos de Google Sign In
+        if (e.toString().contains('TimeoutException')) {
+          errorMessage = 'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
+        } else if (e.toString().contains('SocketException')) {
+          errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+        } else if (e.toString().contains('sign_in_canceled') || e.toString().contains('googleSignInCancelled')) {
+          errorMessage = 'Inicio de sesión con Google cancelado por el usuario.';
+        } else if (e.toString().contains('network_error') || e.toString().contains('networkError')) {
+          errorMessage = 'Error de red durante el inicio de sesión con Google. Verifica tu conexión.';
+        } else if (e.toString().contains('AuthFailure')) {
+          // Extraer el mensaje del AuthFailure
+          final errorString = e.toString();
+          if (errorString.contains('message:')) {
+            final startIndex = errorString.indexOf('message:') + 8;
+            final endIndex = errorString.indexOf(')', startIndex);
+            if (endIndex > startIndex) {
+              errorMessage = errorString.substring(startIndex, endIndex).trim();
+            } else {
+              errorMessage = 'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
+            }
+          } else {
+            errorMessage = 'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
+          }
+        } else if (e.toString().contains('PigeonUserDetails')) {
+          errorMessage = 'Error interno de Google Sign In. Intenta de nuevo.';
+        } else {
+          errorMessage = 'Error inesperado con Google Sign In: ${e.toString()}';
         }
         
         setState(() {
-          _error = e.toString();
+          _error = errorMessage;
         });
+        
+        // Mostrar error en consola para debug
+        print('🚨 Error mostrado al usuario: $errorMessage');
       }
     } finally {
       if (mounted) {
@@ -196,6 +261,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -398,6 +464,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                     ),
                   ),
+                  
+                  // Botón de debug temporal
+                 
                   
                   const SizedBox(height: 16),
                   

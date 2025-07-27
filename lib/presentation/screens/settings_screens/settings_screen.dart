@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/simple_auth_providers.dart';
 import '../../screens/login_screens/sign_in_screen.dart';
 import 'package:psicodemy/core/services/auth/repositories/auth_repository.dart';
@@ -34,131 +35,24 @@ class SettingsScreen extends ConsumerWidget {
             
             const SizedBox(height: 32),
             
-            // Configuraciones de cuenta
+            // Información de la aplicación
             _buildSection(
-              title: 'Cuenta',
+              title: 'Información',
               items: [
-                _buildSettingItem(
-                  icon: Icons.person,
-                  title: 'Perfil',
-                  subtitle: 'Editar información personal',
-                  onTap: () {
-                    // TODO: Ir a perfil
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.security,
-                  title: 'Privacidad y Seguridad',
-                  subtitle: 'Gestionar privacidad',
-                  onTap: () {
-                    // TODO: Ir a privacidad
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.notifications,
-                  title: 'Notificaciones',
-                  subtitle: 'Configurar alertas',
-                  onTap: () {
-                    // TODO: Ir a notificaciones
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Configuraciones de la app
-            _buildSection(
-              title: 'Aplicación',
-              items: [
-                _buildSettingItem(
-                  icon: Icons.palette,
-                  title: 'Apariencia',
-                  subtitle: 'Tema, fuente y colores',
-                  onTap: () {
-                    _showThemeDialog(context);
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.language,
-                  title: 'Idioma',
-                  subtitle: 'Español',
-                  onTap: () {
-                    // TODO: Cambiar idioma
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.storage,
-                  title: 'Almacenamiento',
-                  subtitle: 'Gestionar caché y datos',
-                  onTap: () {
-                    _showStorageDialog(context);
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Configuraciones de bienestar
-            _buildSection(
-              title: 'Bienestar',
-              items: [
-                _buildSettingItem(
-                  icon: Icons.schedule,
-                  title: 'Recordatorios',
-                  subtitle: 'Configurar recordatorios diarios',
-                  onTap: () {
-                    // TODO: Configurar recordatorios
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.auto_awesome,
-                  title: 'Citas Diarias',
-                  subtitle: 'Personalizar citas inspiracionales',
-                  onTap: () {
-                    // TODO: Configurar citas
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.insights,
-                  title: 'Estadísticas',
-                  subtitle: 'Ver progreso y métricas',
-                  onTap: () {
-                    // TODO: Ver estadísticas
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Soporte
-            _buildSection(
-              title: 'Soporte',
-              items: [
-                _buildSettingItem(
-                  icon: Icons.help,
-                  title: 'Ayuda y Soporte',
-                  subtitle: 'FAQ y contacto',
-                  onTap: () {
-                    // TODO: Ir a ayuda
-                  },
-                ),
-                _buildSettingItem(
-                  icon: Icons.bug_report,
-                  title: 'Reportar Problema',
-                  subtitle: 'Enviar feedback',
-                  onTap: () {
-                    // TODO: Reportar problema
-                  },
-                ),
                 _buildSettingItem(
                   icon: Icons.info,
                   title: 'Acerca de',
-                  subtitle: 'Versión y términos',
+                  subtitle: 'Versión 1.0.0',
                   onTap: () {
                     _showAboutDialog(context);
+                  },
+                ),
+                _buildSettingItem(
+                  icon: Icons.privacy_tip,
+                  title: 'Aviso de Privacidad',
+                  subtitle: 'Ver política de privacidad',
+                  onTap: () {
+                    _openPrivacyPolicy();
                   },
                 ),
               ],
@@ -226,12 +120,6 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Editar perfil
-            },
           ),
         ],
       ),
@@ -380,90 +268,29 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showThemeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Apariencia'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.light_mode),
-              title: const Text('Claro'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Cambiar a tema claro
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.dark_mode),
-              title: const Text('Oscuro'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Cambiar a tema oscuro
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_mode),
-              title: const Text('Sistema'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Usar tema del sistema
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showStorageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Almacenamiento'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Caché: 12.5 MB'),
-            Text('Datos offline: 3.2 MB'),
-            Text('Imágenes: 8.1 MB'),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // TODO: Limpiar caché
-                },
-                child: const Text('Limpiar Caché'),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
       applicationName: 'Psicodemy',
       applicationVersion: '1.0.0',
-      applicationLegalese: '© 2024 Psicodemy. Todos los derechos reservados.',
+      applicationLegalese: '© 2024 HomeDevs Software Solutions. Todos los derechos reservados.',
       children: [
         const Text(
           'Una aplicación para el bienestar mental y el crecimiento personal.',
         ),
+        const SizedBox(height: 16),
+        const Text(
+          'Desarrollado por HomeDevs Software Solutions',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
       ],
     );
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://aviso-privacidad.psicodemy.com/');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 } 

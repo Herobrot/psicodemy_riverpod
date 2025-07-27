@@ -481,7 +481,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TutorAppointmentDetailScreen(appointment: appointment),
+        builder: (context) => TutorAppointmentDetailScreenModel(appointment: appointment),
       ),
     );
   }

@@ -22,30 +22,40 @@ class UserNameDisplay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('🔍 UserNameDisplay: Construyendo widget para userId: $userId');
     final userNameAsync = ref.watch(userNameProvider(userId));
 
     return userNameAsync.when(
-      data: (nombre) => RichText(
-        text: TextSpan(
-          style: style ?? DefaultTextStyle.of(context).style,
-          children: [
-            if (prefix != null) TextSpan(text: prefix),
-            TextSpan(text: nombre),
-            if (suffix != null) TextSpan(text: suffix),
-          ],
-        ),
-      ),
-      loading: () => loadingWidget ?? 
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
+      data: (nombre) {
+        print('✅ UserNameDisplay: Nombre obtenido para $userId: $nombre');
+        return RichText(
+          text: TextSpan(
+            style: style ?? DefaultTextStyle.of(context).style,
+            children: [
+              if (prefix != null) TextSpan(text: prefix),
+              TextSpan(text: nombre),
+              if (suffix != null) TextSpan(text: suffix),
+            ],
           ),
-      error: (_, __) => errorWidget ?? 
-          Text(
-            userId, // Fallback al ID si hay error
-            style: style,
-          ),
+        );
+      },
+      loading: () {
+        print('⏳ UserNameDisplay: Cargando nombre para $userId');
+        return loadingWidget ?? 
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            );
+      },
+      error: (error, stack) {
+        print('❌ UserNameDisplay: Error obteniendo nombre para $userId: $error');
+        return errorWidget ?? 
+            Text(
+              userId, // Fallback al ID si hay error
+              style: style,
+            );
+      },
     );
   }
 }

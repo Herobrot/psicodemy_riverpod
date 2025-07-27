@@ -14,9 +14,15 @@ class AuthWrapper extends ConsumerWidget {
     final isAuth = ref.watch(isAuthenticatedProvider);
     final isTutor = ref.watch(isTutorProvider);
     final isAlumno = ref.watch(isAlumnoProvider);
+    final currentUser = ref.watch(currentCompleteUserProvider);
 
     // Debug logs
     print('🔍 AuthWrapper - isLoading: $isLoading, isAuth: $isAuth, isTutor: $isTutor, isAlumno: $isAlumno');
+    print('🔍 AuthWrapper - currentUser: ${currentUser.when(
+      data: (user) => '${user?.nombre ?? 'null'} (${user?.tipoUsuario ?? 'null'})',
+      loading: () => 'loading',
+      error: (error, _) => 'error: $error',
+    )}');
 
     if (isLoading) {
       return const Scaffold(
@@ -34,12 +40,8 @@ class AuthWrapper extends ConsumerWidget {
     } else if (isAlumno) {
       return const MainScreen();
     } else {
-      // Si no se puede determinar el tipo, cerrar sesión automáticamente
-      // Esto hará que el AuthWrapper vuelva a mostrar el LoginScreen
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(authActionsProvider).signOut();
-      });
-      
+      // Si no se puede determinar el tipo, mostrar pantalla de carga
+      // en lugar de cerrar sesión automáticamente
       return const Scaffold(
         body: Center(
           child: Column(
@@ -47,9 +49,7 @@ class AuthWrapper extends ConsumerWidget {
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('No se pudo determinar el tipo de usuario.'),
-              SizedBox(height: 16),
-              Text('Cerrando sesión...'),
+              Text('Cargando información del usuario...'),
             ],
           ),
         ),
