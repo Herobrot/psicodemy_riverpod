@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/constants/enums/tipo_usuario.dart';
@@ -95,16 +96,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
-        // El AuthWrapper detectará automáticamente el cambio de estado y navegará
-        print('🔍 SignInScreen: Dejando que AuthWrapper maneje la navegación');
+        
+        print('🔍 SignInScreen: Login exitoso, esperando actualización del estado...');
+        
+        // Esperar un poco más para asegurar que los datos se guarden en storage
+        await Future.delayed(const Duration(milliseconds: 1500));
         
         // Forzar actualización del estado de autenticación
         print('🔍 SignInScreen: Forzando actualización del estado...');
         ref.invalidate(currentCompleteUserProvider);
         
-        // Pequeño delay para asegurar que el estado se actualice
-        await Future.delayed(const Duration(milliseconds: 1000));
+        // Esperar un poco más para que el stream se actualice
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        print('🔍 SignInScreen: Estado actualizado, AuthWrapper debería navegar automáticamente');
       }
     } catch (e) {
       print('❌ Error en inicio de sesión: $e');
@@ -199,15 +204,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         );
         
-        // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
-        print('🔍 SignInScreen: Dejando que AuthWrapper maneje la navegación');
+        print('🔍 SignInScreen: Login con Google exitoso, esperando actualización del estado...');
+        
+        // Esperar un poco más para asegurar que los datos se guarden en storage
+        await Future.delayed(const Duration(milliseconds: 1500));
         
         // Forzar actualización del estado de autenticación
         print('🔍 SignInScreen: Forzando actualización del estado...');
         ref.invalidate(currentCompleteUserProvider);
         
-        // Pequeño delay para asegurar que el estado se actualice
-        await Future.delayed(const Duration(milliseconds: 1000));
+        // Esperar un poco más para que el stream se actualice
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        print('🔍 SignInScreen: Estado actualizado, AuthWrapper debería navegar automáticamente');
       }
     } catch (e) {
       print('❌ Error en inicio de sesión con Google: $e');

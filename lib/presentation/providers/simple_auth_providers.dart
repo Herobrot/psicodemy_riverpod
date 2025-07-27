@@ -16,17 +16,37 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 // Provider que indica si el usuario está autenticado
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
-  return authState.when(
+  final completeUserAsync = ref.watch(currentCompleteUserProvider);
+  
+  // Solo considerar autenticado si tanto Firebase como el usuario completo están disponibles
+  final firebaseAuth = authState.when(
     data: (user) => user != null,
     loading: () => false,
     error: (_, __) => false,
   );
+  
+  final completeUserAuth = completeUserAsync.when(
+    data: (user) => user != null,
+    loading: () => false,
+    error: (_, __) => false,
+  );
+  
+  final isAuthenticated = firebaseAuth && completeUserAuth;
+  print('🔍 isAuthenticatedProvider: firebaseAuth=$firebaseAuth, completeUserAuth=$completeUserAuth, isAuthenticated=$isAuthenticated');
+  
+  return isAuthenticated;
 });
 
 // Provider que indica si hay loading en autenticación
 final isAuthLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
-  return authState.isLoading;
+  final completeUserAsync = ref.watch(currentCompleteUserProvider);
+  
+  // Considerar loading si cualquiera de los dos streams está cargando
+  final isLoading = authState.isLoading || completeUserAsync.isLoading;
+  print('🔍 isAuthLoadingProvider: authStateLoading=${authState.isLoading}, completeUserLoading=${completeUserAsync.isLoading}, isLoading=$isLoading');
+  
+  return isLoading;
 });
 
 // Provider para errores de autenticación
