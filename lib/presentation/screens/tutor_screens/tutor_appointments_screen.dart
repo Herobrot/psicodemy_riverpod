@@ -6,6 +6,7 @@ import '../../../core/services/auth/repositories/secure_storage_repository.dart'
 import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../../core/services/users/user_mapping_service.dart';
+import '../../../domain/entities/appointment_entity.dart';
 import '../../widgets/filtro_citas_widget.dart';
 import '../../widgets/user_name_display.dart';
 import 'tutor_appointment_detail_screen.dart';
@@ -486,11 +487,51 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   }
 
   void _navigateToDetail(AppointmentModel appointment) {
+    // Convertir AppointmentModel a AppointmentEntity
+    final appointmentEntity = _modelToEntity(appointment);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TutorAppointmentDetailScreenModel(appointment: appointment),
+        builder: (context) => TutorAppointmentDetailScreen(appointment: appointmentEntity),
       ),
+    );
+  }
+
+  // Función para convertir AppointmentModel a AppointmentEntity
+  AppointmentEntity _modelToEntity(AppointmentModel model) {
+    // Mapear el estado
+    AppointmentStatus status;
+    switch (model.estadoCita) {
+      case EstadoCita.pendiente:
+        status = AppointmentStatus.pending;
+        break;
+      case EstadoCita.confirmada:
+        status = AppointmentStatus.confirmed;
+        break;
+      case EstadoCita.completada:
+        status = AppointmentStatus.completed;
+        break;
+      case EstadoCita.cancelada:
+        status = AppointmentStatus.cancelled;
+        break;
+      case EstadoCita.noAsistio:
+        status = AppointmentStatus.cancelled; // Mapear a cancelado por ahora
+        break;
+    }
+    
+    return AppointmentEntity(
+      id: model.id,
+      tutorId: model.idTutor,
+      studentId: model.idAlumno,
+      studentName: model.idAlumno, // Usar ID como nombre por ahora
+      topic: model.reason ?? 'Sin tema especificado',
+      scheduledDate: model.fechaCita,
+      timeSlot: '${model.fechaCita.hour.toString().padLeft(2, '0')}:${model.fechaCita.minute.toString().padLeft(2, '0')}',
+      status: status,
+      notes: model.reason,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
+      completedAt: null,
     );
   }
 

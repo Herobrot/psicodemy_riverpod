@@ -1,27 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../domain/entities/appointment_entity.dart';
 import '../../../core/services/appointments/models/appointment_model.dart';
-import '../../../core/services/appointments/models/appointment_model.dart' as appointment_models;
 import '../../../core/services/api_service_provider.dart';
 import '../../widgets/user_name_display.dart';
 
-// Versión que trabaja con AppointmentEntity
 class TutorAppointmentDetailScreen extends ConsumerStatefulWidget {
   final AppointmentEntity appointment;
   const TutorAppointmentDetailScreen({super.key, required this.appointment});
 
   @override
   ConsumerState<TutorAppointmentDetailScreen> createState() => _TutorAppointmentDetailScreenState();
-}
-
-// Versión que trabaja con AppointmentModel (para compatibilidad)
-class TutorAppointmentDetailScreenModel extends ConsumerStatefulWidget {
-  final AppointmentModel appointment;
-  const TutorAppointmentDetailScreenModel({super.key, required this.appointment});
-
-  @override
-  ConsumerState<TutorAppointmentDetailScreenModel> createState() => _TutorAppointmentDetailScreenModelState();
 }
 
 class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentDetailScreen> {
@@ -424,9 +414,50 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Detalle de la cita'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Detalle de la cita',
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () {},
+              child: CircleAvatar(
+                radius: 18,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                child: user?.photoURL == null
+                    ? Text(
+                        user?.email?.isNotEmpty == true
+                            ? user!.email![0].toUpperCase()
+                            : 'T',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -521,576 +552,6 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
                       );
                     },
                   ),
-            ),
-            const SizedBox(height: 16),
-            // Botones de acción según el estado actual
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-}
-
-class _TutorAppointmentDetailScreenModelState extends ConsumerState<TutorAppointmentDetailScreenModel> {
-  late List<ChecklistItem> _checklist;
-
-  @override
-  void initState() {
-    super.initState();
-    _checklist = List<ChecklistItem>.from(widget.appointment.checklist);
-  }
-
-  void _toggleCompleted(int index) {
-    setState(() {
-      _checklist[index] = ChecklistItem(
-        description: _checklist[index].description,
-        completed: !_checklist[index].completed,
-      );
-    });
-    // Actualizar en la API
-    _updateChecklist();
-  }
-
-  void _addChecklistItem() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController();
-        return AlertDialog(
-          title: const Text('Agregar tarea'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'Descripción'),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (controller.text.trim().isNotEmpty) {
-                  setState(() {
-                    _checklist.add(ChecklistItem(description: controller.text.trim(), completed: false));
-                  });
-                  Navigator.pop(context);
-                  // Actualizar en la API
-                  _updateChecklist();
-                }
-              },
-              child: const Text('Agregar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _editChecklistItem(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: _checklist[index].description);
-        return AlertDialog(
-          title: const Text('Editar tarea'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'Descripción'),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (controller.text.trim().isNotEmpty) {
-                  setState(() {
-                    _checklist[index] = ChecklistItem(description: controller.text.trim(), completed: _checklist[index].completed);
-                  });
-                  Navigator.pop(context);
-                  // Actualizar en la API
-                  _updateChecklist();
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _removeChecklistItem(int index) {
-    setState(() {
-      _checklist.removeAt(index);
-    });
-    // Actualizar en la API
-    _updateChecklist();
-  }
-
-  void _showCancelConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Cancelar Cita'),
-          content: const Text('¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _updateAppointmentStatus('cancelada');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Sí, Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showConfirmAppointmentDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmar Cita'),
-          content: const Text('¿Estás seguro de que deseas confirmar esta cita?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _updateAppointmentStatus('confirmada');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Sí, Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showCompleteAppointmentDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Marcar como Completa'),
-          content: const Text('¿Estás seguro de que deseas marcar esta cita como completa?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _updateAppointmentStatus('completada');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Sí, Completar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showNoShowAppointmentDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Marcar como No Asistió'),
-          content: const Text('¿Estás seguro de que deseas marcar esta cita como "No Asistió"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _updateAppointmentStatus('no_asistio');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Sí, No Asistió'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _updateAppointmentStatus(String status) async {
-    try {
-      final apiService = ref.read(apiServiceProvider);
-      
-      // Mostrar indicador de carga
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
-      // Actualizar estado de la cita
-      await apiService.updateAppointmentStatus(
-        widget.appointment.id,
-        {
-          'estado_cita': status,
-        },
-      );
-
-      // Cerrar indicador de carga
-      Navigator.of(context).pop();
-
-      // Mostrar mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cita marcada como $status exitosamente'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Navegar de vuelta a la pantalla anterior
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      // Cerrar indicador de carga si está abierto
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-
-      // Mostrar mensaje de error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al actualizar la cita: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _updateChecklist() async {
-    try {
-      final apiService = ref.read(apiServiceProvider);
-      
-      // Convertir checklist a formato de API
-      final checklistData = _checklist.map((item) => {
-        'description': item.description,
-        'completed': item.completed,
-      }).toList();
-
-      // Actualizar cita con nuevo checklist
-      await apiService.updateAppointmentStatus(
-        widget.appointment.id,
-        {
-          'checklist': checklistData,
-        },
-      );
-
-      print('✅ Checklist actualizado exitosamente');
-    } catch (e) {
-      print('❌ Error actualizando checklist: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al actualizar checklist: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Widget _buildActionButtons() {
-    // Obtener el estado actual de la cita
-    final currentStatus = widget.appointment.estadoCita;
-    
-    switch (currentStatus) {
-      case EstadoCita.pendiente:
-        return Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showCancelConfirmationDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Cancelar Cita'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showConfirmAppointmentDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Confirmar Cita'),
-              ),
-            ),
-          ],
-        );
-      
-      case EstadoCita.confirmada:
-        return Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showCompleteAppointmentDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Marcar como Completa'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showNoShowAppointmentDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('No Asistió'),
-              ),
-            ),
-          ],
-        );
-      
-      case EstadoCita.completada:
-      case EstadoCita.cancelada:
-      case EstadoCita.noAsistio:
-        return const SizedBox.shrink(); // No mostrar botones para estos estados
-      
-      default:
-        return Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showCancelConfirmationDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Cancelar Cita'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _showConfirmAppointmentDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Confirmar Cita'),
-              ),
-            ),
-          ],
-        );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Detalle de la cita',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {},
-              child: CircleAvatar(
-                radius: 18,
-                backgroundImage: user?.photoURL != null
-                    ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                child: user?.photoURL == null
-                    ? Text(
-                        user?.email?.isNotEmpty == true
-                            ? user!.email![0].toUpperCase()
-                            : 'T',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Información del alumno usando UserNameDisplay
-            Row(
-              children: [
-                const Text('Alumno: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                Expanded(
-                  child: UserNameDisplay(
-                    userId: widget.appointment.idAlumno,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-                    overflowVisible: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('Fecha: ${_formatDate(widget.appointment.fechaCita)}', style: const TextStyle(color: Colors.black87)),
-            const SizedBox(height: 8),
-            Text('Hora: ${widget.appointment.fechaCita.hour.toString().padLeft(2, '0')}:${widget.appointment.fechaCita.minute.toString().padLeft(2, '0')}', style: const TextStyle(color: Colors.black87)),
-            const SizedBox(height: 16),
-            // Información de la cita
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A90E2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Cita el ${widget.appointment.fechaCita.day} de ${_getMonthName(widget.appointment.fechaCita.month)} del ${widget.appointment.fechaCita.year}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Hora: ${widget.appointment.fechaCita.hour.toString().padLeft(2, '0')}:${widget.appointment.fechaCita.minute.toString().padLeft(2, '0')}',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        _getStatusIcon(widget.appointment.estadoCita),
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Estado:',
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Checklist editable
-            const Text(
-              'Tareas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            if (_checklist.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: const Text(
-                  'No hay tareas específicas definidas para esta cita',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              )
-            else ...[
-              ..._checklist.map((item) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: item.completed,
-                          onChanged: (val) {
-                            final idx = _checklist.indexOf(item);
-                            _toggleCompleted(idx);
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(item.description, style: const TextStyle(fontSize: 14))),
-                        IconButton(
-                          icon: const Icon(Icons.edit, size: 18),
-                          onPressed: () {
-                            final idx = _checklist.indexOf(item);
-                            _editChecklistItem(idx);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, size: 18),
-                          onPressed: () {
-                            final idx = _checklist.indexOf(item);
-                            _removeChecklistItem(idx);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 16),
             // Botones de acción según el estado actual

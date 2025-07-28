@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/appointment_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
+import '../../../core/services/appointments/models/appointment_model.dart';
 import 'tutor_appointment_detail_screen.dart';
 import '../../widgets/user_name_display.dart';
 

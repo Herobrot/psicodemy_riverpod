@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:psicodemy/core/services/appointments/models/appointment_model.dart';
 
 import '../../../components/search_bar_home.dart';
 import '../../../components/home_skeleton.dart';
