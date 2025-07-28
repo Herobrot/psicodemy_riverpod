@@ -421,12 +421,16 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                   children: [
                     Row(
                       children: [
-                        UserNameDisplay(
-                          userId: appointment.idAlumno,
-                          prefix: 'Alumno: ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold, 
-                            color: Colors.grey[700],
+                        Expanded(
+                          child: UserNameDisplay(
+                            userId: appointment.idAlumno,
+                            prefix: 'Alumno: ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              color: Colors.grey[700],
+                            ),
+                            overflowVisible: true,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -456,9 +460,13 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                           children: [
                             Icon(Icons.list_alt, size: 16, color: Colors.orange[700]),
                             const SizedBox(width: 4),
-                            Text(
-                              'Tareas: ${appointment.checklist.where((item) => !item.completed).length} pendientes, ${appointment.checklist.where((item) => item.completed).length} completadas',
-                              style: const TextStyle(fontSize: 13),
+                            Expanded(
+                              child: Text(
+                                'Tareas: ${appointment.checklist.where((item) => !item.completed).length} pendientes, ${appointment.checklist.where((item) => item.completed).length} completadas',
+                                style: const TextStyle(fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           ],
                         ),
@@ -481,7 +489,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TutorAppointmentDetailScreen(appointment: appointment),
+        builder: (context) => TutorAppointmentDetailScreenModel(appointment: appointment),
       ),
     );
   }
@@ -583,9 +591,13 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Alumno:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                            UserNameDisplay(
-                              userId: widget.appointment.idAlumno,
-                              style: const TextStyle(fontWeight: FontWeight.w500),
+                            Expanded(
+                              child: UserNameDisplay(
+                                userId: widget.appointment.idAlumno,
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                overflowVisible: true,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Row(

@@ -5,6 +5,7 @@ import '../../core/services/appointments/models/appointment_model.dart';
 import '../../core/services/auth/repositories/secure_storage_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/services/auth/models/complete_user_model.dart';
+import '../../core/services/appointments/models/appointment_model.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
   final AppointmentService _appointmentService;
@@ -67,10 +68,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       id: m.id,
       tutorId: m.idTutor,
       studentId: m.idAlumno,
-      studentName: '',
-      topic: '',
+      studentName: m.idAlumno,
+      topic: m.reason ?? '',
       scheduledDate: m.fechaCita,
-      timeSlot: '',
+      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
       status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
       notes: m.reason,
       createdAt: m.createdAt,
@@ -93,10 +94,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       id: m.id,
       tutorId: m.idTutor,
       studentId: m.idAlumno,
-      studentName: '',
-      topic: '',
+      studentName: m.idAlumno,
+      topic: m.reason ?? '',
       scheduledDate: m.fechaCita,
-      timeSlot: '',
+      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
       status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
       notes: m.reason,
       createdAt: m.createdAt,
@@ -107,8 +108,25 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<AppointmentEntity?> getAppointmentById(String appointmentId) async {
-    // TODO: Implementar usando AppointmentService
-    throw UnimplementedError();
+    try {
+      final appointmentModel = await _appointmentService.getAppointmentById(appointmentId);
+      return AppointmentEntity(
+        id: appointmentModel.id,
+        tutorId: appointmentModel.idTutor,
+        studentId: appointmentModel.idAlumno,
+        studentName: appointmentModel.idAlumno,
+        topic: appointmentModel.reason ?? '',
+        scheduledDate: appointmentModel.fechaCita,
+        timeSlot: '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
+        status: _mapEstadoCitaToAppointmentStatus(appointmentModel.estadoCita),
+        notes: appointmentModel.reason,
+        createdAt: appointmentModel.createdAt,
+        updatedAt: appointmentModel.updatedAt,
+        completedAt: null,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -119,14 +137,64 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<AppointmentEntity> updateAppointmentStatus(String appointmentId, AppointmentStatus status) async {
-    // TODO: Implementar usando AppointmentService
-    throw UnimplementedError();
+    try {
+      // Mapear AppointmentStatus a EstadoCita
+      EstadoCita estado;
+      switch (status) {
+        case AppointmentStatus.pending:
+          estado = EstadoCita.pendiente;
+          break;
+        case AppointmentStatus.confirmed:
+          estado = EstadoCita.confirmada;
+          break;
+        case AppointmentStatus.completed:
+          estado = EstadoCita.completada;
+          break;
+        case AppointmentStatus.cancelled:
+          estado = EstadoCita.cancelada;
+          break;
+        case AppointmentStatus.inProgress:
+          estado = EstadoCita.pendiente;
+          break;
+        case AppointmentStatus.rescheduled:
+          estado = EstadoCita.pendiente;
+          break;
+      }
+
+      final appointmentModel = await _appointmentService.updateAppointmentStatus(
+        appointmentId, 
+        UpdateStatusRequest(estadoCita: estado)
+      );
+
+      return AppointmentEntity(
+        id: appointmentModel.id,
+        tutorId: appointmentModel.idTutor,
+        studentId: appointmentModel.idAlumno,
+        studentName: appointmentModel.idAlumno,
+        topic: appointmentModel.reason ?? '',
+        scheduledDate: appointmentModel.fechaCita,
+        timeSlot: '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
+        status: _mapEstadoCitaToAppointmentStatus(appointmentModel.estadoCita),
+        notes: appointmentModel.reason,
+        createdAt: appointmentModel.createdAt,
+        updatedAt: appointmentModel.updatedAt,
+        completedAt: null,
+      );
+    } catch (e) {
+      throw Exception('Error al actualizar el estado de la cita: $e');
+    }
   }
 
   @override
   Future<void> cancelAppointment(String appointmentId) async {
-    // TODO: Implementar usando AppointmentService
-    throw UnimplementedError();
+    try {
+      await _appointmentService.updateAppointmentStatus(
+        appointmentId, 
+        UpdateStatusRequest(estadoCita: EstadoCita.cancelada)
+      );
+    } catch (e) {
+      throw Exception('Error al cancelar la cita: $e');
+    }
   }
 
   @override
@@ -209,10 +277,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       id: m.id,
       tutorId: m.idTutor,
       studentId: m.idAlumno,
-      studentName: '',
-      topic: '',
+      studentName: m.idAlumno,
+      topic: m.reason ?? '',
       scheduledDate: m.fechaCita,
-      timeSlot: '',
+      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
       status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
       notes: m.reason,
       createdAt: m.createdAt,

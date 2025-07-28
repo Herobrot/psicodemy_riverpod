@@ -14,16 +14,22 @@ class UserMappingService {
 
   // Obtener el nombre de un usuario por su ID
   Future<String> getUserName(String userId) async {
+    print('🔍 UserMappingService: Buscando nombre para userId: $userId');
+    
     // Verificar si tenemos el nombre en caché
     if (_userNameCache.containsKey(userId)) {
+      print('✅ UserMappingService: Nombre encontrado en caché para $userId: ${_userNameCache[userId]}');
       return _userNameCache[userId]!;
     }
 
+    print('🔄 UserMappingService: Nombre no encontrado en caché, cargando usuarios...');
     // Si no está en caché, cargar todos los usuarios
     await _loadUsersIfNeeded();
 
     // Buscar el usuario en el caché
-    return _userNameCache[userId] ?? userId; // Fallback al ID si no se encuentra
+    final nombre = _userNameCache[userId] ?? userId;
+    print('📋 UserMappingService: Resultado final para $userId: $nombre');
+    return nombre; // Fallback al ID si no se encuentra
   }
 
   // Obtener múltiples nombres de usuario
@@ -70,8 +76,10 @@ class UserMappingService {
       print('🔄 Cargando lista de usuarios para mapeo...');
       
       final response = await _apiService.getUsersList(limit: 1000); // Obtener todos los usuarios
+      print('📡 Respuesta de API recibida: ${response.keys}');
       
       final userListResponse = UserListResponse.fromJson(response);
+      print('📋 Usuarios parseados: ${userListResponse.data.users.length} usuarios');
       
       // Limpiar caché anterior
       _userNameCache.clear();
@@ -79,6 +87,7 @@ class UserMappingService {
       // Poblar el caché con los nuevos datos
       for (final user in userListResponse.data.users) {
         _userNameCache[user.id] = user.nombre;
+        print('👤 Usuario agregado al caché: ${user.id} -> ${user.nombre}');
       }
       
       _lastFetchTime = DateTime.now();
@@ -87,6 +96,7 @@ class UserMappingService {
       
     } catch (e) {
       print('❌ Error al cargar usuarios para mapeo: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
       // Si falla, mantener el caché anterior si existe
     } finally {
       _isLoading = false;

@@ -17,10 +17,10 @@ class AppointmentDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tutor: 24{appointment.tutorId}'),
-            Text('Fecha: 24{appointment.scheduledDate}'),
-            Text('Estado: 24{appointment.statusText}'),
-            if (appointment.notes != null) Text('Notas: 24{appointment.notes}'),
+            Text('Tutor: ${appointment.tutorId}'),
+            Text('Fecha: ${appointment.scheduledDate}'),
+            Text('Estado: ${appointment.statusText}'),
+            if (appointment.notes != null) Text('Notas: ${appointment.notes}'),
             const Spacer(),
             if (appointment.status == AppointmentStatus.pending || appointment.status == AppointmentStatus.confirmed)
               ElevatedButton(

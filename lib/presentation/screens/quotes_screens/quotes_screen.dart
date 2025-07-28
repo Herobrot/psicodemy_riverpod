@@ -9,6 +9,7 @@ import '../../../core/services/tutors/providers/tutor_providers.dart';
 import 'detail_quotes_screen.dart';
 import '../../../domain/entities/appointment_entity.dart';
 import '../../../presentation/providers/appointment_providers.dart';
+import '../../../presentation/providers/simple_auth_providers.dart';
 
 // Nuevo provider para obtener todas las citas del alumno actual
 final allStudentAppointmentsProvider = FutureProvider.family<List<AppointmentEntity>, String>((ref, userId) async {
@@ -43,6 +44,19 @@ final allStudentAppointmentsProvider = FutureProvider.family<List<AppointmentEnt
   return todas;
 });
 
+// Provider para obtener el userId de la API del usuario actual
+final currentUserIdProvider = Provider<String>((ref) {
+  final completeUserAsync = ref.watch(currentCompleteUserProvider);
+  return completeUserAsync.when(
+    data: (completeUser) {
+      // Usar userId de la API si está disponible, sino usar uid de Firebase como fallback
+      return completeUser?.userId ?? completeUser?.uid ?? '';
+    },
+    loading: () => '',
+    error: (_, __) => '',
+  );
+});
+
 class CitasScreen extends ConsumerStatefulWidget {
   const CitasScreen({super.key});
 
@@ -73,14 +87,16 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     // Cargar tutores y citas del alumno al inicializar
     Future.microtask(() {
       ref.read(tutorListProvider.notifier).loadTutors();
-      ref.refresh(allStudentAppointmentsProvider(FirebaseAuth.instance.currentUser?.uid ?? ''));
+      // Usar el userId de la API en lugar del uid de Firebase
+      final userId = ref.read(currentUserIdProvider);
+      ref.refresh(allStudentAppointmentsProvider(userId));
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final userId = user?.uid ?? '';
+    final userId = ref.watch(currentUserIdProvider);
     final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
     final theme = Theme.of(context);
     
@@ -231,7 +247,8 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                   const SizedBox(height: 8),
                                   Consumer(
                                     builder: (context, ref, child) {
-                                      final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
+                                      final calendarUserId = ref.watch(currentUserIdProvider);
+                                      final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(calendarUserId));
                                       return appointmentsAsync.when(
                                         data: (appointments) => TableCalendar(
                                           firstDay: DateTime.now(),
@@ -550,7 +567,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       // Crear la cita
       final request = CreateAppointmentRequest(
         idTutor: _selectedTutor!.id,
-        idAlumno: FirebaseAuth.instance.currentUser?.uid ?? '',
+        idAlumno: ref.read(currentUserIdProvider),
         fechaCita: fechaCita,
         checklist: _checklistCita,
         reason: _razonCita.isNotEmpty ? _razonCita : null,
@@ -559,7 +576,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       await ref.read(createAppointmentProvider(request).future);
 
       // Actualizar la lista de citas del alumno
-      ref.refresh(allStudentAppointmentsProvider(FirebaseAuth.instance.currentUser?.uid ?? ''));
+      ref.refresh(allStudentAppointmentsProvider(ref.read(currentUserIdProvider)));
 
       setState(() => _isScheduling = false);
 
@@ -628,7 +645,8 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildMainAppointmentCard() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(FirebaseAuth.instance.currentUser?.uid ?? ''));
+        final userId = ref.watch(currentUserIdProvider);
+        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
         
         // Buscar la próxima cita confirmada del alumno actual
         final now = DateTime.now();
@@ -742,7 +760,8 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildAppointmentsList() {
     return Consumer(
       builder: (context, ref, child) {
-        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(FirebaseAuth.instance.currentUser?.uid ?? ''));
+        final userId = ref.watch(currentUserIdProvider);
+        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
         final tutorState = ref.watch(tutorListProvider);
         return appointmentsAsync.when(
           data: (appointments) {
@@ -863,7 +882,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ref.refresh(allStudentAppointmentsProvider(FirebaseAuth.instance.currentUser?.uid ?? ''));
+                    ref.refresh(allStudentAppointmentsProvider(ref.read(currentUserIdProvider)));
                   },
                   child: const Text('Reintentar'),
                 ),
@@ -879,7 +898,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   Widget _buildAppointmentCardEntity(AppointmentEntity appointment) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navegar a detalle de cita si es necesario
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DetalleCitaScreen(appointment: appointment),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -921,18 +945,19 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(
-                'VER →',
+              child: const Text(
+                'VER',
                 style: TextStyle(
-                  color: _getStatusColorEntity(appointment.status),
+                  color: Colors.black87,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
             ),
@@ -1119,20 +1144,27 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
               onChanged: (_) => _toggleCompleted(i),
             ),
             title: Text(item.description),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _editTask(i),
-                  tooltip: 'Editar',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _removeTask(i),
-                  tooltip: 'Eliminar',
-                ),
-              ],
+            trailing: SizedBox(
+              width: 100,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 20),
+                    onPressed: () => _editTask(i),
+                    tooltip: 'Editar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, size: 20),
+                    onPressed: () => _removeTask(i),
+                    tooltip: 'Eliminar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),

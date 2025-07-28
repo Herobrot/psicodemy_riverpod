@@ -165,29 +165,46 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<CompleteUserModel> signInWithGoogle() async {
     try {
+      print('🔐 AuthRepository: Iniciando proceso de Google Sign In...');
+      
       // 1. Iniciar sesión con Google
+      print('🔐 AuthRepository: Llamando a _googleSignIn.signIn()...');
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
+        print('❌ AuthRepository: Usuario canceló el inicio de sesión con Google');
         throw AuthFailure.googleSignInCancelled('El usuario canceló el inicio de sesión');
       }
 
+      print('✅ AuthRepository: Google Sign In exitoso');
+      print('🔍 Google User: ${googleUser.displayName} (${googleUser.email})');
+      
+      print('🔐 AuthRepository: Obteniendo autenticación de Google...');
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      print('✅ AuthRepository: Autenticación de Google obtenida');
+      print('🔍 Access Token: ${googleAuth.accessToken?.substring(0, 20)}...');
+      print('🔍 ID Token: ${googleAuth.idToken?.substring(0, 20)}...');
 
+      print('🔐 AuthRepository: Creando credencial de Firebase...');
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      print('🔐 AuthRepository: Iniciando sesión en Firebase con credencial...');
       final userCredential = await _firebaseAuth.signInWithCredential(credential);
       
       if (userCredential.user == null) {
+        print('❌ AuthRepository: Usuario no encontrado después del inicio de sesión con Google');
         throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión con Google');
       }
 
+      print('✅ AuthRepository: Firebase Sign In exitoso');
       final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
+      print('🔍 Firebase User: ${firebaseUser.displayName} (${firebaseUser.email})');
       
       // 2. Obtener token de Firebase
+      print('🔐 AuthRepository: Obteniendo token de Firebase...');
       final firebaseToken = await userCredential.user!.getIdToken();
       
       // 🔍 DEBUG: Imprimir token de Firebase
@@ -202,28 +219,53 @@ class AuthRepositoryImpl implements AuthRepository {
       
       // 3. Autenticar/Registrar en la API del backend
       if (firebaseToken == null) {
+        print('❌ AuthRepository: Firebase token es null');
         throw AuthFailure.serverError('Firebase token is null');
       }
+      
+      print('🔐 AuthRepository: Autenticando con la API del backend...');
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
         nombre: firebaseUser.displayName ?? googleUser.displayName ?? firebaseUser.email.split('@')[0],
         correo: firebaseUser.email      
       );
 
+      print('✅ AuthRepository: API response recibida');
+      print('📡 API Response keys: ${apiResponse.keys.toList()}');
+
       final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
       
       // 4. Crear modelo completo del usuario
+      print('🔐 AuthRepository: Creando CompleteUserModel...');
       final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
         firebaseUser,
         firebaseAuthResponse,
       );
       
+      print('✅ AuthRepository: CompleteUserModel creado');
+      print('🔍 Complete User: ${completeUser.nombre} (${completeUser.email}) - Tipo: ${completeUser.tipoUsuario}');
+      
+      print('💾 AuthRepository: Guardando sesión de usuario...');
       await _storeUserSession(completeUser);
+      print('✅ AuthRepository: Sesión guardada exitosamente');
+      
       return completeUser;
     } on FirebaseAuthException catch (e) {
+      print('❌ AuthRepository: FirebaseAuthException en signInWithGoogle');
+      print('❌ Error code: ${e.code}');
+      print('❌ Error message: ${e.message}');
       throw AuthExceptions.handleFirebaseAuthException(e);
     } catch (e) {
-      if (e is AuthFailure) rethrow;
+      print('❌ AuthRepository: Error genérico en signInWithGoogle');
+      print('❌ Error tipo: ${e.runtimeType}');
+      print('❌ Error mensaje: $e');
+      
+      if (e is AuthFailure) {
+        print('❌ Es un AuthFailure, re-lanzando');
+        rethrow;
+      }
+      
+      print('❌ Convirtiendo a AuthFailure.googleSignInFailed');
       throw AuthExceptions.handleGoogleSignInException(Exception(e.toString()));
     }
   }
@@ -262,29 +304,38 @@ class AuthRepositoryImpl implements AuthRepository {
             if (userData.uid != firebaseUser.uid) {
               print('❌ UID de storage no coincide con el usuario actual. Ignorando datos guardados.');
               // Forzar obtención de datos completos desde la API
-              final firebaseToken = await firebaseUser.getIdToken();
-              if (firebaseToken == null) {
-                print('❌ No se pudo obtener el token de Firebase.');
+              try {
+                final firebaseToken = await firebaseUser.getIdToken();
+                if (firebaseToken == null) {
+                  print('❌ No se pudo obtener el token de Firebase.');
+                  final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+                  print('Devolviendo solo datos de Firebase');
+                  print('=====================================');
+                  return completeUser;
+                }
+                final apiResponse = await _apiService.authenticateWithFirebase(
+                  firebaseToken: firebaseToken,
+                  nombre: userModel.displayName ?? firebaseUser.email?.split('@')[0] ?? '',
+                  correo: firebaseUser.email ?? '',
+                  codigoTutor: null,
+                );
+                final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
+                final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
+                  userModel,
+                  firebaseAuthResponse,
+                );
+                await _storeUserSession(completeUser);
+                print('✅ Usuario actualizado desde la API tras cambio de cuenta.');
+                print('=====================================');
+                return completeUser;
+              } catch (tokenError) {
+                print('❌ Error obteniendo token de Firebase: $tokenError');
+                print('🔍 Usando datos de Firebase como fallback debido a error de conectividad');
                 final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
                 print('Devolviendo solo datos de Firebase');
                 print('=====================================');
                 return completeUser;
               }
-              final apiResponse = await _apiService.authenticateWithFirebase(
-                firebaseToken: firebaseToken,
-                nombre: userModel.displayName ?? firebaseUser.email?.split('@')[0] ?? '',
-                correo: firebaseUser.email ?? '',
-                codigoTutor: null,
-              );
-              final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
-              final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
-                userModel,
-                firebaseAuthResponse,
-              );
-              await _storeUserSession(completeUser);
-              print('✅ Usuario actualizado desde la API tras cambio de cuenta.');
-              print('=====================================');
-              return completeUser;
             }
             print('Datos recuperados del storage:');
             print('  - UID Firebase: ${userData.uid}');
@@ -312,6 +363,19 @@ class AuthRepositoryImpl implements AuthRepository {
       print('🔍 No hay usuario en Firebase Auth');
       return null;
     } catch (e) {
+      print('❌ Error general en getCurrentUser: $e');
+      // En lugar de lanzar una excepción, intentar devolver datos básicos de Firebase
+      try {
+        final firebaseUser = _firebaseAuth.currentUser;
+        if (firebaseUser != null) {
+          final userModel = UserModel.fromFirebaseUser(firebaseUser);
+          final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+          print('🔍 Devolviendo datos básicos de Firebase como fallback');
+          return completeUser;
+        }
+      } catch (fallbackError) {
+        print('❌ Error en fallback de getCurrentUser: $fallbackError');
+      }
       throw AuthExceptions.handleGenericException(Exception(e.toString()));
     }
   }
@@ -330,23 +394,32 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<CompleteUserModel?> get authStateChanges {
     return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
+      print('🔍 AuthRepository: authStateChanges - Firebase user: ${firebaseUser?.email ?? 'null'}');
+      
       if (firebaseUser != null) {
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
         
         // Intentar obtener datos adicionales del storage
         final savedUserData = await _secureStorage.read('complete_user_data');
+        print('🔍 AuthRepository: authStateChanges - ¿Hay datos guardados?: ${savedUserData != null}');
+        
         if (savedUserData != null) {
           try {
             final userData = CompleteUserModel.fromJson(savedUserData);
+            print('🔍 AuthRepository: authStateChanges - Usuario completo recuperado: ${userData.nombre} (${userData.tipoUsuario})');
             return userData;
           } catch (e) {
+            print('❌ AuthRepository: authStateChanges - Error al deserializar datos guardados: $e');
             // Si no se puede deserializar, devolver solo datos de Firebase
             return CompleteUserModel.fromFirebaseUser(userModel);
           }
         }
         
+        print('🔍 AuthRepository: authStateChanges - No hay datos guardados, usando solo Firebase');
         return CompleteUserModel.fromFirebaseUser(userModel);
       }
+      
+      print('🔍 AuthRepository: authStateChanges - Usuario null (logout)');
       return null;
     });
   }

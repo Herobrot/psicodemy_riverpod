@@ -178,7 +178,7 @@ class ApiService {
         if (userType != null) 'userType': userType,
       };
 
-      final uri = Uri.parse('$_baseUrl${ApiRoutes.authUsers('all')}')
+      final uri = Uri.parse('$_baseUrl/auth/users')
           .replace(queryParameters: queryParams);
 
       final response = await _client.get(
@@ -244,12 +244,34 @@ class ApiService {
         'page': page.toString(),
         'limit': limit.toString(),
       };
-      final tutorId = await _getCurrentUserTutorId();
-      if (idTutor != null) queryParams['id_tutor'] = tutorId ?? idTutor;
-      if (idAlumno != null) queryParams['id_alumno'] = idAlumno;
+      
+            // Obtener datos del usuario autenticado para verificar si es tutor
+      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+      String? tutorId;
+      String? alumnoId;
+      String? userId;
+      
+      if (completeUserData != null) {
+        final userJson = json.decode(completeUserData);
+        final tipoUsuario = userJson['tipoUsuario'] as String?;
+        userId = userJson['userId'] as String?;
+        // Solo agregar id_tutor si el usuario es tutor
+        if (tipoUsuario?.toLowerCase() == 'tutor') {
+          queryParams['id_tutor'] = userId ?? idTutor ?? '';
+        }
+        else {
+          if (idAlumno != null) {
+            queryParams['id_alumno'] = userId ?? idAlumno ?? '';
+          }
+        }
+      }
+      
+      // Si no se agregó id_alumno en el bloque anterior y se proporciona idAlumno, agregarlo
+      if (!queryParams.containsKey('id_alumno') && idAlumno != null) {
+        queryParams['id_alumno'] = idAlumno;
+      }
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
-      if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
-      if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
+
 
       final uri = Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}').replace(queryParameters: queryParams);
       print('uri de citas: $uri');
@@ -291,7 +313,15 @@ class ApiService {
         body: json.encode(request),
       );
       final data = await _handleResponse(response);
-      return data['data']; // SOLO data['data']
+      
+      // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
+      // Verificar si está envuelto en 'data' o es directo
+      if (data.containsKey('data')) {
+        return data['data'] as Map<String, dynamic>;
+      } else {
+        // Si no tiene 'data', asumir que es la respuesta directa
+        return data;
+      }
     } catch (e) {
       throw _handleError(e);
     }
@@ -318,12 +348,20 @@ class ApiService {
       print('   Request: ${json.encode(request)}');
       
       final response = await _client.put(
-        Uri.parse('$_baseUrl${ApiRoutes.appointmentIdStatus(id)}'),
+        Uri.parse('$_baseUrl${ApiRoutes.appointmentId(id)}'),
         headers: headers,
         body: json.encode(request),
       );
       final data = await _handleResponse(response);
-      return data['data']; // SOLO data['data']
+      
+      // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
+      // Verificar si está envuelto en 'data' o es directo
+      if (data.containsKey('data')) {
+        return data['data'] as Map<String, dynamic>;
+      } else {
+        // Si no tiene 'data', asumir que es la respuesta directa
+        return data;
+      }
     } catch (e) {
       throw _handleError(e);
     }
