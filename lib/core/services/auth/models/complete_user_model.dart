@@ -150,50 +150,61 @@ class CompleteUserModel {
 
   // Crear desde JSON
   factory CompleteUserModel.fromJson(Map<String, dynamic> json) {
-    // Crear un UserModel temporal desde los datos básicos
-    final firebaseUser = UserModel(
-      uid: json['uid'] as String,
-      email: json['email'] as String,
-      displayName: json['displayName'] as String?,
-      photoURL: json['photoURL'] as String?,
-      emailVerified: json['isEmailVerified'] as bool,
-      createdAt: json['createdAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
-          : null,
-      lastSignInAt: json['lastSignInAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['lastSignInAt'] as int)
-          : null,
-    );
-    
-    return CompleteUserModel(
-      uid: json['uid'] as String,
-      email: json['email'] as String,
-      displayName: json['displayName'] as String?,
-      photoURL: json['photoURL'] as String?,
-      isEmailVerified: json['isEmailVerified'] as bool,
-      createdAt: json['createdAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
-          : null,
-      lastSignInAt: json['lastSignInAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['lastSignInAt'] as int)
-          : null,
-      userId: json['userId'] as String?,
-      nombre: json['nombre'] as String?,
-      tipoUsuario: json['tipoUsuario'] != null
-          ? TipoUsuario.values.firstWhere(
-              (e) => e.name == json['tipoUsuario'],
-              orElse: () => TipoUsuario.alumno,
-            )
-          : null,
-      apiToken: json['apiToken'] as String?,
-      apiCreatedAt: json['apiCreatedAt'] != null
-          ? DateTime.parse(json['apiCreatedAt'] as String)
-          : null,
-      apiUpdatedAt: json['apiUpdatedAt'] != null
-          ? DateTime.parse(json['apiUpdatedAt'] as String)
-          : null,
-      firebaseUser: firebaseUser,
-    );
+    try {
+      // Validate required fields
+      if (json['uid'] == null || json['email'] == null) {
+        throw FormatException('Missing required fields: uid and email');
+      }
+      
+      // Crear un UserModel temporal desde los datos básicos
+      final firebaseUser = UserModel(
+        uid: json['uid'] as String,
+        email: json['email'] as String,
+        displayName: json['displayName'] as String?,
+        photoURL: json['photoURL'] as String?,
+        emailVerified: json['isEmailVerified'] as bool? ?? false,
+        createdAt: json['createdAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+            : null,
+        lastSignInAt: json['lastSignInAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(json['lastSignInAt'] as int)
+            : null,
+      );
+      
+      return CompleteUserModel(
+        uid: json['uid'] as String,
+        email: json['email'] as String,
+        displayName: json['displayName'] as String?,
+        photoURL: json['photoURL'] as String?,
+        isEmailVerified: json['isEmailVerified'] as bool? ?? false,
+        createdAt: json['createdAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+            : null,
+        lastSignInAt: json['lastSignInAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(json['lastSignInAt'] as int)
+            : null,
+        userId: json['userId'] as String?,
+        nombre: json['nombre'] as String?,
+        tipoUsuario: json['tipoUsuario'] != null
+            ? TipoUsuario.values.firstWhere(
+                (e) => e.name == json['tipoUsuario'],
+                orElse: () => TipoUsuario.alumno,
+              )
+            : null,
+        apiToken: json['apiToken'] as String?,
+        apiCreatedAt: json['apiCreatedAt'] != null
+            ? DateTime.parse(json['apiCreatedAt'] as String)
+            : null,
+        apiUpdatedAt: json['apiUpdatedAt'] != null
+            ? DateTime.parse(json['apiUpdatedAt'] as String)
+            : null,
+        firebaseUser: firebaseUser,
+      );
+    } catch (e) {
+      print('❌ CompleteUserModel.fromJson - Error parsing JSON: $e');
+      print('❌ JSON data: $json');
+      rethrow;
+    }
   }
 
   // Constructor específico para respuesta de API del backend

@@ -394,32 +394,58 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<CompleteUserModel?> get authStateChanges {
     return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
-      print('🔍 AuthRepository: authStateChanges - Firebase user: ${firebaseUser?.email ?? 'null'}');
-      
-      if (firebaseUser != null) {
-        final userModel = UserModel.fromFirebaseUser(firebaseUser);
+      try {
+        print('🔍 AuthRepository: authStateChanges - Firebase user: ${firebaseUser?.email ?? 'null'}');
         
-        // Intentar obtener datos adicionales del storage
-        final savedUserData = await _secureStorage.read('complete_user_data');
-        print('🔍 AuthRepository: authStateChanges - ¿Hay datos guardados?: ${savedUserData != null}');
-        
-        if (savedUserData != null) {
+        if (firebaseUser != null) {
+          final userModel = UserModel.fromFirebaseUser(firebaseUser);
+          
+          // Intentar obtener datos adicionales del storage
+          Map<String, dynamic>? savedUserData;
           try {
-            final userData = CompleteUserModel.fromJson(savedUserData);
-            print('🔍 AuthRepository: authStateChanges - Usuario completo recuperado: ${userData.nombre} (${userData.tipoUsuario})');
-            return userData;
-          } catch (e) {
-            print('❌ AuthRepository: authStateChanges - Error al deserializar datos guardados: $e');
-            // Si no se puede deserializar, devolver solo datos de Firebase
+            savedUserData = await _secureStorage.read('complete_user_data');
+            print('🔍 AuthRepository: authStateChanges - ¿Hay datos guardados?: ${savedUserData != null}');
+          } catch (storageError) {
+            print('❌ AuthRepository: authStateChanges - Error reading storage: $storageError');
+            // Continue without stored data
+          }
+          
+          if (savedUserData != null) {
+            try {
+              final userData = CompleteUserModel.fromJson(savedUserData);
+              print('🔍 AuthRepository: authStateChanges - Usuario completo recuperado: ${userData.nombre} (${userData.tipoUsuario})');
+              return userData;
+            } catch (e) {
+              print('❌ AuthRepository: authStateChanges - Error al deserializar datos guardados: $e');
+              // Si no se puede deserializar, devolver solo datos de Firebase
+              try {
+                return CompleteUserModel.fromFirebaseUser(userModel);
+              } catch (fallbackError) {
+                print('❌ AuthRepository: authStateChanges - Error en fallback: $fallbackError');
+                return null;
+              }
+            }
+          }
+          
+          print('🔍 AuthRepository: authStateChanges - No hay datos guardados, usando solo Firebase');
+          try {
             return CompleteUserModel.fromFirebaseUser(userModel);
+          } catch (fallbackError) {
+            print('❌ AuthRepository: authStateChanges - Error creando CompleteUserModel: $fallbackError');
+            return null;
           }
         }
         
-        print('🔍 AuthRepository: authStateChanges - No hay datos guardados, usando solo Firebase');
-        return CompleteUserModel.fromFirebaseUser(userModel);
+        print('🔍 AuthRepository: authStateChanges - Usuario null (logout)');
+        return null;
+      } catch (e) {
+        print('❌ AuthRepository: authStateChanges - Error general: $e');
+        // Return null instead of crashing
+        return null;
       }
-      
-      print('🔍 AuthRepository: authStateChanges - Usuario null (logout)');
+    }).handleError((error) {
+      print('❌ AuthRepository: authStateChanges - Stream error: $error');
+      // Return null instead of crashing the stream
       return null;
     });
   }

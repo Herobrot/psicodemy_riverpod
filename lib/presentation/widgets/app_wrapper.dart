@@ -13,12 +13,17 @@ class AppWrapper extends ConsumerWidget {
     
     return isFirstTimeAsync.when(
       data: (isFirstTime) {
-        if (isFirstTime) {
-          // Primera vez - mostrar onboarding
-          return const OnboardingScreen();
-        } else {
-          // No es primera vez - ir al flujo de autenticación
-          return const AuthWrapper();
+        try {
+          if (isFirstTime) {
+            // Primera vez - mostrar onboarding
+            return const OnboardingScreen();
+          } else {
+            // No es primera vez - ir al flujo de autenticación
+            return const AuthWrapper();
+          }
+        } catch (e) {
+          print('❌ AppWrapper - Error in data handling: $e');
+          return _buildErrorScreen(context, ref, 'Error al cargar la aplicación');
         }
       },
       loading: () => const Scaffold(
@@ -33,21 +38,41 @@ class AppWrapper extends ConsumerWidget {
           ),
         ),
       ),
-      error: (error, stack) => Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.refresh(isFirstTimeProvider),
-                child: const Text('Reintentar'),
-              ),
-            ],
-          ),
+      error: (error, stack) {
+        print('❌ AppWrapper - Error: $error');
+        print('❌ AppWrapper - Stack trace: $stack');
+        return _buildErrorScreen(context, ref, 'Error al inicializar la aplicación');
+      },
+    );
+  }
+
+  Widget _buildErrorScreen(BuildContext context, WidgetRef ref, String message) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Por favor, intenta de nuevo',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // Refresh the provider
+                ref.invalidate(isFirstTimeProvider);
+              },
+              child: const Text('Reintentar'),
+            ),
+          ],
         ),
       ),
     );

@@ -6,10 +6,21 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+
+
 android {
-    namespace = "com.example.flutter_application_1_a"
+    namespace = "com.psicodemy.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    signingConfigs {
+        create("release") {
+            keyAlias = "upload"
+            keyPassword = "psicodemy2024"
+            storeFile = file("upload-keystore.jks")
+            storePassword = "psicodemy2024"
+        }
+    }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -23,21 +34,33 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.flutter_application_1_a"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.psicodemy.app"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Support for large screens and foldables
+        resConfigs("en", "es")
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
+    // Support for large screens and foldables
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = false
         }
     }
 

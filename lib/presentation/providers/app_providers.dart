@@ -8,8 +8,14 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 // Provider para verificar si es la primera vez que se abre la app
 final isFirstTimeProvider = FutureProvider<bool>((ref) async {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return !(prefs.getBool('has_seen_onboarding') ?? false);
+  try {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return !(prefs.getBool('has_seen_onboarding') ?? false);
+  } catch (e) {
+    print('❌ Error checking first time status: $e');
+    // Default to showing onboarding if there's an error
+    return true;
+  }
 });
 
 // Provider para marcar que el onboarding ya fue visto
@@ -21,12 +27,23 @@ class OnboardingRepository {
   OnboardingRepository(this._ref);
   
   Future<void> markOnboardingAsSeen() async {
-    final prefs = _ref.read(sharedPreferencesProvider);
-    await prefs.setBool('has_seen_onboarding', true);
+    try {
+      final prefs = _ref.read(sharedPreferencesProvider);
+      await prefs.setBool('has_seen_onboarding', true);
+    } catch (e) {
+      print('❌ Error marking onboarding as seen: $e');
+      // Don't throw - this is not critical
+    }
   }
   
   Future<bool> hasSeenOnboarding() async {
-    final prefs = _ref.read(sharedPreferencesProvider);
-    return prefs.getBool('has_seen_onboarding') ?? false;
+    try {
+      final prefs = _ref.read(sharedPreferencesProvider);
+      return prefs.getBool('has_seen_onboarding') ?? false;
+    } catch (e) {
+      print('❌ Error checking onboarding status: $e');
+      // Default to false if there's an error
+      return false;
+    }
   }
 } 

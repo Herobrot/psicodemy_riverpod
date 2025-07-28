@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:958948241114:android:641f21250c4f252f10bfe3",
         "android_client_info": {
-          "package_name": "com.example.flutter_application_1_a"
+          "package_name": "com.psicodemy.app"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "958948241114-eiivkd2td3homt3l10puoh33gd58dj3k.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.flutter_application_1_a",
+            "package_name": "com.psicodemy.app",
             "certificate_hash": "b108caddedc61da571472a71782addd9a30554a3"
           }
         },

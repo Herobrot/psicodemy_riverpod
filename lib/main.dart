@@ -5,22 +5,42 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'presentation/widgets/app_wrapper.dart';
 import 'presentation/providers/app_providers.dart';
+import 'core/utils/error_handler.dart';
 
 void main() async {
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize error handling
+  ErrorHandler.initialize();
+
+  try {
+    // Initialize Firebase with error handling
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('❌ Error initializing Firebase: $e');
+    // Continue without Firebase - app will show error state
+  }
   
-  // Inicializar SharedPreferences
-  final sharedPreferences = await SharedPreferences.getInstance();
+  // Initialize SharedPreferences with error handling
+  SharedPreferences? sharedPreferences;
+  try {
+    sharedPreferences = await SharedPreferences.getInstance();
+    print('✅ SharedPreferences initialized successfully');
+  } catch (e) {
+    print('❌ Error initializing SharedPreferences: $e');
+    // Continue without SharedPreferences - app will handle gracefully
+  }
   
   runApp(
     ProviderScope(
       overrides: [
         // Override del provider de SharedPreferences con la instancia real
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        if (sharedPreferences != null)
+          sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
       child: const MyApp(),
     ),
@@ -33,7 +53,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Auth App',
+      title: 'Psicodemy',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: Colors.blue,
@@ -57,6 +77,10 @@ class MyApp extends StatelessWidget {
       ),
       home: const AppWrapper(),
       debugShowCheckedModeBanner: false,
+      // Add error handling for the entire app
+      builder: (context, child) {
+        return ErrorHandler.wrapWithErrorHandler(child!);
+      },
     );
   }
 }
