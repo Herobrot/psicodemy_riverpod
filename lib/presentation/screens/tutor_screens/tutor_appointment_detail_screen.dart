@@ -437,9 +437,13 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
             Row(
               children: [
                 const Text('Alumno: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                UserNameDisplay(
-                  userId: widget.appointment.studentId,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                Expanded(
+                  child: UserNameDisplay(
+                    userId: widget.appointment.studentId,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                    overflowVisible: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -944,9 +948,13 @@ class _TutorAppointmentDetailScreenModelState extends ConsumerState<TutorAppoint
             Row(
               children: [
                 const Text('Alumno: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                UserNameDisplay(
-                  userId: widget.appointment.idAlumno,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                Expanded(
+                  child: UserNameDisplay(
+                    userId: widget.appointment.idAlumno,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                    overflowVisible: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -1015,13 +1023,4 @@ class _TutorAppointmentDetailScreenModelState extends ConsumerState<TutorAppoint
   }
 }
 
-// Clase auxiliar para ChecklistItem
-class ChecklistItem {
-  final String description;
-  final bool completed;
-
-  const ChecklistItem({
-    required this.description,
-    required this.completed,
-  });
-} 
+ 

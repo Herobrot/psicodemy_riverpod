@@ -264,8 +264,7 @@ class ApiService {
         queryParams['id_alumno'] = idAlumno;
       }
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
-      if (fechaDesde != null) queryParams['fecha_desde'] = fechaDesde.toIso8601String();
-      if (fechaHasta != null) queryParams['fecha_hasta'] = fechaHasta.toIso8601String();
+
 
       final uri = Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}').replace(queryParameters: queryParams);
       print('uri de citas: $uri');

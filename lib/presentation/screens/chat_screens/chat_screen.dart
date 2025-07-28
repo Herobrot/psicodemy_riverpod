@@ -189,28 +189,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final apiService = ref.read(apiServiceProvider);
     // Caché local para alumnos
     final Map<String, Map<String, dynamic>> alumnoCache = {};
-    // --- Agregar conversación especial de IA al inicio ---
-    final iaConversation = ConversationModel(
-      id: 'ia_chat',
-      participant1Id: userId,
-      participant2Id: 'asistente_ia',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isActive: true,
-    );
-    final allConversations = [iaConversation, ...conversations];
-    // ---
+    
     return tutorsAsync.when(
       data: (tutors) {
-        final filteredConversations = allConversations;
-        print('Conversaciones que se muestran en pantalla: ${filteredConversations.length}');
-        for (var c in filteredConversations) {
+        // Si no hay conversaciones, mostrar IA y tutores disponibles
+        if (conversations.isEmpty) {
+          return _buildEmptyStateWithTutors(tutors, userId);
+        }
+        
+        // Si hay conversaciones, mostrar IA + conversaciones existentes
+        final iaConversation = ConversationModel(
+          id: 'ia_chat',
+          participant1Id: userId,
+          participant2Id: 'asistente_ia',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          isActive: true,
+        );
+        final allConversations = [iaConversation, ...conversations];
+        
+        print('Conversaciones que se muestran en pantalla: ${allConversations.length}');
+        for (var c in allConversations) {
           print(' - MOSTRADA: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
         }
+        
         return ListView.builder(
-          itemCount: filteredConversations.length,
+          itemCount: allConversations.length,
           itemBuilder: (context, index) {
-            final conversation = filteredConversations[index];
+            final conversation = allConversations[index];
             print('Construyendo widget para conversación: ${conversation.id} | ${conversation.participant1Id} <-> ${conversation.participant2Id}');
             if (conversation.id == 'ia_chat') {
               return Padding(
@@ -380,6 +386,90 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(child: Text('Error al cargar tutores: $error')),
+    );
+  }
+
+  Widget _buildEmptyStateWithTutors(List<TutorModel> tutors, String userId) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: [
+        // Chat de IA
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF008080),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF008080).withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.smart_toy,
+                size: 30,
+                color: Color(0xFF008080),
+              ),
+            ),
+            title: const Text(
+              'Asistente IA',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+            subtitle: const Text(
+              'Chat inteligente disponible 24/7',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white70,
+              ),
+            ),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white,
+              size: 16,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AiChatScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        
+        // Separador
+        const SizedBox(height: 24),
+        
+        // Título de tutores disponibles
+        const Text(
+          'Tutores disponibles',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Lista de tutores
+        ...tutors.map((tutor) => _buildTutorItem(tutor)).toList(),
+      ],
     );
   }
 
