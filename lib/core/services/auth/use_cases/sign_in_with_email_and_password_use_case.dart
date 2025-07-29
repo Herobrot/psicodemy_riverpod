@@ -13,8 +13,8 @@ class SignInWithEmailAndPasswordUseCase {
       return await _authRepository.signInWithEmailAndPassword(email, password);
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al iniciar sesión con correo y contraseña');
     }
   }
 }

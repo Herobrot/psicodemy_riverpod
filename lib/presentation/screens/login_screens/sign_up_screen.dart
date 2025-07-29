@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../core/services/api_service_provider.dart';
-import '../../../core/constants/enums/tipo_usuario.dart';
 import 'sign_in_screen.dart';
-import '../main_screen.dart';
-import '../tutor_screens/tutor_main_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -37,19 +34,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _signUpWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _error = null;
+    setState(() { 
+      _isLoading = true; 
+      _error = null; 
     });
 
     try {
       final authService = ref.read(authServiceProvider);
-
+      
       final completeUser = await authService.signUpWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
-        codigoTutor: _codigoTutorController.text.trim().isNotEmpty
-            ? _codigoTutorController.text.trim()
+        codigoTutor: _codigoTutorController.text.trim().isNotEmpty 
+            ? _codigoTutorController.text.trim() 
             : null,
       );
 
@@ -61,34 +58,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             backgroundColor: Colors.green,
           ),
         );
-
+        
         // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
-
+        
         // Pequeño delay para asegurar que el estado se actualice
         await Future.delayed(const Duration(milliseconds: 500));
       }
-    } catch (e) {
+    } catch (_) {
       setState(() {
-        _error = e.toString();
+        _error = 'Error al registrar usuario';
       });
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() { _isLoading = false; });
       }
     }
   }
 
   Future<void> _signUpWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
+    setState(() { 
+      _isLoading = true; 
+      _error = null; 
     });
 
     try {
       final authService = ref.read(authServiceProvider);
-
+      
       final completeUser = await authService.signInWithGoogle();
 
       // Si llegamos aquí, el registro fue exitoso
@@ -99,21 +94,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             backgroundColor: Colors.green,
           ),
         );
-
+        
         // NO hacer navegación manual - dejar que AuthWrapper maneje la navegación
-
+        
         // Pequeño delay para asegurar que el estado se actualice
         await Future.delayed(const Duration(milliseconds: 500));
       }
-    } catch (e) {
+    } catch (_) {
       setState(() {
-        _error = e.toString();
+        _error = 'Error al iniciar sesión con Google';
       });
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() { _isLoading = false; });
       }
     }
   }
@@ -125,20 +118,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     try {
       final apiService = ref.read(apiServiceProvider);
       final isValid = await apiService.validateTutorCode(codigo);
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isValid
-                  ? 'Código válido: serás registrado como TUTOR ✓'
-                  : 'Código inválido: serás registrado como ALUMNO ℹ️',
+              isValid 
+                ? 'Código válido: serás registrado como TUTOR ✓' 
+                : 'Código inválido: serás registrado como ALUMNO ℹ️'
             ),
             backgroundColor: isValid ? Colors.green : Colors.orange,
           ),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -149,6 +142,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       }
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +165,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(height: 32),
-
+                  
                   // Campo de correo
                   TextFormField(
                     controller: _emailController,
@@ -191,7 +186,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-
+                  
                   // Campo de contraseña
                   TextFormField(
                     controller: _passwordController,
@@ -200,11 +195,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       labelText: 'Contraseña',
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _showPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
+                        icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
                           setState(() {
                             _showPassword = !_showPassword;
@@ -224,7 +215,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-
+                  
                   // Campo de confirmar contraseña
                   TextFormField(
                     controller: _confirmController,
@@ -233,11 +224,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       labelText: 'Confirmar Contraseña',
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _showConfirmPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
+                        icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
                           setState(() {
                             _showConfirmPassword = !_showConfirmPassword;
@@ -257,7 +244,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-
+                  
                   // Campo de código de tutor (opcional)
                   TextFormField(
                     controller: _codigoTutorController,
@@ -276,7 +263,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               content: const Text(
                                 'Si tienes un código de institución válido, ingrésalo aquí para obtener permisos de tutor. '
                                 'Si no tienes código, se te registrará como alumno.\n\n'
-                                'Código válido para tutores: TUTOR',
+                                'Código válido para tutores: TUTOR'
                               ),
                               actions: [
                                 TextButton(
@@ -298,13 +285,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: 8),
-
+                  
                   const Text(
                     'Al hacer clic en crear cuenta, usted está de acuerdo con las políticas de uso.',
                     style: TextStyle(fontSize: 12, color: Colors.black54),
                     textAlign: TextAlign.left,
                   ),
-
+                  
                   if (_error != null) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -320,9 +307,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                     ),
                   ],
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   // Botón de crear cuenta
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signUpWithEmail,
@@ -333,14 +320,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Crear cuenta',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                        : const Text('Crear cuenta', style: TextStyle(color: Colors.white)),
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   const Row(
                     children: [
                       Expanded(child: Divider()),
@@ -351,9 +335,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       Expanded(child: Divider()),
                     ],
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   // Botón de Google
                   Center(
                     child: InkWell(
@@ -374,9 +358,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   // Link a inicio de sesión
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -386,16 +370,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => const SignInScreen(),
-                            ),
+                            MaterialPageRoute(builder: (_) => const SignInScreen()),
                           );
                         },
                         child: const Text(
                           'Iniciar sesión',
                           style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.red, 
+                            fontWeight: FontWeight.bold
                           ),
                         ),
                       ),
@@ -409,4 +391,4 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       ),
     );
   }
-}
+} 

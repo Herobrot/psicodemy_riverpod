@@ -32,14 +32,14 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final tutorId = user?.uid ?? 'tutor1';
-
+    final tutorId = user?.uid ?? 'tutor1'; 
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-
+        
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -48,11 +48,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
               'lib/src/shared_imgs/chat.png',
               height: 28,
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.psychology,
-                  size: 28,
-                  color: Color(0xFF4CAF50),
-                );
+                return const Icon(Icons.psychology, size: 28, color: Color(0xFF4CAF50));
               },
             ),
             const SizedBox(width: 8),
@@ -76,30 +72,28 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
               },
               child: CircleAvatar(
                 radius: 18,
-                backgroundImage: user?.photoURL != null
-                    ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage(
-                        'https://lh3.googleusercontent.com/a/default-user=s96-c',
+                backgroundImage: user?.photoURL != null 
+                  ? NetworkImage(user!.photoURL!)
+                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                child: user?.photoURL == null 
+                  ? Text(
+                      user?.email?.isNotEmpty == true 
+                        ? user!.email![0].toUpperCase() 
+                        : 'T',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                child: user?.photoURL == null
-                    ? Text(
-                        user?.email?.isNotEmpty == true
-                            ? user!.email![0].toUpperCase()
-                            : 'T',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
+                    )
+                  : null,
               ),
             ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildTutorContent(tutorId),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : _buildTutorContent(tutorId),
     );
   }
 
@@ -143,20 +137,13 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
       data: (appointments) {
         final now = DateTime.now();
         final total = appointments.length;
-        final hoy = appointments
-            .where(
-              (a) =>
-                  a.scheduledDate.year == now.year &&
-                  a.scheduledDate.month == now.month &&
-                  a.scheduledDate.day == now.day,
-            )
-            .length;
-        final pendientes = appointments
-            .where((a) => a.status == AppointmentStatus.pending)
-            .length;
-        final completadas = appointments
-            .where((a) => a.status == AppointmentStatus.completed)
-            .length;
+        final hoy = appointments.where((a) =>
+          a.scheduledDate.year == now.year &&
+          a.scheduledDate.month == now.month &&
+          a.scheduledDate.day == now.day
+        ).length;
+        final pendientes = appointments.where((a) => a.status == AppointmentStatus.pending).length;
+        final completadas = appointments.where((a) => a.status == AppointmentStatus.completed).length;
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -173,7 +160,10 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
             children: [
               Text(
                 '$greeting,',
-                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -200,118 +190,46 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
           ),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(
-          'Error al cargar citas: $e',
-          style: const TextStyle(color: Colors.white),
-        ),
+        child: Text('Error al cargar citas:', style: const TextStyle(color: Colors.white)),
       ),
     );
   }
 
-  Widget _buildStatsCards(String tutorId) {
-    print('stats cards tutorId: $tutorId');
+  Widget _buildStatsCards(String tutorId) {    
     final statsAsync = ref.watch(appointmentStatsProvider(tutorId));
-
+    
     return statsAsync.when(
       data: (stats) => Row(
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Citas Hoy',
-              '${stats['Hoy'] ?? 0}',
-              Icons.calendar_today,
-              Colors.blue,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Citas Hoy', '${stats['Hoy'] ?? 0}', Icons.calendar_today, Colors.blue)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Pendientes',
-              '${stats['Pendiente'] ?? 0}',
-              Icons.pending,
-              Colors.orange,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Pendientes', '${stats['Pendiente'] ?? 0}', Icons.pending, Colors.orange)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Completadas',
-              '${stats['Completada'] ?? 0}',
-              Icons.check_circle,
-              Colors.green,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Completadas', '${stats['Completada'] ?? 0}', Icons.check_circle, Colors.green)),
         ],
       ),
       loading: () => Row(
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Citas Hoy',
-              '...',
-              Icons.calendar_today,
-              Colors.blue,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Citas Hoy', '...', Icons.calendar_today, Colors.blue)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Pendientes',
-              '...',
-              Icons.pending,
-              Colors.orange,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Pendientes', '...', Icons.pending, Colors.orange)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Completadas',
-              '...',
-              Icons.check_circle,
-              Colors.green,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Completadas', '...', Icons.check_circle, Colors.green)),
         ],
       ),
       error: (error, stack) => Row(
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Citas Hoy',
-              '0',
-              Icons.calendar_today,
-              Colors.blue,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Citas Hoy', '0', Icons.calendar_today, Colors.blue)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Pendientes',
-              '0',
-              Icons.pending,
-              Colors.orange,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Pendientes', '0', Icons.pending, Colors.orange)),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Completadas',
-              '0',
-              Icons.check_circle,
-              Colors.green,
-            ),
-          ),
+          Expanded(child: _buildStatCard('Completadas', '0', Icons.check_circle, Colors.green)),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -340,7 +258,10 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
           const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -349,10 +270,8 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
   }
 
   Widget _buildPendingAppointmentsSection(String tutorId) {
-    final pendingAppointmentsAsync = ref.watch(
-      pendingAppointmentsProvider(tutorId),
-    );
-
+    final pendingAppointmentsAsync = ref.watch(pendingAppointmentsProvider(tutorId));
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -367,32 +286,35 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         const SizedBox(height: 12),
         pendingAppointmentsAsync.when(
           data: (appointments) => appointments.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text(
-                      'No hay citas pendientes',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'No hay citas pendientes',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
                     ),
                   ),
-                )
-              : Column(
-                  children: appointments
-                      .map((appointment) => _buildAppointmentCard(appointment))
-                      .toList(),
                 ),
+              )
+            : Column(
+                children: appointments.map((appointment) => 
+                  _buildAppointmentCard(appointment)
+                ).toList(),
+              ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error: (error, stack) => Center(
+            child: Text('Error: $error'),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildTodayAppointmentsSection(String tutorId) {
-    final todayAppointmentsAsync = ref.watch(
-      todayAppointmentsProvider(tutorId),
-    );
-
+    final todayAppointmentsAsync = ref.watch(todayAppointmentsProvider(tutorId));
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -407,25 +329,27 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         const SizedBox(height: 12),
         todayAppointmentsAsync.when(
           data: (appointments) => appointments.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text(
-                      'No hay citas programadas para hoy',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'No hay citas programadas para hoy',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
                     ),
                   ),
-                )
-              : Column(
-                  children: appointments
-                      .map(
-                        (appointment) =>
-                            _buildTodayAppointmentCard(appointment),
-                      )
-                      .toList(),
                 ),
+              )
+            : Column(
+                children: appointments.map((appointment) => 
+                  _buildTodayAppointmentCard(appointment)
+                ).toList(),
+              ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error: (error, stack) => Center(
+            child: Text('Error: $error'),
+          ),
         ),
       ],
     );
@@ -447,30 +371,29 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         const SizedBox(height: 12),
         allAppointmentsAsync.when(
           data: (appointments) {
-            print('TOTAL CITAS DEL TUTOR: ${appointments.length}');
-            for (final cita in appointments) {
-              print('CITA: ' + cita.toString());
-            }
             return appointments.isEmpty
                 ? const Center(
                     child: Padding(
                       padding: EdgeInsets.all(20.0),
                       child: Text(
                         'No hay citas registradas',
-                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   )
                 : Column(
-                    children: appointments
-                        .map(
-                          (appointment) => _buildAppointmentCard(appointment),
-                        )
-                        .toList(),
+                    children: appointments.map((appointment) =>
+                      _buildAppointmentCard(appointment)
+                    ).toList(),
                   );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error: (error, stack) => Center(
+            child: Text('Error: $error'),
+          ),
         ),
       ],
     );
@@ -483,8 +406,7 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                TutorAppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: appointment),
           ),
         );
       },
@@ -524,16 +446,12 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
                     '${appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${appointment.scheduledDate.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  if (appointment.notes != null &&
-                      appointment.notes!.isNotEmpty)
+                  if (appointment.notes != null && appointment.notes!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         appointment.notes!,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 10,
-                        ),
+                        style: const TextStyle(color: Colors.white60, fontSize: 10),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -581,14 +499,13 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
 
   Widget _buildTodayAppointmentCard(AppointmentEntity appointment) {
     final color = Color(appointment.statusColor);
-
+    
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                TutorAppointmentDetailScreen(appointment: appointment),
+            builder: (_) => TutorAppointmentDetailScreen(appointment: appointment),
           ),
         );
       },
@@ -615,7 +532,11 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(25),
               ),
-              child: Icon(Icons.person, color: color, size: 24),
+              child: Icon(
+                Icons.person,
+                color: color,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -640,7 +561,10 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
                   ),
                   Text(
                     appointment.topic,
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -668,13 +592,9 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
-    if (date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day) {
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
       return 'Hoy';
-    } else if (date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day + 1) {
+    } else if (date.year == now.year && date.month == now.month && date.day == now.day + 1) {
       return 'Mañana';
     } else {
       return '${date.day}/${date.month}/${date.year}';
@@ -718,4 +638,4 @@ class _TutorHomeScreenState extends ConsumerState<TutorHomeScreen> {
       reason: entity.notes,
     );
   }
-}
+} 

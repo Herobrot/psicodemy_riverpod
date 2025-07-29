@@ -24,8 +24,8 @@ class AppointmentService {
       final data = await _apiService.createAppointment(request.toJson());
       final citaJson = data['data'] ?? data;
       return AppointmentModel.fromJson(citaJson);
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al crear la cita');
     }
   }
 
@@ -36,23 +36,17 @@ class AppointmentService {
       );
 
       if (completeUserData != null) {
-        final userJson = json.decode(completeUserData);
-        print('🔍 User JSON: $userJson');
+        final userJson = json.decode(completeUserData);        
         final userId = userJson['userId'] as String?;
-        final tipoUsuario = userJson['tipoUsuario'] as String?;
-        print('🔍 Tipo de usuario: $tipoUsuario');
-        print('🔍 User ID: $userId');
-        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
-          print('📋 ID del tutor obtenido del storage: $userId');
+        final tipoUsuario = userJson['tipoUsuario'] as String?;                
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {          
           return userId;
         }
         return userId;
       }
-
-      print('⚠️  No se pudo obtener ID del tutor del storage');
+      
       return null;
-    } catch (e) {
-      print('❌ Error obteniendo ID del tutor: $e');
+    } catch (_) {      
       return null;
     }
   }
@@ -79,8 +73,8 @@ class AppointmentService {
       return data
           .map<AppointmentModel>((json) => AppointmentModel.fromJson(json))
           .toList();
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al actualizar la cita');
     }
   }
 
@@ -88,8 +82,8 @@ class AppointmentService {
     try {
       final data = await _apiService.getAppointmentById(id);
       return AppointmentModel.fromJson(data);
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al actualizar el estado de la cita');
     }
   }
 
@@ -100,8 +94,8 @@ class AppointmentService {
     try {
       final data = await _apiService.updateAppointment(id, request.toJson());
       return AppointmentModel.fromJson(data);
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al actualizar la cita');
     }
   }
 
@@ -115,8 +109,8 @@ class AppointmentService {
         request.toJson(),
       );
       return AppointmentModel.fromJson(data);
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al actualizar el estado de la cita');
     }
   }
 
@@ -124,24 +118,24 @@ class AppointmentService {
     try {
       await _apiService.deleteAppointment(id);
       return true;
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error al eliminar la cita');
     }
   }
 
   Future<Map<String, dynamic>> healthCheck() async {
     try {
       return await _apiService.healthCheck();
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error de salud');
     }
   }
 
   Future<Map<String, dynamic>> detailedHealthCheck() async {
     try {
       return await _apiService.detailedHealthCheck();
-    } catch (e) {
-      throw AppointmentException.simple(e.toString());
+    } catch (_) {
+      throw AppointmentException.simple('Error de salud detallado');
     }
   }
 

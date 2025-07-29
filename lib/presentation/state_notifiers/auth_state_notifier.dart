@@ -17,7 +17,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       } else {
         state = AuthState.unauthenticated();
       }
-    } catch (e) {
+    } catch (_) {
       state = AuthState.unauthenticated();
     }
   }
@@ -35,8 +35,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       } else {
         state = AuthState.unauthenticated();
       }
-    } catch (e) {
-      state = AuthState.error(e.toString());
+    } catch (_) {
+      state = AuthState.error('Error al iniciar sesión');
     }
   }
 
@@ -45,8 +45,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       state = AuthState.loading();
       final user = await _authUseCases.signInWithGoogle();
       state = AuthState.authenticated(user);
-    } catch (e) {
-      state = AuthState.error(e.toString());
+    } catch (_) {
+      state = AuthState.error('Error al iniciar sesión con Google');
     }
   }
 
@@ -58,8 +58,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         password,
       );
       state = AuthState.authenticated(user);
-    } catch (e) {
-      state = AuthState.error(e.toString());
+    } catch (_) {
+      state = AuthState.error('Error al registrar usuario');
     }
   }
 
@@ -67,8 +67,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     try {
       await _authUseCases.signOut();
       state = AuthState.unauthenticated();
-    } catch (e) {
-      state = AuthState.error(e.toString());
+    } catch (_) {
+      state = AuthState.error('Error al cerrar sesión');
     }
   }
 }
@@ -83,8 +83,8 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
       state = LoginState.loading();
       await _authUseCases.signInWithEmailAndPassword(email, password);
       state = LoginState.success();
-    } catch (e) {
-      state = LoginState.error(e.toString());
+    } catch (_) {
+      state = LoginState.error('Error al iniciar sesión con correo y contraseña');
     }
   }
 
@@ -93,8 +93,8 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
       state = LoginState.loading();
       await _authUseCases.signInWithGoogle();
       state = LoginState.success();
-    } catch (e) {
-      state = LoginState.error(e.toString());
+    } catch (_) {
+      state = LoginState.error('Error al iniciar sesión con Google');
     }
   }
 
@@ -103,8 +103,8 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
       state = LoginState.loading();
       await _authUseCases.signUpWithEmailAndPassword(email, password);
       state = LoginState.success();
-    } catch (e) {
-      state = LoginState.error(e.toString());
+    } catch (_) {
+      state = LoginState.error('Error al registrar usuario');
     }
   }
 
@@ -117,8 +117,8 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
       state = LoginState.loading();
       await _authUseCases.sendPasswordResetEmail(email);
       state = LoginState.success();
-    } catch (e) {
-      state = LoginState.error(e.toString());
+    } catch (_) {
+      state = LoginState.error('Error al enviar email de recuperación');
     }
   }
 }

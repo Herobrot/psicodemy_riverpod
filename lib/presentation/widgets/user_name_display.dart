@@ -25,13 +25,11 @@ class UserNameDisplay extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    print('🔍 UserNameDisplay: Construyendo widget para userId: $userId');
+  Widget build(BuildContext context, WidgetRef ref) {    
     final userNameAsync = ref.watch(userNameProvider(userId));
 
     return userNameAsync.when(
-      data: (nombre) {
-        print('✅ UserNameDisplay: Nombre obtenido para $userId: $nombre');
+      data: (nombre) {        
         final fullText = '${prefix ?? ''}$nombre${suffix ?? ''}';
 
         if (overflowVisible) {
@@ -54,8 +52,7 @@ class UserNameDisplay extends ConsumerWidget {
           );
         }
       },
-      loading: () {
-        print('⏳ UserNameDisplay: Cargando nombre para $userId');
+      loading: () {        
         return loadingWidget ??
             const SizedBox(
               width: 16,
@@ -64,9 +61,6 @@ class UserNameDisplay extends ConsumerWidget {
             );
       },
       error: (error, stack) {
-        print(
-          '❌ UserNameDisplay: Error obteniendo nombre para $userId: $error',
-        );
         return errorWidget ??
             Text(
               userId, // Fallback al ID si hay error

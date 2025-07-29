@@ -12,8 +12,8 @@ class SignOutUseCase {
       await _authRepository.signOut();
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al cerrar sesión');
     }
   }
 }

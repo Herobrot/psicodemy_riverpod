@@ -36,8 +36,8 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
       } else {
         state = NotificationState.initial();
       }
-    } catch (e) {
-      state = NotificationState.error(e.toString());
+    } catch (_) {
+      state = NotificationState.error('Error al inicializar notificaciones');
     }
   }
 
@@ -52,8 +52,8 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
       } else {
         state = NotificationState.initial();
       }
-    } catch (e) {
-      state = NotificationState.error(e.toString());
+    } catch (_) {
+      state = NotificationState.error('Error al suscribirse a temas');
     }
   }
 
@@ -63,8 +63,8 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
 
       await _service.unsubscribeFromTopics(topics);
       state = NotificationState.initial();
-    } catch (e) {
-      state = NotificationState.error(e.toString());
+    } catch (_) {
+      state = NotificationState.error('Error al desuscribirse de temas');
     }
   }
 
@@ -73,8 +73,8 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
       if (state.token != null) {
         await _repository.saveFCMToken(state.token!, userId);
       }
-    } catch (e) {
-      state = NotificationState.error(e.toString());
+    } catch (_) {
+      state = NotificationState.error('Error al guardar token FCM');
     }
   }
 
@@ -84,8 +84,8 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
       if (notifications.isNotEmpty) {
         state = NotificationState.notifications(notifications.first);
       }
-    } catch (e) {
-      state = NotificationState.error(e.toString());
+    } catch (_) {
+      state = NotificationState.error('Error al actualizar notificaciones');
     }
   }
 

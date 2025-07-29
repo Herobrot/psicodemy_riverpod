@@ -61,7 +61,7 @@ class ApiService {
     try {
       // Según la nueva API, solo "TUTOR" es válido para ser tutor
       return codigo.toUpperCase() == 'TUTOR';
-    } catch (e) {
+    } catch (_) {
       // En caso de error, por seguridad, no otorgamos permisos de tutor
       return false;
     }
@@ -366,9 +366,11 @@ class ApiService {
         throw AuthFailure.unknown('El servidor retornó null');
       }
       responseData = decoded as Map<String, dynamic>;
-    } catch (e) {
-      if (e is AuthFailure) rethrow;
-      throw AuthFailure.unknown('Respuesta inválida del servidor: ${response.body}');
+    } on AuthFailure {
+      rethrow;
+    }
+    catch (_) {
+      throw AuthFailure.unknown('Respuesta inválida del servidor');
     }
 
     switch (response.statusCode) {
@@ -390,37 +392,31 @@ class ApiService {
         );
       
       case 401:
-        print('❌ ApiService: Error 401 - No autorizado');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Token de autorización requerido o inválido'
         );
       
       case 403:
-        print('❌ ApiService: Error 403 - Permisos insuficientes');
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Permisos insuficientes'
         );
       
-      case 404:
-        print('❌ ApiService: Error 404 - Recurso no encontrado');
+      case 404:        
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Recurso no encontrado'
         );
       
-      case 422:
-        print('❌ ApiService: Error 422 - Datos de entrada inválidos');
+      case 422:        
         throw AuthFailure.apiError(
           responseData['message'] ?? 'Datos de entrada inválidos'
         );
       
-      case 500:
-        print('❌ ApiService: Error 500 - Error interno del servidor');
+      case 500:        
         throw AuthFailure.serverError(
           responseData['message'] ?? 'Error interno del servidor'
         );
       
-      default:
-        print('❌ ApiService: Error HTTP ${response.statusCode}');
+      default:        
         throw AuthFailure.unknown(
           'Error HTTP ${response.statusCode}: ${responseData['message'] ?? 'Error desconocido'}'
         );
@@ -434,23 +430,17 @@ class ApiService {
       final completeUserData = await _secureStorage.read(key: 'complete_user_data');
       
       if (completeUserData != null) {
-        final userJson = json.decode(completeUserData);
-        print('🔍 User JSON: $userJson');
+        final userJson = json.decode(completeUserData);        
         final userId = userJson['userId'] as String?;
-        final tipoUsuario = userJson['tipoUsuario'] as String?;
-        print('🔍 Tipo de usuario: $tipoUsuario');
-        print('🔍 User ID: $userId');
-        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
-          print('📋 ID del tutor obtenido del storage: $userId');
+        final tipoUsuario = userJson['tipoUsuario'] as String?;                
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {          
           return userId;
         }
         return userId;
       }
-      
-      print('⚠️  No se pudo obtener ID del tutor del storage');
+            
       return null;
-    } catch (e) {
-      print('❌ Error obteniendo ID del tutor: $e');
+    } catch (_) {      
       return null;
     }
   }

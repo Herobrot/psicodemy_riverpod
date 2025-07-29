@@ -27,8 +27,8 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
 
       final jsonList = limitedNotifications.map((n) => n.toJson()).toList();
       await _prefs.setString(_notificationsKey, jsonEncode(jsonList));
-    } catch (e) {
-      throw Exception('Error saving notification locally: $e');
+    } catch (_) {
+      throw Exception('Error saving notification locally');
     }
   }
 
@@ -40,8 +40,8 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
 
       final List<dynamic> jsonList = jsonDecode(jsonString);
       return jsonList.map((json) => NotificationModel.fromJson(json)).toList();
-    } catch (e) {
-      throw Exception('Error getting local notifications: $e');
+    } catch (_) {
+      throw Exception('Error getting local notifications');
     }
   }
 
@@ -49,8 +49,8 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
   Future<void> clearNotifications() async {
     try {
       await _prefs.remove(_notificationsKey);
-    } catch (e) {
-      throw Exception('Error clearing notifications: $e');
+    } catch (_) {
+      throw Exception('Error clearing notifications');
     }
   }
 
@@ -73,8 +73,8 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
         final jsonList = notifications.map((n) => n.toJson()).toList();
         await _prefs.setString(_notificationsKey, jsonEncode(jsonList));
       }
-    } catch (e) {
-      throw Exception('Error marking notification as read: $e');
+    } catch (_) {
+      throw Exception('Error marking notification as read');
     }
   }
 }

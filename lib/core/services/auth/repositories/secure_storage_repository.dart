@@ -25,9 +25,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
   Future<void> storeToken(String key, String token) async {
     try {
       await _secureStorage.write(key: key, value: token);
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error storing token: $e'),
+        Exception('Error storing token'),
       );
     }
   }
@@ -36,9 +36,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
   Future<String?> getToken(String key) async {
     try {
       return await _secureStorage.read(key: key);
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error getting token: $e'),
+        Exception('Error getting token'),
       );
     }
   }
@@ -47,9 +47,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
   Future<void> deleteToken(String key) async {
     try {
       await _secureStorage.delete(key: key);
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error deleting token: $e'),
+        Exception('Error deleting token'),
       );
     }
   }
@@ -58,9 +58,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
   Future<void> clearAll() async {
     try {
       await _secureStorage.deleteAll();
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error clearing storage: $e'),
+        Exception('Error clearing storage'),
       );
     }
   }
@@ -70,7 +70,7 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       final token = await _secureStorage.read(key: key);
       return token != null;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
@@ -80,9 +80,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       final jsonString = json.encode(data);
       await _secureStorage.write(key: key, value: jsonString);
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error storing data: $e'),
+        Exception('Error storing data'),
       );
     }
   }
@@ -95,9 +95,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
         return json.decode(jsonString) as Map<String, dynamic>;
       }
       return null;
-    } catch (e) {
+    } catch (_) {
       throw AuthExceptions.handleGenericException(
-        Exception('Error reading data: $e'),
+        Exception('Error reading data'),
       );
     }
   }

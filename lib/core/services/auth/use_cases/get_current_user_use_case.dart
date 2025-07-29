@@ -13,8 +13,8 @@ class GetCurrentUserUseCase {
       return await _authRepository.getCurrentUser();
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al obtener el usuario actual');
     }
   }
 }

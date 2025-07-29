@@ -28,8 +28,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
   Future<String?> getFCMToken() async {
     try {
       return await _firebaseMessaging.getToken();
-    } catch (e) {
-      throw Exception('Error getting FCM token: $e');
+    } catch (_) {
+      throw Exception('Error getting FCM token');
     }
   }
 
@@ -40,8 +40,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
         'fcmToken': token,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
       });
-    } catch (e) {
-      throw Exception('Error saving FCM token to Firestore: $e');
+    } catch (_) {
+      throw Exception('Error saving FCM token to Firestore');
     }
   }
 
@@ -49,8 +49,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
-    } catch (e) {
-      throw Exception('Error subscribing to topic $topic: $e');
+    } catch (_) {
+      throw Exception('Error suscribiendose al topico');
     }
   }
 
@@ -58,8 +58,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await _firebaseMessaging.unsubscribeFromTopic(topic);
-    } catch (e) {
-      throw Exception('Error unsubscribing from topic $topic: $e');
+    } catch (_) {
+      throw Exception('Error desuscribiendose del topico');
     }
   }
 
@@ -75,8 +75,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
         provisional: false,
         sound: true,
       );
-    } catch (e) {
-      throw Exception('Error requesting permission: $e');
+    } catch (_) {
+      throw Exception('Error requesting permission');
     }
   }
 
@@ -85,8 +85,8 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
     try {
       final settings = await _firebaseMessaging.getNotificationSettings();
       return settings.authorizationStatus == AuthorizationStatus.authorized;
-    } catch (e) {
-      throw Exception('Error checking permission: $e');
+    } catch (_) {
+      throw Exception('Error checking permission');
     }
   }
 

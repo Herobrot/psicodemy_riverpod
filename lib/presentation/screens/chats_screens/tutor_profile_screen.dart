@@ -52,12 +52,7 @@ class TutorProfileScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      // final uri = Uri.parse('https://wa.me/${phoneNumber.replaceAll(' ', '').replaceAll('+', '')}');
-                      // launchUrl(uri, mode: LaunchMode.externalApplication);
-                      // Temporalmente comentado hasta agregar url_launcher
-                      print('Abrir WhatsApp: $phoneNumber');
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.green,
@@ -66,12 +61,7 @@ class TutorProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: () {
-                      // final uri = Uri.parse('mailto:$email');
-                      // launchUrl(uri, mode: LaunchMode.externalApplication);
-                      // Temporalmente comentado hasta agregar url_launcher
-                      print('Abrir correo: $email');
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.blue,

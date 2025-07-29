@@ -28,20 +28,15 @@ final userConversationsProvider = FutureProvider.family<List<ConversationModel>,
   usuarioId,
 ) async {
   final chatService = ref.watch(chatServiceProvider);
-  final isTutor = ref.watch(isTutorProvider);
-  print(
-    'userConversationsProvider: usuarioId= [32m$usuarioId [0m, isTutor= [32m$isTutor [0m',
-  );
+  final isTutor = ref.watch(isTutorProvider);    
   final conversations = await chatService.getUserConversations(
     usuarioId: usuarioId,
   );
 
-  if (isTutor) {
-    print('Mostrando TODAS las conversaciones para el tutor');
+  if (isTutor) {    
     // Si es tutor, muestra todas las conversaciones
     return conversations;
-  } else {
-    print('Filtrando solo tutores para alumno');
+  } else {    
     // Si es alumno, filtra solo las conversaciones donde el otro participante es tutor
     // Suponiendo que participant2Id es el tutor (ajusta si tu modelo es diferente)
     // Si tienes una lista de tutores, puedes comparar con sus IDs

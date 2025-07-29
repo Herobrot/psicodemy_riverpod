@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:psicodemy/core/services/auth/exceptions/auth_failure.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,9 +32,8 @@ class AuthService {
         key: 'session_timeout_timestamp',
         value: DateTime.now().toIso8601String(),
       );
-    } catch (e) {
-      // Si hay un error, lo registramos pero continuamos con el logout
-      print('Error al guardar datos de sesión inactiva: $e');
+    } catch (_) {
+      throw Exception('Error al guardar datos de sesión inactiva:');
     } finally {
       // Cerramos la sesión independientemente de si se guardaron los datos
       await signOut();
@@ -55,9 +55,7 @@ class AuthService {
       // devolvemos null pero el usuario seguirá logueado
       if (e.toString().contains('PigeonUserDetails') &&
           _auth.currentUser != null) {
-        print(
-          'Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}',
-        );
+        
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
@@ -74,7 +72,7 @@ class AuthService {
         email: email,
         password: password,
       );
-    } catch (e) {
+    } on AuthFailure {
       rethrow;
     }
   }
@@ -83,7 +81,7 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
+    } on AuthFailure {
       rethrow;
     }
   }
@@ -115,9 +113,7 @@ class AuthService {
       // devolvemos null pero el usuario seguirá logueado
       if (e.toString().contains('PigeonUserDetails') &&
           _auth.currentUser != null) {
-        print(
-          'Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}',
-        );
+        
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
@@ -129,18 +125,15 @@ class AuthService {
       final pendingCleanup = await _secureStorage.read(
         key: 'pending_security_cleanup',
       );
-      if (pendingCleanup != null) {
-        print('Procesando limpieza pendiente desde: $pendingCleanup');
+      if (pendingCleanup != null) {        
 
         await signOut();
         await _secureStorage.deleteAll();
-
-        print('Limpieza pendiente completada');
+        
         return true;
       }
       return false;
-    } catch (e) {
-      print('Error al verificar limpieza pendiente: $e');
+    } catch (_) {      
       return false;
     }
   }
@@ -150,10 +143,8 @@ class AuthService {
       await signOut();
 
       await _secureStorage.deleteAll();
-
-      print('Todos los datos sensibles han sido eliminados');
-    } catch (e) {
-      print('Error al eliminar datos sensibles: $e');
+      
+    } on AuthFailure {      
       rethrow;
     }
   }

@@ -12,8 +12,8 @@ class SendPasswordResetEmailUseCase {
       await _authRepository.sendPasswordResetEmail(email);
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al enviar el correo de restablecimiento');
     }
   }
 }

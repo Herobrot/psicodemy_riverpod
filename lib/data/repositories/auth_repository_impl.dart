@@ -24,8 +24,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
         password,
       );
       return _mapUserApiToEntity(userModel);
-    } catch (e) {
-      throw Exception('Error al iniciar sesión: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al iniciar sesión');
     }
   }
 
@@ -40,8 +40,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
         password,
       );
       return _mapUserModelToEntity(userModel);
-    } catch (e) {
-      throw Exception('Error al registrar usuario: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al registrar usuario');
     }
   }
 
@@ -50,8 +50,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
     try {
       final userModel = await _authService.signInWithGoogle();
       return _mapUserModelToEntity(userModel);
-    } catch (e) {
-      throw Exception('Error al iniciar sesión con Google: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al iniciar sesión con Google');
     }
   }
 
@@ -59,8 +59,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
   Future<void> signOut() async {
     try {
       await _authService.signOut();
-    } catch (e) {
-      throw Exception('Error al cerrar sesión: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al cerrar sesión');
     }
   }
 
@@ -69,8 +69,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
     try {
       final userModel = await _authService.getCurrentUser();
       return userModel != null ? _mapUserModelToEntity(userModel) : null;
-    } catch (e) {
-      throw Exception('Error al obtener usuario actual: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al obtener usuario actual');
     }
   }
 
@@ -78,8 +78,8 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _authService.sendPasswordResetEmail(email);
-    } catch (e) {
-      throw Exception('Error al enviar email de recuperación: ${e.toString()}');
+    } catch (_) {
+      throw Exception('Error al enviar email de recuperación');
     }
   }
 

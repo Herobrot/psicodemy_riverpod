@@ -35,18 +35,14 @@ class TutorRepository implements TutorRepositoryInterface {
       _cachedTutors = tutors;
       _cacheTimestamp = DateTime.now();
       return tutors;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTutors: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTutors: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTutors: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } catch (e) {
-      print('❌ Error desconocido en getTutors: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener los tutores');
     }
   }
 
@@ -59,18 +55,14 @@ class TutorRepository implements TutorRepositoryInterface {
       } catch (_) {
         return null;
       }
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTutorById: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTutorById: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTutorById: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getTutorById: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener el tutor por ID');
     }
   }
 
@@ -83,18 +75,14 @@ class TutorRepository implements TutorRepositoryInterface {
       } catch (_) {
         return null;
       }
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTutorByEmail: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTutorByEmail: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTutorByEmail: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getTutorByEmail: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al buscar tutores por nombre');
     }
   }
 
@@ -107,18 +95,14 @@ class TutorRepository implements TutorRepositoryInterface {
             (tutor) => tutor.nombre.toLowerCase().contains(name.toLowerCase()),
           )
           .toList();
-    } on TutorException catch (e) {
-      print('❌ TutorException en searchTutorsByName: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en searchTutorsByName: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en searchTutorsByName: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en searchTutorsByName: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
 
@@ -127,18 +111,14 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutors = await getTutors();
       return tutors.length;
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTutorCount: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTutorCount: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTutorCount: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getTutorCount: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
 
@@ -147,18 +127,14 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutor = await getTutorByEmail(email);
       return tutor != null;
-    } on TutorException catch (e) {
-      print('❌ TutorException en isEmailTutor: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en isEmailTutor: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en isEmailTutor: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en isEmailTutor: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
 
@@ -166,18 +142,14 @@ class TutorRepository implements TutorRepositoryInterface {
   Future<List<TutorModel>> getActiveTutors() async {
     try {
       return await getTutors();
-    } on TutorException catch (e) {
-      print('❌ TutorException en getActiveTutors: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getActiveTutors: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getActiveTutors: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getActiveTutors: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener los tutores activos');
     }
   }
 
@@ -186,18 +158,14 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutors = await getTutors();
       return tutors.take(limit).toList();
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTopRatedTutors: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTopRatedTutors: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTopRatedTutors: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getTopRatedTutors: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener los tutores más calificados');
     }
   }
 
@@ -205,18 +173,14 @@ class TutorRepository implements TutorRepositoryInterface {
   Future<List<TutorModel>> getAvailableTutorsForDate(DateTime fecha) async {
     try {
       return await getTutors();
-    } on TutorException catch (e) {
-      print('❌ TutorException en getAvailableTutorsForDate: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getAvailableTutorsForDate: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getAvailableTutorsForDate: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getAvailableTutorsForDate: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener los tutores disponibles');
     }
   }
 
@@ -231,18 +195,14 @@ class TutorRepository implements TutorRepositoryInterface {
         'cacheValid': isCacheValid(),
         'cacheTimestamp': _cacheTimestamp?.toIso8601String(),
       };
-    } on TutorException catch (e) {
-      print('❌ TutorException en getTutorStats: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en getTutorStats: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en getTutorStats: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en getTutorStats: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al obtener las estadísticas de los tutores');
     }
   }
 
@@ -252,18 +212,14 @@ class TutorRepository implements TutorRepositoryInterface {
       _cachedTutors = null;
       _cacheTimestamp = null;
       await getTutors();
-    } on TutorException catch (e) {
-      print('❌ TutorException en refreshTutorCache: $e');
+    } on TutorException catch (_) {      
       rethrow;
-    } on SocketException catch (e) {
-      print('❌ Error de red en refreshTutorCache: $e');
+    } on SocketException catch (_) {      
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (e) {
-      print('❌ Error de parseo en refreshTutorCache: $e');
+    } on FormatException catch (_) {      
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (e) {
-      print('❌ Error desconocido en refreshTutorCache: $e');
-      throw TutorException.unknown(e.toString());
+    } catch (_) {      
+      throw TutorException.unknown('Error al actualizar la caché de los tutores');
     }
   }
 

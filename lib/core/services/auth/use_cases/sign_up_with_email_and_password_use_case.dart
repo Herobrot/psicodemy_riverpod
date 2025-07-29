@@ -13,8 +13,8 @@ class SignUpWithEmailAndPasswordUseCase {
       return await _authRepository.signUpWithEmailAndPassword(email, password);
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al crear usuario');
     }
   }
 }

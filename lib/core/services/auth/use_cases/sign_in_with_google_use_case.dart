@@ -13,8 +13,8 @@ class SignInWithGoogleUseCase {
       return await _authRepository.signInWithGoogle();
     } on AuthFailure {
       rethrow;
-    } catch (e) {
-      throw AuthFailure.unknown(e.toString());
+    } catch (_) {
+      throw AuthFailure.unknown('Error al iniciar sesión con Google');
     }
   }
 }

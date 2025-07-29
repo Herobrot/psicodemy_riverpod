@@ -54,10 +54,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {
+      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
     }
   }
 
@@ -83,10 +81,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {    
+      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
     }
   }
 
@@ -105,10 +101,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {
+      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
     }
   }
 
@@ -116,20 +110,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _authService.signOut();
       state = AuthState.unauthenticated();
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {
+      state = AuthState.error('Error al cerrar sesión. Intenta de nuevo más tarde.');
     }
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _authService.sendPasswordResetEmail(email);
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {
+      state = AuthState.error('Error al enviar el correo de restablecimiento. Intenta de nuevo más tarde.');
     }
   }
 
@@ -148,10 +138,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } else {
         state = AuthState.unauthenticated();
       }
-    } catch (e) {
-      state = AuthState.error(
-        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
-      );
+    } catch (_) {
+      state = AuthState.error('Error al obtener el usuario actual. Intenta de nuevo más tarde.');
     }
   }
 }

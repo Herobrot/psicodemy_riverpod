@@ -138,7 +138,7 @@ class TutorListNotifier extends StateNotifier<TutorListState> {
   TutorModel? getTutorByIdFromList(String id) {
     try {
       return state.tutors.firstWhere((tutor) => tutor.id == id);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -147,7 +147,7 @@ class TutorListNotifier extends StateNotifier<TutorListState> {
   TutorModel? getTutorByEmailFromList(String email) {
     try {
       return state.tutors.firstWhere((tutor) => tutor.correo == email);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }

@@ -52,15 +52,14 @@ class _TutorAppointmentsScreenState
         setState(() {
           realTutorId = userData.userId;
         });
-      } catch (e) {}
-    }
-    print('realTutorId: $realTutorId');
+      } catch (_) {
+        throw Exception('Error al cargar datos del usuario:');
+      }
+    }    
   }
 
   // Método para recargar las citas
-  void _refreshAppointments() {
-    print('🔄 Recargando citas...');
-
+  void _refreshAppointments() {    
     setState(() {
       _isRefreshing = true;
     });
@@ -388,7 +387,7 @@ class _TutorAppointmentsScreenState
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error al cargar citas: $e')),
+        error: (e, _) => Center(child: Text('Error al cargar citas:')),
       ),
     );
   }

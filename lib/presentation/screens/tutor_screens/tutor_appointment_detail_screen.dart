@@ -290,7 +290,7 @@ class _TutorAppointmentDetailScreenState
 
       // Navegar de vuelta a la pantalla anterior
       Navigator.of(context).pop(true);
-    } catch (e) {
+    } catch (_) {
       // Cerrar indicador de carga si está abierto
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -299,7 +299,7 @@ class _TutorAppointmentDetailScreenState
       // Mostrar mensaje de error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al actualizar la cita: ${e.toString()}'),
+          content: Text('Error al actualizar la cita'),
           backgroundColor: Colors.red,
         ),
       );
@@ -324,16 +324,15 @@ class _TutorAppointmentDetailScreenState
       await apiService.updateAppointmentStatus(widget.appointment.id, {
         'checklist': checklistData,
       });
-
-      print('✅ Checklist actualizado exitosamente');
-    } catch (e) {
-      print('❌ Error actualizando checklist: $e');
+          
+    } catch (_) {         
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al actualizar checklist: ${e.toString()}'),
+          content: Text('Error al actualizar checklist'),
           backgroundColor: Colors.red,
         ),
       );
+      throw Exception('Error al actualizar checklist:');
     }
   }
 
