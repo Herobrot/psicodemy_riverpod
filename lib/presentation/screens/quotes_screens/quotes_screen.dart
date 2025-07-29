@@ -69,6 +69,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isScheduling = false;
+  bool _isRefreshing = false;
 
   TutorModel? _selectedTutor;
   TimeOfDay? _selectedTime;
@@ -137,6 +138,25 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
           ),
           centerTitle: true,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.black87),
+              onPressed: () {
+                // Refrescar las citas
+                final userId = ref.read(currentUserIdProvider);
+                ref.refresh(allStudentAppointmentsProvider(userId));
+                ref.read(tutorListProvider.notifier).loadTutors();
+                
+                // Mostrar mensaje de confirmación
+                _scaffoldMessengerKey.currentState?.showSnackBar(
+                  const SnackBar(
+                    content: Text('Citas actualizadas'),
+                    duration: Duration(seconds: 1),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              tooltip: 'Actualizar citas',
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: GestureDetector(
@@ -698,13 +718,19 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         final hoursUntil = nextAppointment.scheduledDate.difference(now).inHours;
         
         return GestureDetector(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => DetalleCitaScreen(appointment: nextAppointment),
               ),
             );
+            
+            // Si se regresa con resultado true, significa que hubo cambios
+            if (result == true) {
+              final userId = ref.read(currentUserIdProvider);
+              ref.refresh(allStudentAppointmentsProvider(userId));
+            }
           },
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -897,13 +923,19 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   // Nuevo método para mostrar AppointmentEntity
   Widget _buildAppointmentCardEntity(AppointmentEntity appointment) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => DetalleCitaScreen(appointment: appointment),
           ),
         );
+        
+        // Si se regresa con resultado true, significa que hubo cambios
+        if (result == true) {
+          final userId = ref.read(currentUserIdProvider);
+          ref.refresh(allStudentAppointmentsProvider(userId));
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

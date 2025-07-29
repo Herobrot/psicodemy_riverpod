@@ -5,6 +5,7 @@ import '../../../core/services/appointments/models/appointment_model.dart';
 import '../../../core/services/appointments/providers/appointment_providers.dart';
 import '../../../core/services/tutors/providers/tutor_providers.dart';
 import '../../../domain/entities/appointment_entity.dart';
+import '../../providers/appointment_providers.dart';
 
 class DetalleCitaScreen extends ConsumerStatefulWidget {
   final AppointmentEntity appointment;
@@ -325,9 +326,25 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             ],
           ),
         ] else if (widget.appointment.status == AppointmentStatus.confirmed) ...[
+          Row(
+            children: [
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _updateAppointmentStatus(AppointmentStatus.cancelled),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text('Cancelar Cita'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.green.shade50,
               borderRadius: BorderRadius.circular(8),
@@ -335,12 +352,15 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green.shade600),
+                Icon(Icons.info_outline, color: Colors.green.shade600, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: const Text(
-                    'Cita confirmada - Contacta al tutor para cancelar',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    'Cita confirmada - Contacta al tutor si necesitas reprogramar',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green.shade700,
+                    ),
                   ),
                 ),
               ],
@@ -397,6 +417,12 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
 
   Future<void> _updateAppointmentStatus(AppointmentStatus newStatus) async {
     try {
+      // Mostrar diálogo de confirmación para cancelar
+      if (newStatus == AppointmentStatus.cancelled) {
+        final shouldCancel = await _showCancelConfirmationDialog();
+        if (!shouldCancel) return;
+      }
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -405,9 +431,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
         ),
       );
 
-      // TODO: Implementar actualización de estado para AppointmentEntity
-      // Por ahora solo cerramos el diálogo y mostramos un mensaje
-      await Future.delayed(const Duration(seconds: 1));
+      // Usar el provider de acciones para cancelar la cita
+      final actions = ref.read(appointmentActionsProvider);
+      await actions.cancelAppointment(widget.appointment.id);
 
       if (mounted) {
         Navigator.pop(context); // Cerrar loading
@@ -415,8 +441,8 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Funcionalidad de actualización en desarrollo'),
-            backgroundColor: Colors.orange,
+            content: Text('Cita cancelada exitosamente'),
+            backgroundColor: Colors.green,
           ),
         );
       }
@@ -427,7 +453,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al actualizar la cita: $e'),
+            content: Text('Error al cancelar la cita: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -435,19 +461,83 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
     }
   }
 
-  void _contactTutor(String email, String method) {
-    // Aquí puedes implementar la lógica para contactar al tutor
-    String message = '';
-    
-    if (method == 'whatsapp') {
-      message = 'Contactar por WhatsApp no implementado aún';
-    } else if (method == 'email') {
-      message = 'Puedes contactar al tutor en: $email';
-    }
+  Future<bool> _showCancelConfirmationDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancelar Cita'),
+          content: const Text(
+            '¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Sí, Cancelar'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
 
+  void _contactTutor(String email, String method) {
+    if (method == 'whatsapp') {
+      _openWhatsApp(email);
+    } else if (method == 'email') {
+      _openEmail(email);
+    }
+  }
+
+  void _openWhatsApp(String email) {
+    // Por ahora mostramos un mensaje, pero se puede implementar con url_launcher
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        const SnackBar(
+          content: Text('Funcionalidad de WhatsApp en desarrollo. Contacta al tutor por correo electrónico.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  void _openEmail(String email) {
+    // Por ahora mostramos el correo, pero se puede implementar con url_launcher
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Contactar al Tutor'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Puedes contactar al tutor en:'),
+              const SizedBox(height: 8),
+              SelectableText(
+                email,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        ),
       );
     }
   }

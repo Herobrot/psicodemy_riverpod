@@ -107,6 +107,7 @@ class AppointmentActions {
     _ref.invalidate(pendingAppointmentsProvider);
     _ref.invalidate(todayAppointmentsProvider);
     _ref.invalidate(appointmentStatsProvider);
+    _ref.invalidate(nextStudentAppointmentProvider);
   }
   
   Future<void> cancelAppointment(String appointmentId) async {
@@ -117,6 +118,7 @@ class AppointmentActions {
     _ref.invalidate(pendingAppointmentsProvider);
     _ref.invalidate(todayAppointmentsProvider);
     _ref.invalidate(appointmentStatsProvider);
+    _ref.invalidate(nextStudentAppointmentProvider);
   }
   
   Future<void> rescheduleAppointment(String appointmentId, DateTime newDate, String newTimeSlot) async {
