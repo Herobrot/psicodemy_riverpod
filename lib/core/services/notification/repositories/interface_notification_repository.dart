@@ -36,20 +36,20 @@ enum NotificationPermissionStatus {
 abstract class NotificationRepository {
   // Inicialización
   Future<void> initialize();
-  
+
   // Permisos y configuración
   Future<NotificationSettings> getNotificationSettings();
   Future<NotificationPermissionStatus> requestPermission();
-  
+
   // Operaciones básicas
   Future<void> showNotification(NotificationModel notification);
   Future<void> scheduleNotification(NotificationModel notification);
   Future<void> cancelNotification(String notificationId);
   Future<void> cancelAllNotifications();
-  
+
   // Gestión programadas
   Future<List<NotificationModel>> getPendingNotifications();
-  
+
   // Gestión de canales (Android)
   Future<void> createNotificationChannel({
     required String channelId,
@@ -57,9 +57,9 @@ abstract class NotificationRepository {
     required String channelDescription,
     NotificationPriority priority = NotificationPriority.defaultPriority,
     String? sound, // Añadido
-  }); 
+  });
   Future<void> deleteNotificationChannel(String channelId);
-  
+
   // Streams de interacción
   Stream<String?> get onNotificationTap;
   Stream<NotificationActionResponse> get onNotificationActionTap;

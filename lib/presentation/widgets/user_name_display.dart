@@ -33,7 +33,7 @@ class UserNameDisplay extends ConsumerWidget {
       data: (nombre) {
         print('✅ UserNameDisplay: Nombre obtenido para $userId: $nombre');
         final fullText = '${prefix ?? ''}$nombre${suffix ?? ''}';
-        
+
         if (overflowVisible) {
           return Text(
             fullText,
@@ -56,7 +56,7 @@ class UserNameDisplay extends ConsumerWidget {
       },
       loading: () {
         print('⏳ UserNameDisplay: Cargando nombre para $userId');
-        return loadingWidget ?? 
+        return loadingWidget ??
             const SizedBox(
               width: 16,
               height: 16,
@@ -64,8 +64,10 @@ class UserNameDisplay extends ConsumerWidget {
             );
       },
       error: (error, stack) {
-        print('❌ UserNameDisplay: Error obteniendo nombre para $userId: $error');
-        return errorWidget ?? 
+        print(
+          '❌ UserNameDisplay: Error obteniendo nombre para $userId: $error',
+        );
+        return errorWidget ??
             Text(
               userId, // Fallback al ID si hay error
               style: style,
@@ -114,17 +116,19 @@ class MultipleUserNamesDisplay extends ConsumerWidget {
           ),
         );
       },
-      loading: () => loadingWidget ?? 
+      loading: () =>
+          loadingWidget ??
           const SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-      error: (_, __) => errorWidget ?? 
+      error: (_, __) =>
+          errorWidget ??
           Text(
             userIds.join(separator), // Fallback a los IDs si hay error
             style: style,
           ),
     );
   }
-} 
+}

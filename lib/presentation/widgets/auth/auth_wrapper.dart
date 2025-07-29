@@ -17,18 +17,16 @@ class AuthWrapper extends ConsumerWidget {
     final currentUser = ref.watch(currentCompleteUserProvider);
 
     // Debug logs
-    print('🔍 AuthWrapper - isLoading: $isLoading, isAuth: $isAuth, isTutor: $isTutor, isAlumno: $isAlumno');
-    print('🔍 AuthWrapper - currentUser: ${currentUser.when(
-      data: (user) => '${user?.nombre ?? 'null'} (${user?.tipoUsuario ?? 'null'})',
-      loading: () => 'loading',
-      error: (error, _) => 'error: $error',
-    )}');
+    print(
+      '🔍 AuthWrapper - isLoading: $isLoading, isAuth: $isAuth, isTutor: $isTutor, isAlumno: $isAlumno',
+    );
+    print(
+      '🔍 AuthWrapper - currentUser: ${currentUser.when(data: (user) => '${user?.nombre ?? 'null'} (${user?.tipoUsuario ?? 'null'})', loading: () => 'loading', error: (error, _) => 'error: $error')}',
+    );
 
     // Si está cargando, mostrar pantalla de carga
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Si no está autenticado, mostrar pantalla de login
@@ -39,8 +37,10 @@ class AuthWrapper extends ConsumerWidget {
     // Si está autenticado pero el currentUser aún está cargando, mostrar pantalla de carga
     return currentUser.when(
       data: (user) {
-        print('🔍 AuthWrapper - Usuario cargado: ${user?.nombre} (${user?.tipoUsuario})');
-        
+        print(
+          '🔍 AuthWrapper - Usuario cargado: ${user?.nombre} (${user?.tipoUsuario})',
+        );
+
         // Si el usuario está autenticado pero no tenemos datos completos, mostrar carga
         if (user == null) {
           return const Scaffold(

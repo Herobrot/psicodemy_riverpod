@@ -26,14 +26,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final tutorsAsync = ref.watch(tutorsProvider);
     // Obtener el usuario actual (userId de la API)
-    final currentUserAsync = ref.watch(authRepositoryProvider).getCurrentUser().asStream();
+    final currentUserAsync = ref
+        .watch(authRepositoryProvider)
+        .getCurrentUser()
+        .asStream();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        
+
         title: const Text(
           'Chat',
           style: TextStyle(
@@ -55,21 +58,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 },
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage: user?.photoURL != null 
-                    ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                  backgroundColor: Colors.grey[300],
-                  child: user?.photoURL == null 
-                    ? Text(
-                        user?.email?.isNotEmpty == true 
-                          ? user!.email![0].toUpperCase() 
-                          : 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  backgroundImage: user?.photoURL != null
+                      ? NetworkImage(user!.photoURL!)
+                      : const NetworkImage(
+                          'https://lh3.googleusercontent.com/a/default-user=s96-c',
                         ),
-                      )
-                    : null,
+                  backgroundColor: Colors.grey[300],
+                  child: user?.photoURL == null
+                      ? Text(
+                          user?.email?.isNotEmpty == true
+                              ? user!.email![0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
               );
             },
@@ -108,10 +113,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Subtítulo
           Text(
             'Elige con quien quieres hablar',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 32),
           // Solo la lista de conversaciones (elimina la de contactos)
@@ -125,17 +127,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   }
                   final userId = snapshot.data?.userId;
                   if (userId == null) return const SizedBox();
-                  final conversationsAsync = ref.watch(userConversationsProvider(userId));
+                  final conversationsAsync = ref.watch(
+                    userConversationsProvider(userId),
+                  );
                   return conversationsAsync.when(
-                    data: (conversations) => _buildConversationsList(conversations, userId),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stack) => Center(child: Text('Error al cargar conversaciones: $error')),
+                    data: (conversations) =>
+                        _buildConversationsList(conversations, userId),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text('Error al cargar conversaciones: $error'),
+                    ),
                   );
                 },
               ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -148,18 +154,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     const SizedBox(height: 16),
                     Text(
                       'Error al cargar los contactos',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       error.toString(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -179,8 +179,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildConversationsList(List<ConversationModel> conversations, String userId) {
-    print('Conversaciones recibidas de la API para $userId: ${conversations.length}');
+  Widget _buildConversationsList(
+    List<ConversationModel> conversations,
+    String userId,
+  ) {
+    print(
+      'Conversaciones recibidas de la API para $userId: ${conversations.length}',
+    );
     for (var c in conversations) {
       print(' - ID: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
     }
@@ -189,14 +194,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final apiService = ref.read(apiServiceProvider);
     // Caché local para alumnos
     final Map<String, Map<String, dynamic>> alumnoCache = {};
-    
+
     return tutorsAsync.when(
       data: (tutors) {
         // Si no hay conversaciones, mostrar IA y tutores disponibles
         if (conversations.isEmpty) {
           return _buildEmptyStateWithTutors(tutors, userId);
         }
-        
+
         // Si hay conversaciones, mostrar IA + conversaciones existentes
         final iaConversation = ConversationModel(
           id: 'ia_chat',
@@ -207,20 +212,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           isActive: true,
         );
         final allConversations = [iaConversation, ...conversations];
-        
-        print('Conversaciones que se muestran en pantalla: ${allConversations.length}');
+
+        print(
+          'Conversaciones que se muestran en pantalla: ${allConversations.length}',
+        );
         for (var c in allConversations) {
-          print(' - MOSTRADA: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}');
+          print(
+            ' - MOSTRADA: \'${c.id}\' | ${c.participant1Id} <-> ${c.participant2Id}',
+          );
         }
-        
+
         return ListView.builder(
           itemCount: allConversations.length,
           itemBuilder: (context, index) {
             final conversation = allConversations[index];
-            print('Construyendo widget para conversación: ${conversation.id} | ${conversation.participant1Id} <-> ${conversation.participant2Id}');
+            print(
+              'Construyendo widget para conversación: ${conversation.id} | ${conversation.participant1Id} <-> ${conversation.participant2Id}',
+            );
             if (conversation.id == 'ia_chat') {
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
@@ -259,10 +273,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                     subtitle: const Text(
                       'Chat inteligente disponible 24/7',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                     trailing: const Icon(
                       Icons.arrow_forward_ios,
@@ -281,7 +292,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               );
             }
-            final otherId = conversation.participant1Id == userId ? conversation.participant2Id : conversation.participant1Id;
+            final otherId = conversation.participant1Id == userId
+                ? conversation.participant2Id
+                : conversation.participant1Id;
             final tutor = tutors.firstWhere(
               (t) => t.id == otherId,
               orElse: () => TutorModel(
@@ -298,7 +311,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             );
             final isOtherTutor = tutors.any((t) => t.id == otherId);
-            print('Construyendo Container para conversación: ${conversation} | otherId: $otherId');
+            print(
+              'Construyendo Container para conversación: ${conversation} | otherId: $otherId',
+            );
             return FutureBuilder<Map<String, dynamic>?>(
               future: (alumnoCache[otherId] != null
                   ? Future.value(alumnoCache[otherId])
@@ -308,12 +323,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     })),
               builder: (context, snapshot) {
                 print('snapshot: ${snapshot.data}');
-                String nombre = snapshot.data?['data']?['user']?['nombre'] ?? 
-                               snapshot.data?['data']?['user']?['correo'] ?? 
-                               (otherId == userId ? 'Tú mismo' : '');
-                String? fotoPerfil = snapshot.data?['data']?['user']?['fotoPerfil'] ?? null;
+                String nombre =
+                    snapshot.data?['data']?['user']?['nombre'] ??
+                    snapshot.data?['data']?['user']?['correo'] ??
+                    (otherId == userId ? 'Tú mismo' : '');
+                String? fotoPerfil =
+                    snapshot.data?['data']?['user']?['fotoPerfil'] ?? null;
 
-                print('Construyendo Container para conversación: ${conversation} | Nombre: $nombre | otherId: $otherId');
+                print(
+                  'Construyendo Container para conversación: ${conversation} | Nombre: $nombre | otherId: $otherId',
+                );
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
@@ -325,7 +344,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     contentPadding: const EdgeInsets.all(16),
                     leading: CircleAvatar(
                       radius: 25,
-                      backgroundImage: fotoPerfil != null && fotoPerfil.isNotEmpty
+                      backgroundImage:
+                          fotoPerfil != null && fotoPerfil.isNotEmpty
                           ? NetworkImage(fotoPerfil)
                           : null,
                       backgroundColor: Colors.grey[300],
@@ -341,7 +361,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           : null,
                     ),
                     title: Text(
-                      nombre.isNotEmpty ? nombre : (otherId == userId ? 'Tú mismo' : 'Usuario'),
+                      nombre.isNotEmpty
+                          ? nombre
+                          : (otherId == userId ? 'Tú mismo' : 'Usuario'),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -385,7 +407,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error al cargar tutores: $error')),
+      error: (error, stack) =>
+          Center(child: Text('Error al cargar tutores: $error')),
     );
   }
 
@@ -432,10 +455,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             subtitle: const Text(
               'Chat inteligente disponible 24/7',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.white70),
             ),
             trailing: const Icon(
               Icons.arrow_forward_ios,
@@ -445,17 +465,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const AiChatScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const AiChatScreen()),
               );
             },
           ),
         ),
-        
+
         // Separador
         const SizedBox(height: 24),
-        
+
         // Título de tutores disponibles
         const Text(
           'Tutores disponibles',
@@ -466,7 +484,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Lista de tutores
         ...tutors.map((tutor) => _buildTutorItem(tutor)).toList(),
       ],
@@ -485,7 +503,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
           radius: 25,
-          backgroundImage: tutor.fotoPerfil != null && tutor.fotoPerfil!.isNotEmpty
+          backgroundImage:
+              tutor.fotoPerfil != null && tutor.fotoPerfil!.isNotEmpty
               ? NetworkImage(tutor.fotoPerfil!)
               : null,
           backgroundColor: Colors.grey[300],
@@ -511,10 +530,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         subtitle: tutor.especialidad != null && tutor.especialidad!.isNotEmpty
             ? Text(
                 tutor.especialidad!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               )
             : null,
         trailing: const Icon(
@@ -552,7 +568,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   @override
   void initState() {
     super.initState();
-      if (mounted) {
+    if (mounted) {
       try {
         // alumnoCache.clear();
       } catch (_) {}
@@ -574,7 +590,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         print('❌ Error obteniendo usuario actual: $e');
         final firebaseAuth = FirebaseAuth.instance;
         final firebaseUser = firebaseAuth.currentUser;
-        
+
         if (firebaseUser != null) {
           currentUser = CompleteUserModel(
             uid: firebaseUser.uid,
@@ -584,8 +600,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             isEmailVerified: firebaseUser.emailVerified,
             createdAt: DateTime.now(),
             lastSignInAt: DateTime.now(),
-            userId: firebaseUser.uid, 
-            nombre: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Usuario',
+            userId: firebaseUser.uid,
+            nombre:
+                firebaseUser.displayName ??
+                firebaseUser.email?.split('@')[0] ??
+                'Usuario',
             tipoUsuario: null,
             apiToken: null,
             apiCreatedAt: null,
@@ -602,7 +621,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           return;
         }
       }
-      
+
       if (currentUser == null) {
         setState(() {
           _isLoading = false;
@@ -615,7 +634,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       if (userId == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
+          _errorMessage =
+              'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
         });
         return;
       }
@@ -647,7 +667,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       print('❌ Error obteniendo usuario actual en _sendMessage: $e');
       final firebaseAuth = FirebaseAuth.instance;
       final firebaseUser = firebaseAuth.currentUser;
-      
+
       if (firebaseUser != null) {
         currentUser = CompleteUserModel(
           uid: firebaseUser.uid,
@@ -657,8 +677,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           isEmailVerified: firebaseUser.emailVerified,
           createdAt: DateTime.now(),
           lastSignInAt: DateTime.now(),
-          userId: firebaseUser.uid, 
-          nombre: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Usuario',
+          userId: firebaseUser.uid,
+          nombre:
+              firebaseUser.displayName ??
+              firebaseUser.email?.split('@')[0] ??
+              'Usuario',
           tipoUsuario: null,
           apiToken: null,
           apiCreatedAt: null,
@@ -666,7 +689,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           firebaseUser: UserModel.fromFirebaseUser(firebaseUser),
           apiUser: null,
         );
-        print('✅ Usando datos básicos de Firebase como fallback en _sendMessage');
+        print(
+          '✅ Usando datos básicos de Firebase como fallback en _sendMessage',
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -677,7 +702,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         return;
       }
     }
-    
+
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -692,7 +717,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}'),
+          content: Text(
+            'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -714,15 +741,16 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       _messages.add(localMessage);
     });
 
-    try { 
-      final response = await ref.read(chatServiceProvider).sendChatMessage(
-        mensaje: messageText,
-        usuarioId: userId,
-      );
+    try {
+      final response = await ref
+          .read(chatServiceProvider)
+          .sendChatMessage(mensaje: messageText, usuarioId: userId);
 
       if (response['data'] != null && response['data']['message'] != null) {
-        final serverMessage = ChatMessageModel.fromJson(response['data']['message']);
-        
+        final serverMessage = ChatMessageModel.fromJson(
+          response['data']['message'],
+        );
+
         setState(() {
           final index = _messages.indexWhere((m) => m.id == localMessage.id);
           if (index != -1) {
@@ -731,7 +759,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         });
 
         if (response['data']['ai_response'] != null) {
-          final aiResponse = ChatMessageModel.fromJson(response['data']['ai_response']);
+          final aiResponse = ChatMessageModel.fromJson(
+            response['data']['ai_response'],
+          );
           setState(() {
             _messages.add(aiResponse);
           });
@@ -800,11 +830,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                      ? _buildErrorWidget()
-                      : _buildMessagesList(),
+                  ? _buildErrorWidget()
+                  : _buildMessagesList(),
             ),
           ),
-          
+
           _buildMessageInput(),
         ],
       ),
@@ -816,26 +846,16 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'Error al cargar mensajes',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             _errorMessage!,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -854,10 +874,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         child: Text(
           '¡Hola! Soy tu asistente IA.\n¿En qué puedo ayudarte hoy?',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
       );
     }
@@ -874,12 +891,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
   Widget _buildMessageBubble(ChatMessageModel message) {
     final isFromUser = !message.isAiResponse;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isFromUser 
-            ? MainAxisAlignment.end 
+        mainAxisAlignment: isFromUser
+            ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
           if (!isFromUser) ...[
@@ -890,11 +907,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                 color: Color(0xFF008080),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.smart_toy,
-                size: 20,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.smart_toy, size: 20, color: Colors.white),
             ),
             const SizedBox(width: 8),
           ],
@@ -902,11 +915,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isFromUser 
-                    ? const Color(0xFF008080) 
-                    : Colors.white, 
+                color: isFromUser ? const Color(0xFF008080) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: !isFromUser ? Border.all(color: const Color(0xFF008080)) : null,
+                border: !isFromUser
+                    ? Border.all(color: const Color(0xFF008080))
+                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,9 +986,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[300]!),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
@@ -1045,8 +1056,10 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       });
 
       // Obtener el userID del usuario actual
-      final currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
-      
+      final currentUser = await ref
+          .read(authRepositoryProvider)
+          .getCurrentUser();
+
       if (currentUser == null) {
         setState(() {
           _isLoading = false;
@@ -1059,18 +1072,24 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       if (userId == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
+          _errorMessage =
+              'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}';
         });
         return;
       }
 
       // Obtener conversaciones del usuario
-      final conversations = await ref.read(userConversationsProvider(userId).future);
-      
+      final conversations = await ref.read(
+        userConversationsProvider(userId).future,
+      );
+
       // Buscar conversación existente con este tutor
       final existingConversation = conversations.firstWhere(
-        (conv) => conv.participant1Id == userId && conv.participant2Id == widget.tutor.id ||
-                   conv.participant1Id == widget.tutor.id && conv.participant2Id == userId,
+        (conv) =>
+            conv.participant1Id == userId &&
+                conv.participant2Id == widget.tutor.id ||
+            conv.participant1Id == widget.tutor.id &&
+                conv.participant2Id == userId,
         orElse: () => ConversationModel(
           id: '',
           participant1Id: userId,
@@ -1083,18 +1102,23 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
 
       if (existingConversation.id.isNotEmpty) {
         _conversationId = existingConversation.id;
-        
+
         // Cargar mensajes de la conversación
-        final conversationData = await ref.read(conversationMessagesProvider({
-          'conversationId': existingConversation.id,
-          'usuarioId': userId,
-        }).future);
-        
-        if (conversationData['data'] != null && conversationData['data']['messages'] != null) {
+        final conversationData = await ref.read(
+          conversationMessagesProvider({
+            'conversationId': existingConversation.id,
+            'usuarioId': userId,
+          }).future,
+        );
+
+        if (conversationData['data'] != null &&
+            conversationData['data']['messages'] != null) {
           final messages = conversationData['data']['messages'] as List;
           setState(() {
             _messages.clear();
-            _messages.addAll(messages.map((json) => ChatMessageModel.fromJson(json)));
+            _messages.addAll(
+              messages.map((json) => ChatMessageModel.fromJson(json)),
+            );
             _isLoading = false;
           });
         }
@@ -1120,7 +1144,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
 
     // Obtener el userID del usuario actual
     final currentUser = await ref.read(authRepositoryProvider).getCurrentUser();
-    
+
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1135,7 +1159,9 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}'),
+          content: Text(
+            'No se pudo obtener el ID del usuario. UID: ${currentUser?.uid ?? "null"}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -1162,12 +1188,14 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
 
     try {
       // Enviar mensaje usando el endpoint de conversaciones 1:1
-      final serverMessage = await ref.read(chatServiceProvider).sendPrivateMessage(
-        mensaje: messageText,
-        usuarioId: userId,
-        recipientId: widget.tutor.id,
-        conversationId: _conversationId,
-      );
+      final serverMessage = await ref
+          .read(chatServiceProvider)
+          .sendPrivateMessage(
+            mensaje: messageText,
+            usuarioId: userId,
+            recipientId: widget.tutor.id,
+            conversationId: _conversationId,
+          );
 
       // Si no teníamos conversationId, obtenerlo del mensaje del servidor
       if (_conversationId == null && serverMessage.conversationId != null) {
@@ -1239,21 +1267,23 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                 },
                 child: CircleAvatar(
                   radius: 16,
-                  backgroundImage: user?.photoURL != null 
-                    ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                  backgroundColor: Colors.grey[300],
-                  child: user?.photoURL == null 
-                    ? Text(
-                        user?.email?.isNotEmpty == true 
-                          ? user!.email![0].toUpperCase() 
-                          : 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  backgroundImage: user?.photoURL != null
+                      ? NetworkImage(user!.photoURL!)
+                      : const NetworkImage(
+                          'https://lh3.googleusercontent.com/a/default-user=s96-c',
                         ),
-                      )
-                    : null,
+                  backgroundColor: Colors.grey[300],
+                  child: user?.photoURL == null
+                      ? Text(
+                          user?.email?.isNotEmpty == true
+                              ? user!.email![0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
               );
             },
@@ -1265,10 +1295,10 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
         children: [
           // Header del chat con información del contacto
           _buildChatHeader(),
-          
+
           // Información del contacto (expandible)
           if (_showContactInfo) _buildContactInfo(),
-          
+
           // Área de mensajes
           Expanded(
             child: Container(
@@ -1276,11 +1306,11 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                      ? _buildErrorWidget()
-                      : _buildMessagesList(),
+                  ? _buildErrorWidget()
+                  : _buildMessagesList(),
             ),
           ),
-          
+
           // Área de input
           _buildMessageInput(),
         ],
@@ -1293,26 +1323,16 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'Error al cargar mensajes',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             _errorMessage!,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -1331,10 +1351,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
         child: Text(
           'No hay mensajes aún.\n¡Inicia la conversación!',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
       );
     }
@@ -1354,21 +1371,25 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundImage: widget.tutor.fotoPerfil != null && widget.tutor.fotoPerfil!.isNotEmpty
+            backgroundImage:
+                widget.tutor.fotoPerfil != null &&
+                    widget.tutor.fotoPerfil!.isNotEmpty
                 ? NetworkImage(widget.tutor.fotoPerfil!)
                 : null,
             backgroundColor: Colors.grey[300],
-            child: widget.tutor.fotoPerfil == null || widget.tutor.fotoPerfil!.isEmpty
+            child:
+                widget.tutor.fotoPerfil == null ||
+                    widget.tutor.fotoPerfil!.isEmpty
                 ? Text(
-                    widget.tutor.nombre.isNotEmpty ? widget.tutor.nombre[0].toUpperCase() : 'T',
+                    widget.tutor.nombre.isNotEmpty
+                        ? widget.tutor.nombre[0].toUpperCase()
+                        : 'T',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -1428,13 +1449,19 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: widget.tutor.fotoPerfil != null && widget.tutor.fotoPerfil!.isNotEmpty
+                backgroundImage:
+                    widget.tutor.fotoPerfil != null &&
+                        widget.tutor.fotoPerfil!.isNotEmpty
                     ? NetworkImage(widget.tutor.fotoPerfil!)
                     : null,
                 backgroundColor: Colors.white,
-                child: widget.tutor.fotoPerfil == null || widget.tutor.fotoPerfil!.isEmpty
+                child:
+                    widget.tutor.fotoPerfil == null ||
+                        widget.tutor.fotoPerfil!.isEmpty
                     ? Text(
-                        widget.tutor.nombre.isNotEmpty ? widget.tutor.nombre[0].toUpperCase() : 'T',
+                        widget.tutor.nombre.isNotEmpty
+                            ? widget.tutor.nombre[0].toUpperCase()
+                            : 'T',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -1449,14 +1476,17 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.tutor.nombre.isNotEmpty ? widget.tutor.nombre : 'Tutor',
+                      widget.tutor.nombre.isNotEmpty
+                          ? widget.tutor.nombre
+                          : 'Tutor',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
-                    if (widget.tutor.telefono != null && widget.tutor.telefono!.isNotEmpty) ...[
+                    if (widget.tutor.telefono != null &&
+                        widget.tutor.telefono!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         widget.tutor.telefono!,
@@ -1503,7 +1533,11 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                         ),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, size: 16, color: Colors.black87),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: Colors.black87,
+                      ),
                     ],
                   ),
                 ),
@@ -1528,7 +1562,11 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                         ),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, size: 16, color: Colors.black87),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: Colors.black87,
+                      ),
                     ],
                   ),
                 ),
@@ -1542,24 +1580,30 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
 
   Widget _buildMessageBubble(ChatMessageModel message) {
     final isFromUser = message.usuarioId != widget.tutor.id;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isFromUser 
-            ? MainAxisAlignment.end 
+        mainAxisAlignment: isFromUser
+            ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
           if (!isFromUser) ...[
             CircleAvatar(
               radius: 16,
-              backgroundImage: widget.tutor.fotoPerfil != null && widget.tutor.fotoPerfil!.isNotEmpty
+              backgroundImage:
+                  widget.tutor.fotoPerfil != null &&
+                      widget.tutor.fotoPerfil!.isNotEmpty
                   ? NetworkImage(widget.tutor.fotoPerfil!)
                   : null,
               backgroundColor: Colors.grey[300],
-              child: widget.tutor.fotoPerfil == null || widget.tutor.fotoPerfil!.isEmpty
+              child:
+                  widget.tutor.fotoPerfil == null ||
+                      widget.tutor.fotoPerfil!.isEmpty
                   ? Text(
-                      widget.tutor.nombre.isNotEmpty ? widget.tutor.nombre[0].toUpperCase() : 'T',
+                      widget.tutor.nombre.isNotEmpty
+                          ? widget.tutor.nombre[0].toUpperCase()
+                          : 'T',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -1574,7 +1618,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isFromUser 
+                color: isFromUser
                     ? const Color(0xFF2196F3) // Azul para mensajes del usuario
                     : const Color(0xFFE91E63), // Rosa para mensajes recibidos
                 borderRadius: BorderRadius.circular(20),
@@ -1584,10 +1628,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
                 children: [
                   Text(
                     message.mensaje,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1644,9 +1685,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[300]!),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
@@ -1683,7 +1722,7 @@ class _TutorChatScreenState extends ConsumerState<TutorChatScreen> {
       ),
     );
   }
-} 
+}
 
 // Pantalla genérica de conversación
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -1720,15 +1759,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       _errorMessage = null;
     });
     try {
-      final conversationData = await ref.read(conversationMessagesProvider({
-        'conversationId': widget.conversation.id,
-        'usuarioId': widget.currentUserId,
-      }).future);
-      if (conversationData['data'] != null && conversationData['data']['messages'] != null) {
+      final conversationData = await ref.read(
+        conversationMessagesProvider({
+          'conversationId': widget.conversation.id,
+          'usuarioId': widget.currentUserId,
+        }).future,
+      );
+      if (conversationData['data'] != null &&
+          conversationData['data']['messages'] != null) {
         final messages = conversationData['data']['messages'] as List;
         setState(() {
           _messages.clear();
-          _messages.addAll(messages.map((json) => ChatMessageModel.fromJson(json)));
+          _messages.addAll(
+            messages.map((json) => ChatMessageModel.fromJson(json)),
+          );
           _isLoading = false;
         });
       } else {
@@ -1765,12 +1809,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       _messages.add(localMessage);
     });
     try {
-      final serverMessage = await ref.read(chatServiceProvider).sendPrivateMessage(
-        mensaje: messageText,
-        usuarioId: widget.currentUserId,
-        recipientId: widget.otherUser.id,
-        conversationId: widget.conversation.id,
-      );
+      final serverMessage = await ref
+          .read(chatServiceProvider)
+          .sendPrivateMessage(
+            mensaje: messageText,
+            usuarioId: widget.currentUserId,
+            recipientId: widget.otherUser.id,
+            conversationId: widget.conversation.id,
+          );
       setState(() {
         final index = _messages.indexWhere((m) => m.id == localMessage.id);
         if (index != -1) {
@@ -1810,13 +1856,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundImage: widget.otherUser.fotoPerfil != null && widget.otherUser.fotoPerfil!.isNotEmpty
+              backgroundImage:
+                  widget.otherUser.fotoPerfil != null &&
+                      widget.otherUser.fotoPerfil!.isNotEmpty
                   ? NetworkImage(widget.otherUser.fotoPerfil!)
                   : null,
               backgroundColor: Colors.grey[300],
-              child: widget.otherUser.fotoPerfil == null || widget.otherUser.fotoPerfil!.isEmpty
+              child:
+                  widget.otherUser.fotoPerfil == null ||
+                      widget.otherUser.fotoPerfil!.isEmpty
                   ? Text(
-                      widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre[0].toUpperCase() : 'U',
+                      widget.otherUser.nombre.isNotEmpty
+                          ? widget.otherUser.nombre[0].toUpperCase()
+                          : 'U',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -1827,7 +1879,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre : 'Usuario',
+              widget.otherUser.nombre.isNotEmpty
+                  ? widget.otherUser.nombre
+                  : 'Usuario',
               style: const TextStyle(color: Colors.black87),
             ),
           ],
@@ -1841,8 +1895,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                      ? Center(child: Text(_errorMessage!))
-                      : _buildMessagesList(),
+                  ? Center(child: Text(_errorMessage!))
+                  : _buildMessagesList(),
             ),
           ),
           _buildMessageInput(),
@@ -1857,10 +1911,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         child: Text(
           'No hay mensajes aún.\n¡Inicia la conversación!',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
       );
     }
@@ -1873,20 +1924,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           child: Row(
-            mainAxisAlignment: isFromUser 
-                ? MainAxisAlignment.end 
+            mainAxisAlignment: isFromUser
+                ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
             children: [
               if (!isFromUser) ...[
                 CircleAvatar(
                   radius: 16,
-                  backgroundImage: widget.otherUser.fotoPerfil != null && widget.otherUser.fotoPerfil!.isNotEmpty
+                  backgroundImage:
+                      widget.otherUser.fotoPerfil != null &&
+                          widget.otherUser.fotoPerfil!.isNotEmpty
                       ? NetworkImage(widget.otherUser.fotoPerfil!)
                       : null,
                   backgroundColor: Colors.grey[300],
-                  child: widget.otherUser.fotoPerfil == null || widget.otherUser.fotoPerfil!.isEmpty
+                  child:
+                      widget.otherUser.fotoPerfil == null ||
+                          widget.otherUser.fotoPerfil!.isEmpty
                       ? Text(
-                          widget.otherUser.nombre.isNotEmpty ? widget.otherUser.nombre[0].toUpperCase() : 'U',
+                          widget.otherUser.nombre.isNotEmpty
+                              ? widget.otherUser.nombre[0].toUpperCase()
+                              : 'U',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1899,9 +1956,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               ],
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isFromUser 
+                    color: isFromUser
                         ? const Color(0xFF2196F3)
                         : const Color(0xFFE91E63),
                     borderRadius: BorderRadius.circular(20),
@@ -1973,9 +2033,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[300]!),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
@@ -2012,4 +2070,4 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       ),
     );
   }
-} 
+}

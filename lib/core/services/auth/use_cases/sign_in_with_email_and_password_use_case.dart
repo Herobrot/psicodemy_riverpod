@@ -19,7 +19,8 @@ class SignInWithEmailAndPasswordUseCase {
   }
 }
 
-final signInWithEmailAndPasswordUseCaseProvider = Provider<SignInWithEmailAndPasswordUseCase>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return SignInWithEmailAndPasswordUseCase(authRepository);
-});
+final signInWithEmailAndPasswordUseCaseProvider =
+    Provider<SignInWithEmailAndPasswordUseCase>((ref) {
+      final authRepository = ref.watch(authRepositoryProvider);
+      return SignInWithEmailAndPasswordUseCase(authRepository);
+    });

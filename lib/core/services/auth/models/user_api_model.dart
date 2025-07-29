@@ -23,12 +23,12 @@ class UserApiModel {
       email: json['email']?.toString() ?? '',
       nombre: json['nombre']?.toString() ?? '',
       userType: _parseUserType(json['userType']),
-      createdAt: json['created_at'] != null 
-        ? DateTime.tryParse(json['created_at'].toString()) 
-        : null,
-      updatedAt: json['updated_at'] != null 
-        ? DateTime.tryParse(json['updated_at'].toString()) 
-        : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
     );
   }
 
@@ -45,7 +45,7 @@ class UserApiModel {
 
   static TipoUsuario _parseUserType(dynamic userType) {
     if (userType == null) return TipoUsuario.alumno;
-    
+
     switch (userType.toString().toLowerCase()) {
       case 'tutor':
         return TipoUsuario.tutor;
@@ -77,4 +77,4 @@ class UserApiModel {
         nombre.hashCode ^
         userType.hashCode;
   }
-} 
+}

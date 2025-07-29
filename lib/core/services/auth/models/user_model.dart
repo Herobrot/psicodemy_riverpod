@@ -89,4 +89,4 @@ extension TipoUsuarioExtension on TipoUsuario {
         return 'Alumno';
     }
   }
-} 
+}

@@ -9,9 +9,7 @@ import '../../api_service.dart';
 class ChatRepository implements ChatRepositoryInterface {
   final ApiService _apiService;
 
-  ChatRepository({
-    required ApiService apiService,
-  }) : _apiService = apiService;
+  ChatRepository({required ApiService apiService}) : _apiService = apiService;
 
   @override
   Future<Map<String, dynamic>> sendChatMessage({
@@ -123,9 +121,7 @@ class ChatRepository implements ChatRepositoryInterface {
   }
 
   @override
-  Future<Map<String, dynamic>> testAi({
-    required String mensaje,
-  }) async {
+  Future<Map<String, dynamic>> testAi({required String mensaje}) async {
     try {
       final data = await _apiService.testAi(mensaje: mensaje);
       return data;
@@ -167,7 +163,9 @@ class ChatRepository implements ChatRepositoryInterface {
         limit: limit,
       );
       final conversations = data['data']['conversations'] as List;
-      return conversations.map((json) => ConversationModel.fromJson(json)).toList();
+      return conversations
+          .map((json) => ConversationModel.fromJson(json))
+          .toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -222,4 +220,4 @@ class ChatRepository implements ChatRepositoryInterface {
       return ChatApiException('Error inesperado: $error', 500);
     }
   }
-} 
+}

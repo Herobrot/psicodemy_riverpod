@@ -15,18 +15,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   String? _message;
 
   Future<void> _sendResetEmail() async {
-    setState(() { _isLoading = true; _message = null; });
+    setState(() {
+      _isLoading = true;
+      _message = null;
+    });
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
       );
       setState(() {
-        _message = 'Te enviaremos un correo para que puedas obtener una contraseña nueva.';
+        _message =
+            'Te enviaremos un correo para que puedas obtener una contraseña nueva.';
       });
     } on FirebaseAuthException catch (e) {
-      setState(() { _message = e.message; });
+      setState(() {
+        _message = e.message;
+      });
     } finally {
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -84,7 +92,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       MaterialPageRoute(builder: (_) => const SignInScreen()),
                     );
                   },
-                  child: const Text('Volver a Login', style: TextStyle(color: Colors.red)),
+                  child: const Text(
+                    'Volver a Login',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
               ],
             ),
@@ -93,4 +104,4 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
     );
   }
-} 
+}

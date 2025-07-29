@@ -30,7 +30,7 @@
 //   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
 //   final StreamController<String?> _notificationTapController;
 //   final StreamController<NotificationActionResponse> _notificationActionController;
-  
+
 //   bool _isInitialized = false;
 
 //   LocalNotificationProvider()
@@ -102,7 +102,7 @@
 
 //     try {
 //       if (Platform.isAndroid) {
-//         if (Platform.version.contains('33') || 
+//         if (Platform.version.contains('33') ||
 //             int.tryParse(Platform.version.split('.').first) != null &&
 //             int.parse(Platform.version.split('.').first) >= 33) {
 //           final permission = await Permission.notification.request();
@@ -251,7 +251,7 @@
 //     try {
 //       final pendingNotifications = await _flutterLocalNotificationsPlugin
 //           .pendingNotificationRequests();
-      
+
 //       return pendingNotifications.map((request) {
 //         return NotificationModel(
 //           id: request.id.toString(),
@@ -277,7 +277,7 @@
 //     try {
 //       final activeNotifications = await _flutterLocalNotificationsPlugin
 //           .getActiveNotifications();
-      
+
 //       return activeNotifications.map((notification) {
 //         return NotificationModel(
 //           id: notification.id.toString(),
@@ -369,14 +369,14 @@
 //       enableVibration: notification.enableVibration,
 //       enableLights: notification.enableLights,
 //       icon: notification.icon,
-//       sound: notification.sound != null 
+//       sound: notification.sound != null
 //           ? RawResourceAndroidNotificationSound(notification.sound!)
 //           : null,
 //       actions: notification.actions?.map((action) {
 //         return AndroidNotificationAction(
 //           action.id,
 //           action.title,
-//           icon: action.icon != null 
+//           icon: action.icon != null
 //               ? DrawableResourceAndroidBitmap(action.icon!)
 //               : null,
 //           contextual: action.requiresAuthentication,

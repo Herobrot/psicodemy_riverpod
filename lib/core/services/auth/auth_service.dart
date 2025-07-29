@@ -7,12 +7,23 @@ class AuthService {
 
   AuthService(this._authRepository);
 
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password) async {
+  Future<CompleteUserModel> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     return await _authRepository.signInWithEmailAndPassword(email, password);
   }
 
-  Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
-    return await _authRepository.signUpWithEmailAndPassword(email, password, codigoTutor: codigoTutor);
+  Future<CompleteUserModel> signUpWithEmailAndPassword(
+    String email,
+    String password, {
+    String? codigoTutor,
+  }) async {
+    return await _authRepository.signUpWithEmailAndPassword(
+      email,
+      password,
+      codigoTutor: codigoTutor,
+    );
   }
 
   Future<CompleteUserModel> signInWithGoogle() async {
@@ -31,7 +42,8 @@ class AuthService {
     await _authRepository.sendPasswordResetEmail(email);
   }
 
-  Stream<CompleteUserModel?> get authStateChanges => _authRepository.authStateChanges;
+  Stream<CompleteUserModel?> get authStateChanges =>
+      _authRepository.authStateChanges;
 }
 
 // Provider simple para AuthService

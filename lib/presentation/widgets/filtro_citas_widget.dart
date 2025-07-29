@@ -65,17 +65,25 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
                         labelText: 'Estado',
                         border: OutlineInputBorder(),
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      items: widget.estadosDisponibles.map((estado) => DropdownMenuItem(
-                        value: estado,
-                        child: Text(
-                          estado.displayName,
-                          overflow: TextOverflow.ellipsis,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                      )).toList(),
+                      ),
+                      items: widget.estadosDisponibles
+                          .map(
+                            (estado) => DropdownMenuItem(
+                              value: estado,
+                              child: Text(
+                                estado.displayName,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (nuevoEstado) {
-                        if (nuevoEstado != null) widget.onEstadoChanged(nuevoEstado);
+                        if (nuevoEstado != null)
+                          widget.onEstadoChanged(nuevoEstado);
                       },
                     ),
                   ),
@@ -90,7 +98,10 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
                         hintText: 'ID del alumno',
                         border: OutlineInputBorder(),
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         prefixIcon: Icon(Icons.search, size: 20),
                       ),
                       onChanged: widget.onTextoBusquedaChanged,
@@ -100,7 +111,7 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
               ),
             );
           }
-          
+
           // Si hay suficiente espacio, usar layout horizontal
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -115,17 +126,25 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
                       labelText: 'Estado',
                       border: OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    items: widget.estadosDisponibles.map((estado) => DropdownMenuItem(
-                      value: estado,
-                      child: Text(
-                        estado.displayName,
-                        overflow: TextOverflow.ellipsis,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                    )).toList(),
+                    ),
+                    items: widget.estadosDisponibles
+                        .map(
+                          (estado) => DropdownMenuItem(
+                            value: estado,
+                            child: Text(
+                              estado.displayName,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (nuevoEstado) {
-                      if (nuevoEstado != null) widget.onEstadoChanged(nuevoEstado);
+                      if (nuevoEstado != null)
+                        widget.onEstadoChanged(nuevoEstado);
                     },
                   ),
                 ),
@@ -140,7 +159,10 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
                       hintText: 'ID del alumno',
                       border: OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       prefixIcon: Icon(Icons.search, size: 20),
                     ),
                     onChanged: widget.onTextoBusquedaChanged,
@@ -153,4 +175,4 @@ class _FiltroCitasWidgetState extends State<FiltroCitasWidget> {
       ),
     );
   }
-} 
+}

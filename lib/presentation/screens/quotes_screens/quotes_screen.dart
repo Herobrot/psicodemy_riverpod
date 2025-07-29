@@ -12,37 +12,43 @@ import '../../../presentation/providers/appointment_providers.dart';
 import '../../../presentation/providers/simple_auth_providers.dart';
 
 // Nuevo provider para obtener todas las citas del alumno actual
-final allStudentAppointmentsProvider = FutureProvider.family<List<AppointmentEntity>, String>((ref, userId) async {
-  if (userId.isEmpty) return <AppointmentEntity>[];
-  final useCases = ref.watch(appointmentUseCasesProvider);
-  final pendientes = await useCases.getStudentAppointmentsFiltered(
-    studentId: userId,
-    estadoCita: AppointmentStatus.pending,
-    fechaDesde: DateTime.now(),
-    limit: 50,
-  );
-  final confirmadas = await useCases.getStudentAppointmentsFiltered(
-    studentId: userId,
-    estadoCita: AppointmentStatus.confirmed,
-    fechaDesde: DateTime.now(),
-    limit: 50,
-  );
-  final completadas = await useCases.getStudentAppointmentsFiltered(
-    studentId: userId,
-    estadoCita: AppointmentStatus.completed,
-    fechaDesde: DateTime.now(),
-    limit: 50,
-  );
-  final canceladas = await useCases.getStudentAppointmentsFiltered(
-    studentId: userId,
-    estadoCita: AppointmentStatus.cancelled,
-    fechaDesde: DateTime.now(),
-    limit: 50,
-  );
-  final todas = <AppointmentEntity>[...pendientes, ...confirmadas, ...completadas, ...canceladas];
-  todas.sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
-  return todas;
-});
+final allStudentAppointmentsProvider =
+    FutureProvider.family<List<AppointmentEntity>, String>((ref, userId) async {
+      if (userId.isEmpty) return <AppointmentEntity>[];
+      final useCases = ref.watch(appointmentUseCasesProvider);
+      final pendientes = await useCases.getStudentAppointmentsFiltered(
+        studentId: userId,
+        estadoCita: AppointmentStatus.pending,
+        fechaDesde: DateTime.now(),
+        limit: 50,
+      );
+      final confirmadas = await useCases.getStudentAppointmentsFiltered(
+        studentId: userId,
+        estadoCita: AppointmentStatus.confirmed,
+        fechaDesde: DateTime.now(),
+        limit: 50,
+      );
+      final completadas = await useCases.getStudentAppointmentsFiltered(
+        studentId: userId,
+        estadoCita: AppointmentStatus.completed,
+        fechaDesde: DateTime.now(),
+        limit: 50,
+      );
+      final canceladas = await useCases.getStudentAppointmentsFiltered(
+        studentId: userId,
+        estadoCita: AppointmentStatus.cancelled,
+        fechaDesde: DateTime.now(),
+        limit: 50,
+      );
+      final todas = <AppointmentEntity>[
+        ...pendientes,
+        ...confirmadas,
+        ...completadas,
+        ...canceladas,
+      ];
+      todas.sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
+      return todas;
+    });
 
 // Provider para obtener el userId de la API del usuario actual
 final currentUserIdProvider = Provider<String>((ref) {
@@ -65,7 +71,8 @@ class CitasScreen extends ConsumerStatefulWidget {
 }
 
 class _CitasScreenState extends ConsumerState<CitasScreen> {
-  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isScheduling = false;
@@ -99,7 +106,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     final userId = ref.watch(currentUserIdProvider);
     final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
     final theme = Theme.of(context);
-    
+
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
       child: Scaffold(
@@ -121,7 +128,11 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 'lib/src/shared_imgs/chat.png',
                 height: 28,
                 errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.psychology, size: 28, color: Color(0xFF4CAF50));
+                  return const Icon(
+                    Icons.psychology,
+                    size: 28,
+                    color: Color(0xFF4CAF50),
+                  );
                 },
               ),
               const SizedBox(width: 8),
@@ -145,20 +156,22 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 },
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage: user?.photoURL != null 
-                    ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                  child: user?.photoURL == null 
-                    ? Text(
-                        user?.email?.isNotEmpty == true 
-                          ? user!.email![0].toUpperCase() 
-                          : 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  backgroundImage: user?.photoURL != null
+                      ? NetworkImage(user!.photoURL!)
+                      : const NetworkImage(
+                          'https://lh3.googleusercontent.com/a/default-user=s96-c',
                         ),
-                      )
-                    : null,
+                  child: user?.photoURL == null
+                      ? Text(
+                          user?.email?.isNotEmpty == true
+                              ? user!.email![0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -188,15 +201,26 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                           backgroundColor: theme.primaryColor,
                           foregroundColor: Colors.white,
                           elevation: 6,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 18,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        icon: Icon(_showCalendar ? Icons.close : Icons.add, size: 28),
+                        icon: Icon(
+                          _showCalendar ? Icons.close : Icons.add,
+                          size: 28,
+                        ),
                         label: Text(
-                          _showCalendar ? 'Cerrar agendado' : 'Agendar nueva cita',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          _showCalendar
+                              ? 'Cerrar agendado'
+                              : 'Agendar nueva cita',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         onPressed: () {
                           setState(() {
@@ -227,14 +251,23 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text(
                                         'Agendar cita',
-                                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1565C0),
+                                        ),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.close, color: Colors.red, size: 28),
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                          size: 28,
+                                        ),
                                         tooltip: 'Cerrar',
                                         onPressed: () {
                                           setState(() {
@@ -247,28 +280,45 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                   const SizedBox(height: 8),
                                   Consumer(
                                     builder: (context, ref, child) {
-                                      final calendarUserId = ref.watch(currentUserIdProvider);
-                                      final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(calendarUserId));
+                                      final calendarUserId = ref.watch(
+                                        currentUserIdProvider,
+                                      );
+                                      final appointmentsAsync = ref.watch(
+                                        allStudentAppointmentsProvider(
+                                          calendarUserId,
+                                        ),
+                                      );
                                       return appointmentsAsync.when(
                                         data: (appointments) => TableCalendar(
                                           firstDay: DateTime.now(),
-                                          lastDay: DateTime.now().add(const Duration(days: 365 * 2)),
+                                          lastDay: DateTime.now().add(
+                                            const Duration(days: 365 * 2),
+                                          ),
                                           focusedDay: _focusedDay,
-                                          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                                          selectedDayPredicate: (day) =>
+                                              isSameDay(_selectedDay, day),
                                           eventLoader: (day) {
-                                            return appointments.where((appointment) => isSameDay(appointment.scheduledDate, day)).toList();
+                                            return appointments
+                                                .where(
+                                                  (appointment) => isSameDay(
+                                                    appointment.scheduledDate,
+                                                    day,
+                                                  ),
+                                                )
+                                                .toList();
                                           },
-                                          onDaySelected: (selectedDay, focusedDay) {
-                                            setState(() {
-                                              _selectedDay = selectedDay;
-                                              _focusedDay = focusedDay;
-                                            });
-                                            _selectedTutor = null;
-                                            _selectedTime = null;
-                                            _razonCita = '';
-                                            _checklistCita = [];
-                                            _showTutorDialog();
-                                          },
+                                          onDaySelected:
+                                              (selectedDay, focusedDay) {
+                                                setState(() {
+                                                  _selectedDay = selectedDay;
+                                                  _focusedDay = focusedDay;
+                                                });
+                                                _selectedTutor = null;
+                                                _selectedTime = null;
+                                                _razonCita = '';
+                                                _checklistCita = [];
+                                                _showTutorDialog();
+                                              },
                                           calendarFormat: CalendarFormat.month,
                                           headerStyle: const HeaderStyle(
                                             formatButtonVisible: false,
@@ -289,8 +339,14 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                             ),
                                           ),
                                         ),
-                                        loading: () => const Center(child: CircularProgressIndicator()),
-                                        error: (e, _) => Center(child: Text('Error:  [${e.toString()}')),
+                                        loading: () => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        error: (e, _) => Center(
+                                          child: Text(
+                                            'Error:  [${e.toString()}',
+                                          ),
+                                        ),
                                       );
                                     },
                                   ),
@@ -337,7 +393,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -358,18 +416,21 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                         ),
                         Text(
                           '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         Consumer(
                           builder: (context, ref, child) {
                             final tutorState = ref.watch(tutorListProvider);
-                            
+
                             if (tutorState.isLoading) {
                               return const CircularProgressIndicator();
                             }
-                            
+
                             if (tutorState.error != null) {
                               return Column(
                                 children: [
@@ -379,18 +440,20 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
-                                      ref.read(tutorListProvider.notifier).loadTutors();
+                                      ref
+                                          .read(tutorListProvider.notifier)
+                                          .loadTutors();
                                     },
                                     child: const Text('Reintentar'),
                                   ),
                                 ],
                               );
                             }
-                            
+
                             if (tutorState.tutors.isEmpty) {
                               return const Text('No hay tutores disponibles');
                             }
-                            
+
                             return DropdownButtonFormField<TutorModel>(
                               decoration: const InputDecoration(
                                 labelText: 'Selecciona al tutor deseado',
@@ -403,11 +466,15 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                 return DropdownMenuItem<TutorModel>(
                                   value: tutor,
                                   child: Container(
-                                    constraints: const BoxConstraints(maxHeight: 60),
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 60,
+                                    ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           tutor.nombre,
@@ -416,7 +483,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                                             fontSize: 14,
                                           ),
                                           overflow: TextOverflow.ellipsis,
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -445,10 +512,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                               child: const Text('Cancelar'),
                             ),
                             ElevatedButton(
-                              onPressed: _selectedTutor != null ? () {
-                                Navigator.pop(context);
-                                _showTimeDialog();
-                              } : null,
+                              onPressed: _selectedTutor != null
+                                  ? () {
+                                      Navigator.pop(context);
+                                      _showTimeDialog();
+                                    }
+                                  : null,
                               child: const Text('Siguiente'),
                             ),
                           ],
@@ -473,7 +542,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -494,7 +565,10 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                         ),
                         Text(
                           '¿Quieres agendar una cita el ${_selectedDay!.day} de ${_getMonthName(_selectedDay!.month)} del ${_selectedDay!.year}?',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
@@ -512,8 +586,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                             }
                           },
                           child: InputDecorator(
-                            decoration: const InputDecoration(labelText: 'Selecciona un horario disponible'),
-                            child: Text(_selectedTime?.format(context) ?? 'hh:mm aa'),
+                            decoration: const InputDecoration(
+                              labelText: 'Selecciona un horario disponible',
+                            ),
+                            child: Text(
+                              _selectedTime?.format(context) ?? 'hh:mm aa',
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -539,8 +617,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
   }
 
   Future<void> _agendarCita() async {
-    
-    if (_selectedTutor == null || _selectedTime == null || _selectedDay == null) {
+    if (_selectedTutor == null ||
+        _selectedTime == null ||
+        _selectedDay == null) {
       Future.delayed(Duration.zero, () {
         _scaffoldMessengerKey.currentState?.showSnackBar(
           const SnackBar(
@@ -576,7 +655,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       await ref.read(createAppointmentProvider(request).future);
 
       // Actualizar la lista de citas del alumno
-      ref.refresh(allStudentAppointmentsProvider(ref.read(currentUserIdProvider)));
+      ref.refresh(
+        allStudentAppointmentsProvider(ref.read(currentUserIdProvider)),
+      );
 
       setState(() => _isScheduling = false);
 
@@ -595,10 +676,9 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       _selectedDay = null;
       _razonCita = '';
       _checklistCita = [];
-
     } catch (e, stack) {
       setState(() => _isScheduling = false);
-      
+
       String errorMessage = 'Error al crear la cita';
       if (e.toString().contains('unauthorized')) {
         errorMessage = 'No tienes permisos para crear citas';
@@ -614,10 +694,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
 
       Future.delayed(Duration.zero, () {
         _scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
       });
     }
@@ -637,7 +714,7 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
       'Septiembre',
       'Octubre',
       'Noviembre',
-      'Diciembre'
+      'Diciembre',
     ];
     return months[month];
   }
@@ -646,22 +723,28 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final userId = ref.watch(currentUserIdProvider);
-        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
-        
+        final appointmentsAsync = ref.watch(
+          allStudentAppointmentsProvider(userId),
+        );
+
         // Buscar la próxima cita confirmada del alumno actual
         final now = DateTime.now();
         final upcomingAppointments = appointmentsAsync.when(
           data: (appointments) => appointments
-              .where((appointment) => 
-                  appointment.scheduledDate.isAfter(now) && 
-                  appointment.status == AppointmentStatus.confirmed)
+              .where(
+                (appointment) =>
+                    appointment.scheduledDate.isAfter(now) &&
+                    appointment.status == AppointmentStatus.confirmed,
+              )
               .toList(),
           loading: () => [],
           error: (e, _) => [],
         );
-        
-        upcomingAppointments.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
-        
+
+        upcomingAppointments.sort(
+          (a, b) => a.scheduledDate.compareTo(b.scheduledDate),
+        );
+
         if (upcomingAppointments.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(16),
@@ -679,7 +762,11 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     children: [
                       Text(
                         'No tienes citas próximas',
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'Agenda una nueva cita seleccionando una fecha',
@@ -693,10 +780,12 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
             ),
           );
         }
-        
+
         final nextAppointment = upcomingAppointments.first;
-        final hoursUntil = nextAppointment.scheduledDate.difference(now).inHours;
-        
+        final hoursUntil = nextAppointment.scheduledDate
+            .difference(now)
+            .inHours;
+
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -722,19 +811,29 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     children: [
                       Text(
                         'Próxima cita',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
-                        hoursUntil > 0 
-                          ? 'Faltan $hoursUntil horas para tu cita'
-                          : 'Tu cita es hoy',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        hoursUntil > 0
+                            ? 'Faltan $hoursUntil horas para tu cita'
+                            : 'Tu cita es hoy',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -761,22 +860,31 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final userId = ref.watch(currentUserIdProvider);
-        final appointmentsAsync = ref.watch(allStudentAppointmentsProvider(userId));
+        final appointmentsAsync = ref.watch(
+          allStudentAppointmentsProvider(userId),
+        );
         final tutorState = ref.watch(tutorListProvider);
         return appointmentsAsync.when(
           data: (appointments) {
             // Crear un mapa de idTutor a nombre
             final Map<String, String> tutorNames = {
-              for (var t in tutorState.tutors) t.id: t.nombre
+              for (var t in tutorState.tutors) t.id: t.nombre,
             };
             // Filtro por nombre de tutor
-            final filtered = appointments.where((a) =>
-              (tutorNames[a.tutorId]?.toLowerCase() ?? '').contains(_searchTutor.toLowerCase())
-            ).toList();
+            final filtered = appointments
+                .where(
+                  (a) => (tutorNames[a.tutorId]?.toLowerCase() ?? '').contains(
+                    _searchTutor.toLowerCase(),
+                  ),
+                )
+                .toList();
             // Ordenar por fecha descendente
             filtered.sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
             // Paginación
-            final totalPages = (filtered.length / _pageSize).ceil().clamp(1, 999);
+            final totalPages = (filtered.length / _pageSize).ceil().clamp(
+              1,
+              999,
+            );
             final start = (_currentPage - 1) * _pageSize;
             final end = (_currentPage * _pageSize).clamp(0, filtered.length);
             final pageItems = filtered.sublist(start, end);
@@ -794,7 +902,10 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     SizedBox(height: 8),
                     Text(
                       'No tienes citas programadas',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -820,7 +931,10 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                     SizedBox(height: 8),
                     Text(
                       'No hay coincidencias para tu búsqueda',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -828,21 +942,29 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
             }
             return Column(
               children: [
-                ...pageItems.map((appointment) => _buildAppointmentCardEntity(appointment)),
+                ...pageItems.map(
+                  (appointment) => _buildAppointmentCardEntity(appointment),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.chevron_left),
-                      onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                      onPressed: _currentPage > 1
+                          ? () => setState(() => _currentPage--)
+                          : null,
                       color: _currentPage > 1 ? Colors.blue : Colors.grey,
                     ),
                     Text('Página $_currentPage de $totalPages'),
                     IconButton(
                       icon: const Icon(Icons.chevron_right),
-                      onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
-                      color: _currentPage < totalPages ? Colors.blue : Colors.grey,
+                      onPressed: _currentPage < totalPages
+                          ? () => setState(() => _currentPage++)
+                          : null,
+                      color: _currentPage < totalPages
+                          ? Colors.blue
+                          : Colors.grey,
                     ),
                   ],
                 ),
@@ -882,7 +1004,11 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ref.refresh(allStudentAppointmentsProvider(ref.read(currentUserIdProvider)));
+                    ref.refresh(
+                      allStudentAppointmentsProvider(
+                        ref.read(currentUserIdProvider),
+                      ),
+                    );
                   },
                   child: const Text('Reintentar'),
                 ),
@@ -926,18 +1052,25 @@ class _CitasScreenState extends ConsumerState<CitasScreen> {
                 children: [
                   Text(
                     'Cita',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     '${appointment.scheduledDate.day}/${appointment.scheduledDate.month}/${appointment.scheduledDate.year} - ${appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${appointment.scheduledDate.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  if (appointment.notes != null && appointment.notes!.isNotEmpty)
+                  if (appointment.notes != null &&
+                      appointment.notes!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         appointment.notes!,
-                        style: const TextStyle(color: Colors.white60, fontSize: 10),
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 10,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1007,7 +1140,8 @@ class AppointmentChecklistForm extends StatefulWidget {
   const AppointmentChecklistForm({super.key, required this.onChanged});
 
   @override
-  State<AppointmentChecklistForm> createState() => _AppointmentChecklistFormState();
+  State<AppointmentChecklistForm> createState() =>
+      _AppointmentChecklistFormState();
 }
 
 class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
@@ -1035,7 +1169,12 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
                   setState(() {
-                    _checklist.add(ChecklistItem(description: controller.text.trim(), completed: false));
+                    _checklist.add(
+                      ChecklistItem(
+                        description: controller.text.trim(),
+                        completed: false,
+                      ),
+                    );
                   });
                   widget.onChanged(_reasonController.text, _checklist);
                   Navigator.pop(context);
@@ -1053,7 +1192,9 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
     showDialog(
       context: context,
       builder: (context) {
-        final controller = TextEditingController(text: _checklist[index].description);
+        final controller = TextEditingController(
+          text: _checklist[index].description,
+        );
         return AlertDialog(
           title: const Text('Editar tarea'),
           content: TextField(
@@ -1070,7 +1211,10 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
                   setState(() {
-                    _checklist[index] = ChecklistItem(description: controller.text.trim(), completed: _checklist[index].completed);
+                    _checklist[index] = ChecklistItem(
+                      description: controller.text.trim(),
+                      completed: _checklist[index].completed,
+                    );
                   });
                   widget.onChanged(_reasonController.text, _checklist);
                   Navigator.pop(context);
@@ -1119,13 +1263,17 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
             border: OutlineInputBorder(),
           ),
           maxLines: 2,
-          onChanged: (_) => widget.onChanged(_reasonController.text, _checklist),
+          onChanged: (_) =>
+              widget.onChanged(_reasonController.text, _checklist),
         ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Tareas a realizar', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Tareas a realizar',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: _addTask,
@@ -1133,8 +1281,7 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
             ),
           ],
         ),
-        if (_checklist.isEmpty)
-          const Text('No hay tareas agregadas.'),
+        if (_checklist.isEmpty) const Text('No hay tareas agregadas.'),
         ..._checklist.asMap().entries.map((entry) {
           final i = entry.key;
           final item = entry.value;
@@ -1154,14 +1301,20 @@ class _AppointmentChecklistFormState extends State<AppointmentChecklistForm> {
                     onPressed: () => _editTask(i),
                     tooltip: 'Editar',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, size: 20),
                     onPressed: () => _removeTask(i),
                     tooltip: 'Eliminar',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
                   ),
                 ],
               ),

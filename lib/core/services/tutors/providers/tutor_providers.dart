@@ -106,7 +106,7 @@ class TutorListNotifier extends StateNotifier<TutorListState> {
 
     try {
       final tutors = await _repository.searchTutorsByName(name);
-      
+
       state = state.copyWith(
         tutors: tutors,
         isLoading: false,
@@ -164,10 +164,11 @@ class TutorListNotifier extends StateNotifier<TutorListState> {
 }
 
 /// Provider para la lista de tutores
-final tutorListProvider = StateNotifierProvider<TutorListNotifier, TutorListState>((ref) {
-  final repository = ref.watch(tutorRepositoryProvider);
-  return TutorListNotifier(repository);
-});
+final tutorListProvider =
+    StateNotifierProvider<TutorListNotifier, TutorListState>((ref) {
+      final repository = ref.watch(tutorRepositoryProvider);
+      return TutorListNotifier(repository);
+    });
 
 /// Provider para obtener todos los tutores
 final tutorsProvider = FutureProvider<List<TutorModel>>((ref) async {
@@ -176,19 +177,28 @@ final tutorsProvider = FutureProvider<List<TutorModel>>((ref) async {
 });
 
 /// Provider para obtener un tutor por ID
-final tutorByIdProvider = FutureProvider.family<TutorModel?, String>((ref, id) async {
+final tutorByIdProvider = FutureProvider.family<TutorModel?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(tutorRepositoryProvider);
   return await repository.getTutorById(id);
 });
 
 /// Provider para obtener un tutor por email
-final tutorByEmailProvider = FutureProvider.family<TutorModel?, String>((ref, email) async {
+final tutorByEmailProvider = FutureProvider.family<TutorModel?, String>((
+  ref,
+  email,
+) async {
   final repository = ref.watch(tutorRepositoryProvider);
   return await repository.getTutorByEmail(email);
 });
 
 /// Provider para buscar tutores por nombre
-final searchTutorsProvider = FutureProvider.family<List<TutorModel>, String>((ref, name) async {
+final searchTutorsProvider = FutureProvider.family<List<TutorModel>, String>((
+  ref,
+  name,
+) async {
   final repository = ref.watch(tutorRepositoryProvider);
   return await repository.searchTutorsByName(name);
 });
@@ -200,7 +210,10 @@ final tutorCountProvider = FutureProvider<int>((ref) async {
 });
 
 /// Provider para verificar si un email es de tutor
-final isEmailTutorProvider = FutureProvider.family<bool, String>((ref, email) async {
+final isEmailTutorProvider = FutureProvider.family<bool, String>((
+  ref,
+  email,
+) async {
   final repository = ref.watch(tutorRepositoryProvider);
   return await repository.isEmailTutor(email);
 });
@@ -212,16 +225,20 @@ final activeTutorsProvider = FutureProvider<List<TutorModel>>((ref) async {
 });
 
 /// Provider para obtener tutores mejor calificados
-final topRatedTutorsProvider = FutureProvider.family<List<TutorModel>, int>((ref, limit) async {
+final topRatedTutorsProvider = FutureProvider.family<List<TutorModel>, int>((
+  ref,
+  limit,
+) async {
   final repository = ref.watch(tutorRepositoryProvider);
   return await repository.getTopRatedTutors(limit: limit);
 });
 
 /// Provider para obtener tutores disponibles para una fecha
-final availableTutorsForDateProvider = FutureProvider.family<List<TutorModel>, DateTime>((ref, fecha) async {
-  final repository = ref.watch(tutorRepositoryProvider);
-  return await repository.getAvailableTutorsForDate(fecha);
-});
+final availableTutorsForDateProvider =
+    FutureProvider.family<List<TutorModel>, DateTime>((ref, fecha) async {
+      final repository = ref.watch(tutorRepositoryProvider);
+      return await repository.getAvailableTutorsForDate(fecha);
+    });
 
 /// Provider para estadísticas de tutores
 final tutorStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -248,61 +265,67 @@ final tutorsFromCacheProvider = FutureProvider<List<TutorModel>>((ref) async {
 });
 
 /// Provider para obtener un tutor específico con información extendida
-final tutorDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, email) async {
-  final repository = ref.watch(tutorRepositoryProvider);
-  final tutor = await repository.getTutorByEmail(email);
-  
-  if (tutor == null) {
-    throw TutorException.notFound('Tutor no encontrado');
-  }
+final tutorDetailsProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, email) async {
+      final repository = ref.watch(tutorRepositoryProvider);
+      final tutor = await repository.getTutorByEmail(email);
 
-  // Aquí se puede extender con más información del tutor
-  return {
-    'tutor': tutor,
-    'isActive': true, // Placeholder
-    'rating': 4.5, // Placeholder
-    'totalAppointments': 0, // Placeholder
-    'completedAppointments': 0, // Placeholder
-    'lastActivity': DateTime.now().toIso8601String(),
-  };
-});
+      if (tutor == null) {
+        throw TutorException.notFound('Tutor no encontrado');
+      }
+
+      // Aquí se puede extender con más información del tutor
+      return {
+        'tutor': tutor,
+        'isActive': true, // Placeholder
+        'rating': 4.5, // Placeholder
+        'totalAppointments': 0, // Placeholder
+        'completedAppointments': 0, // Placeholder
+        'lastActivity': DateTime.now().toIso8601String(),
+      };
+    });
 
 /// Provider para filtrar tutores por criterios
-final filteredTutorsProvider = FutureProvider.family<List<TutorModel>, Map<String, dynamic>>((ref, filters) async {
-  final repository = ref.watch(tutorRepositoryProvider);
-  List<TutorModel> tutors = await repository.getTutors();
+final filteredTutorsProvider =
+    FutureProvider.family<List<TutorModel>, Map<String, dynamic>>((
+      ref,
+      filters,
+    ) async {
+      final repository = ref.watch(tutorRepositoryProvider);
+      List<TutorModel> tutors = await repository.getTutors();
 
-  // Aplicar filtros
-  if (filters['name'] != null && filters['name'].isNotEmpty) {
-    final name = filters['name'].toString().toLowerCase();
-    tutors = tutors.where((tutor) => 
-      tutor.nombre.toLowerCase().contains(name)
-    ).toList();
-  }
+      // Aplicar filtros
+      if (filters['name'] != null && filters['name'].isNotEmpty) {
+        final name = filters['name'].toString().toLowerCase();
+        tutors = tutors
+            .where((tutor) => tutor.nombre.toLowerCase().contains(name))
+            .toList();
+      }
 
-  if (filters['email'] != null && filters['email'].isNotEmpty) {
-    final email = filters['email'].toString().toLowerCase();
-    tutors = tutors.where((tutor) => 
-      tutor.correo.toLowerCase().contains(email)
-    ).toList();
-  }
+      if (filters['email'] != null && filters['email'].isNotEmpty) {
+        final email = filters['email'].toString().toLowerCase();
+        tutors = tutors
+            .where((tutor) => tutor.correo.toLowerCase().contains(email))
+            .toList();
+      }
 
-  if (filters['available'] == true) {
-    // Filtrar solo tutores disponibles (placeholder)
-    tutors = tutors; // Por ahora todos están disponibles
-  }
+      if (filters['available'] == true) {
+        // Filtrar solo tutores disponibles (placeholder)
+        tutors = tutors; // Por ahora todos están disponibles
+      }
 
-  return tutors;
-});
+      return tutors;
+    });
 
 /// Provider para obtener sugerencias de tutores
-final tutorSuggestionsProvider = FutureProvider.family<List<TutorModel>, String>((ref, query) async {
-  final repository = ref.watch(tutorRepositoryProvider);
-  
-  if (query.isEmpty) {
-    return await repository.getTopRatedTutors(limit: 5);
-  }
+final tutorSuggestionsProvider =
+    FutureProvider.family<List<TutorModel>, String>((ref, query) async {
+      final repository = ref.watch(tutorRepositoryProvider);
 
-  final tutors = await repository.searchTutorsByName(query);
-  return tutors.take(5).toList();
-}); 
+      if (query.isEmpty) {
+        return await repository.getTopRatedTutors(limit: 5);
+      }
+
+      final tutors = await repository.searchTutorsByName(query);
+      return tutors.take(5).toList();
+    });

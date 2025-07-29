@@ -17,7 +17,10 @@ class TutorProfileScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text('Información del Tutor', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Información del Tutor',
+          style: TextStyle(color: Colors.black),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -30,10 +33,7 @@ class TutorProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: NetworkImage(imageUrl),
-              ),
+              CircleAvatar(radius: 40, backgroundImage: NetworkImage(imageUrl)),
               const SizedBox(height: 16),
               Text(
                 'Información del tutor',
@@ -79,7 +79,7 @@ class TutorProfileScreen extends StatelessWidget {
                     child: const Text('Correo →'),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),

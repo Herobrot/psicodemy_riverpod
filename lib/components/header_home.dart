@@ -4,11 +4,7 @@ class HeaderHome extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onMenuTap;
   final VoidCallback? onAvatarTap;
 
-  const HeaderHome({
-    super.key,
-    this.onMenuTap,
-    this.onAvatarTap,
-  });
+  const HeaderHome({super.key, this.onMenuTap, this.onAvatarTap});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +27,9 @@ class HeaderHome extends StatelessWidget implements PreferredSizeWidget {
             onTap: onAvatarTap,
             child: const CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'), // Placeholder
+              backgroundImage: NetworkImage(
+                'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+              ), // Placeholder
             ),
           ),
         ),
@@ -41,4 +39,4 @@ class HeaderHome extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-} 
+}

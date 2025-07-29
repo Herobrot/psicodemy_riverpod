@@ -20,27 +20,15 @@ class FooterNavBar extends StatelessWidget {
       selectedItemColor: Colors.white,
       unselectedItemColor: Colors.white70,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Inicio',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat),
-          label: 'Chats',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.forum),
-          label: 'Foro',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chats'),
+        BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Foro'),
         BottomNavigationBarItem(
           icon: Icon(Icons.format_quote),
           label: 'Frases',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Config',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Config'),
       ],
     );
   }
-} 
+}

@@ -18,7 +18,14 @@ class ForumScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Foro', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+        title: const Text(
+          'Foro',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -29,7 +36,11 @@ class ForumScreen extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               'Blogs para el bien estudiantil',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
           const Padding(
@@ -98,7 +109,9 @@ class BlogCard extends StatelessWidget {
           children: [
             if (post.imageUrl != null)
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
                 child: Image.network(
                   formatForumImageUrl(post.imageUrl!)!,
                   height: 180,
@@ -113,17 +126,24 @@ class BlogCard extends StatelessWidget {
                 children: [
                   Wrap(
                     spacing: 8,
-                    children: post.tags.map((tag) => Chip(
-                      label: Text(tag),
-                      backgroundColor: Colors.blue.withOpacity(0.1),
-                      labelStyle: const TextStyle(color: Colors.blue),
-                      padding: EdgeInsets.zero,
-                    )).toList(),
+                    children: post.tags
+                        .map(
+                          (tag) => Chip(
+                            label: Text(tag),
+                            backgroundColor: Colors.blue.withOpacity(0.1),
+                            labelStyle: const TextStyle(color: Colors.blue),
+                            padding: EdgeInsets.zero,
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     post.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -135,7 +155,11 @@ class BlogCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 14, color: Colors.grey[500]),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Colors.grey[500],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt.year}',
@@ -144,7 +168,10 @@ class BlogCard extends StatelessWidget {
                       const SizedBox(width: 16),
                       Icon(Icons.person, size: 14, color: Colors.grey[500]),
                       const SizedBox(width: 4),
-                      Text(post.authorName, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text(
+                        post.authorName,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      ),
                     ],
                   ),
                 ],
@@ -164,9 +191,7 @@ class ForumPostDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle del Post'),
-      ),
+      appBar: AppBar(title: const Text('Detalle del Post')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -184,19 +209,20 @@ class ForumPostDetailScreen extends StatelessWidget {
             if (post.imageUrl != null) const SizedBox(height: 16),
             Text(
               post.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
-              children: post.tags.map((tag) => Chip(
-                label: Text(tag),
-                backgroundColor: Colors.blue.withOpacity(0.1),
-                labelStyle: const TextStyle(color: Colors.blue),
-              )).toList(),
+              children: post.tags
+                  .map(
+                    (tag) => Chip(
+                      label: Text(tag),
+                      backgroundColor: Colors.blue.withOpacity(0.1),
+                      labelStyle: const TextStyle(color: Colors.blue),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 16),
             Row(
@@ -210,14 +236,14 @@ class ForumPostDetailScreen extends StatelessWidget {
                 const SizedBox(width: 16),
                 Icon(Icons.person, size: 16, color: Colors.grey[500]),
                 const SizedBox(width: 4),
-                Text(post.authorName, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                Text(
+                  post.authorName,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
               ],
             ),
             const SizedBox(height: 24),
-            Text(
-              post.body,
-              style: const TextStyle(fontSize: 16, height: 1.5),
-            ),
+            Text(post.body, style: const TextStyle(fontSize: 16, height: 1.5)),
           ],
         ),
       ),

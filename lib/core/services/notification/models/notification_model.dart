@@ -1,22 +1,11 @@
-enum NotificationPriority {
-  min,
-  low,
-  defaultPriority,
-  high,
-  max,
-}
+enum NotificationPriority { min, low, defaultPriority, high, max }
 
-enum RecurrenceType {
-  daily,
-  weekly,
-  monthly,
-  yearly,
-}
+enum RecurrenceType { daily, weekly, monthly, yearly }
 
 class NotificationModel {
   final String id;
   final String title;
-  final String body; 
+  final String body;
   final String? payload;
   final DateTime? scheduledTime;
   final NotificationPriority priority;
@@ -45,7 +34,7 @@ class NotificationModel {
     this.icon,
     this.sound,
     this.enableVibration = true,
-    this.enableLights = true
+    this.enableLights = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -74,10 +63,14 @@ class NotificationModel {
       title: json['title'] as String,
       body: json['body'] as String,
       payload: json['payload'] as String?,
-      scheduledTime: json['scheduledTime'] != null ? DateTime.parse(json['scheduledTime']) : null,
+      scheduledTime: json['scheduledTime'] != null
+          ? DateTime.parse(json['scheduledTime'])
+          : null,
       priority: NotificationPriority.values[json['priority']],
       isRecurring: json['isRecurring'] as bool,
-      recurrenceType: json['recurrenceType'] != null ? RecurrenceType.values[json['recurrenceType']] : null,
+      recurrenceType: json['recurrenceType'] != null
+          ? RecurrenceType.values[json['recurrenceType']]
+          : null,
       channelId: json['channelId'] as String?,
       channelName: json['channelName'] as String?,
       channelDescription: json['channelDescription'] as String?,

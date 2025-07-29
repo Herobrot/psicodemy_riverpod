@@ -11,41 +11,51 @@ class AuthUseCases {
 
   AuthUseCases(this._authRepository);
 
-  Future<UserEntity> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserEntity> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     if (email.isEmpty || password.isEmpty) {
       throw Exception('Email y contraseña son requeridos');
     }
-    
+
     if (!_isValidEmail(email)) {
       throw Exception('Email no válido');
     }
-    
+
     if (password.length < 6) {
       throw Exception('La contraseña debe tener al menos 6 caracteres');
     }
 
     if (!_isValidPassword(password)) {
-      throw Exception('La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)');
+      throw Exception(
+        'La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)',
+      );
     }
 
     return await _authRepository.signInWithEmailAndPassword(email, password);
   }
 
-  Future<UserFirebaseEntity> signUpWithEmailAndPassword(String email, String password) async {
+  Future<UserFirebaseEntity> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     if (email.isEmpty || password.isEmpty) {
       throw Exception('Email y contraseña son requeridos');
     }
-    
+
     if (!_isValidEmail(email)) {
       throw Exception('Email no válido');
     }
-    
+
     if (password.length < 6) {
       throw Exception('La contraseña debe tener al menos 6 caracteres');
     }
 
     if (!_isValidPassword(password)) {
-      throw Exception('La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)');
+      throw Exception(
+        'La contraseña no debe contener caracteres especiales (@, #, \$, %, &, !, etc.)',
+      );
     }
 
     return await _authRepository.signUpWithEmailAndPassword(email, password);
@@ -67,7 +77,7 @@ class AuthUseCases {
     if (email.isEmpty) {
       throw Exception('Email es requerido');
     }
-    
+
     if (!_isValidEmail(email)) {
       throw Exception('Email no válido');
     }
@@ -75,10 +85,13 @@ class AuthUseCases {
     await _authRepository.sendPasswordResetEmail(email);
   }
 
-  Stream<UserFirebaseEntity?> get authStateChanges => _authRepository.authStateChanges;
+  Stream<UserFirebaseEntity?> get authStateChanges =>
+      _authRepository.authStateChanges;
 
   bool _isValidEmail(String email) {
-    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
+    return RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email);
   }
 
   bool _isValidPassword(String password) {

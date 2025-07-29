@@ -41,7 +41,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            const Icon(Icons.chat_bubble_outline, size: 100, color: Colors.black87),
+            const Icon(
+              Icons.chat_bubble_outline,
+              size: 100,
+              color: Colors.black87,
+            ),
             const SizedBox(height: 12),
             const Text(
               'Chat',
@@ -72,14 +76,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         chat['name']!,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 18,
+                      ),
                       onTap: () {
                         if (chat['name'] == 'Mtro Ali') {
                           Navigator.pushNamed(context, '/chat-detail');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Chat con ${chat['name']} aún no está disponible.'),
+                              content: Text(
+                                'Chat con ${chat['name']} aún no está disponible.',
+                              ),
                               backgroundColor: Colors.grey[800],
                             ),
                           );

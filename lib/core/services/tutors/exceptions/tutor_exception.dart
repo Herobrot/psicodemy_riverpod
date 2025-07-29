@@ -68,4 +68,4 @@ class TutorException implements Exception {
   int get hashCode {
     return type.hashCode ^ message.hashCode ^ details.hashCode;
   }
-} 
+}

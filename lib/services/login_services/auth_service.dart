@@ -51,10 +51,13 @@ class AuthService {
         password: password,
       );
     } catch (e) {
-      // Si hay un error de serialización pero el usuario está autenticado, 
+      // Si hay un error de serialización pero el usuario está autenticado,
       // devolvemos null pero el usuario seguirá logueado
-      if (e.toString().contains('PigeonUserDetails') && _auth.currentUser != null) {
-        print('Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}');
+      if (e.toString().contains('PigeonUserDetails') &&
+          _auth.currentUser != null) {
+        print(
+          'Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}',
+        );
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
@@ -96,7 +99,8 @@ class AuthService {
       }
 
       // Obtiene los detalles de autenticación de la solicitud
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Crea una nueva credencial
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -107,27 +111,30 @@ class AuthService {
       // Inicia sesión en Firebase con la credencial de Google
       return await _auth.signInWithCredential(credential);
     } catch (e) {
-      // Si hay un error de serialización pero el usuario está autenticado, 
+      // Si hay un error de serialización pero el usuario está autenticado,
       // devolvemos null pero el usuario seguirá logueado
-      if (e.toString().contains('PigeonUserDetails') && _auth.currentUser != null) {
-        print('Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}');
+      if (e.toString().contains('PigeonUserDetails') &&
+          _auth.currentUser != null) {
+        print(
+          'Warning: Serialization error but user is authenticated: ${_auth.currentUser?.uid}',
+        );
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
     }
   }
 
-
   Future<bool> checkAndProcessPendingCleanup() async {
     try {
-      final pendingCleanup = await _secureStorage.read(key: 'pending_security_cleanup');
+      final pendingCleanup = await _secureStorage.read(
+        key: 'pending_security_cleanup',
+      );
       if (pendingCleanup != null) {
         print('Procesando limpieza pendiente desde: $pendingCleanup');
-        
 
         await signOut();
         await _secureStorage.deleteAll();
-        
+
         print('Limpieza pendiente completada');
         return true;
       }
@@ -138,15 +145,12 @@ class AuthService {
     }
   }
 
-
   Future<void> clearAllSensitiveData() async {
     try {
-
       await signOut();
-      
-  
+
       await _secureStorage.deleteAll();
-      
+
       print('Todos los datos sensibles han sido eliminados');
     } catch (e) {
       print('Error al eliminar datos sensibles: $e');

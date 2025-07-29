@@ -38,7 +38,10 @@ class ChatUseCases {
   }
 
   // Message use cases
-  Future<List<MessageEntity>> getMessages(String chatId, {int limit = 50}) async {
+  Future<List<MessageEntity>> getMessages(
+    String chatId, {
+    int limit = 50,
+  }) async {
     return await _chatRepository.getMessages(chatId, limit: limit);
   }
 
@@ -65,9 +68,11 @@ class ChatUseCases {
 
   Future<MessageEntity> editMessage(String messageId, String newContent) async {
     // First get the message
-    final messages = await _chatRepository.getMessages(''); // This would need to be refactored
+    final messages = await _chatRepository.getMessages(
+      '',
+    ); // This would need to be refactored
     final message = messages.firstWhere((m) => m.id == messageId);
-    
+
     final updatedMessage = MessageEntity(
       id: message.id,
       chatId: message.chatId,
@@ -83,7 +88,7 @@ class ChatUseCases {
       attachmentUrls: message.attachmentUrls,
       metadata: message.metadata,
     );
-    
+
     return await _chatRepository.updateMessage(updatedMessage);
   }
 
@@ -96,7 +101,10 @@ class ChatUseCases {
   }
 
   // Search use cases
-  Future<List<MessageEntity>> searchMessages(String query, {String? chatId}) async {
+  Future<List<MessageEntity>> searchMessages(
+    String query, {
+    String? chatId,
+  }) async {
     return await _chatRepository.searchMessages(query, chatId: chatId);
   }
 
@@ -116,4 +124,4 @@ class ChatUseCases {
   Stream<MessageEntity> watchNewMessages(String chatId) {
     return _chatRepository.watchNewMessages(chatId);
   }
-} 
+}

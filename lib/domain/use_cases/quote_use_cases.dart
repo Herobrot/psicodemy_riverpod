@@ -75,15 +75,21 @@ class QuoteUseCases {
 
   // Inspiration use cases
   Future<QuoteEntity> getMotivationalQuote() async {
-    return await _quoteRepository.getRandomQuote(category: QuoteCategory.motivation);
+    return await _quoteRepository.getRandomQuote(
+      category: QuoteCategory.motivation,
+    );
   }
 
   Future<QuoteEntity> getHealingQuote() async {
-    return await _quoteRepository.getRandomQuote(category: QuoteCategory.healing);
+    return await _quoteRepository.getRandomQuote(
+      category: QuoteCategory.healing,
+    );
   }
 
   Future<QuoteEntity> getSelfCareQuote() async {
-    return await _quoteRepository.getRandomQuote(category: QuoteCategory.selfCare);
+    return await _quoteRepository.getRandomQuote(
+      category: QuoteCategory.selfCare,
+    );
   }
 
   // Offline support use cases
@@ -103,4 +109,4 @@ class QuoteUseCases {
   Stream<DailyQuoteEntity> watchDailyQuote() {
     return _quoteRepository.watchDailyQuote();
   }
-} 
+}

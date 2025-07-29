@@ -15,13 +15,14 @@ class TutorAppointmentsScreen extends ConsumerStatefulWidget {
   const TutorAppointmentsScreen({super.key});
 
   @override
-  ConsumerState<TutorAppointmentsScreen> createState() => _TutorAppointmentsScreenState();
+  ConsumerState<TutorAppointmentsScreen> createState() =>
+      _TutorAppointmentsScreenState();
 }
 
-class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScreen> {
+class _TutorAppointmentsScreenState
+    extends ConsumerState<TutorAppointmentsScreen> {
   String? _selectedAlumnoId;
   String? realTutorId;
-  
 
   AppointmentModel? _selectedAppointment;
   bool _showFiltroAvanzado = false;
@@ -51,8 +52,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
         setState(() {
           realTutorId = userData.userId;
         });
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     print('realTutorId: $realTutorId');
   }
@@ -60,13 +60,13 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   // Método para recargar las citas
   void _refreshAppointments() {
     print('🔄 Recargando citas...');
-    
+
     setState(() {
       _isRefreshing = true;
     });
-    
+
     ref.refresh(appointmentListProvider);
-    
+
     // Mostrar feedback al usuario
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -75,7 +75,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
         backgroundColor: Colors.blue,
       ),
     );
-    
+
     // Resetear el estado de carga después de un breve delay
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -93,7 +93,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
       _busquedaAlumno = '';
       _currentPage = 1;
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Filtros limpiados'),
@@ -108,7 +108,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     setState(() {
       _currentPage = 1;
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Volviendo a la primera página'),
@@ -122,10 +122,10 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   void _refreshUserNames() {
     final userMappingService = ref.read(userMappingServiceProvider);
     userMappingService.clearCache();
-    
+
     // Invalidar todos los providers de nombres de usuario
     ref.invalidate(userNameProvider);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Actualizando nombres de usuarios...'),
@@ -136,7 +136,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
   }
 
   @override
-  Widget build(BuildContext context) {  
+  Widget build(BuildContext context) {
     final allAppointmentsAsync = ref.watch(appointmentListProvider);
 
     return Scaffold(
@@ -144,8 +144,12 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
         title: const Text('Citas como Tutor'),
         actions: [
           IconButton(
-            icon: Icon(_showFiltroAvanzado ? Icons.filter_alt_off : Icons.filter_alt),
-            tooltip: _showFiltroAvanzado ? 'Ocultar filtros avanzados' : 'Mostrar filtros avanzados',
+            icon: Icon(
+              _showFiltroAvanzado ? Icons.filter_alt_off : Icons.filter_alt,
+            ),
+            tooltip: _showFiltroAvanzado
+                ? 'Ocultar filtros avanzados'
+                : 'Mostrar filtros avanzados',
             onPressed: () {
               setState(() {
                 _showFiltroAvanzado = !_showFiltroAvanzado;
@@ -153,7 +157,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
             },
           ),
           IconButton(
-            icon: _isRefreshing 
+            icon: _isRefreshing
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -229,9 +233,9 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
       body: allAppointmentsAsync.when(
         data: (appointments) {
           // Filtrar citas del tutor actual
-          List<AppointmentModel> filtered = appointments.where((appointment) => 
-            appointment.idTutor == realTutorId
-          ).toList();
+          List<AppointmentModel> filtered = appointments
+              .where((appointment) => appointment.idTutor == realTutorId)
+              .toList();
 
           // Aplicar filtros de estado y búsqueda por ID de alumno
           filtered = filtered
@@ -242,7 +246,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
           // Si quieres mantener el filtro por alumno específico, puedes dejar esto opcional
           // if (_selectedAlumnoId != null) {
           //   filtered = filtered.where((a) => a.idAlumno == _selectedAlumnoId).toList();
-          // } 
+          // }
           filtered.sort((a, b) => b.fechaCita.compareTo(a.fechaCita));
 
           // Paginación local
@@ -275,13 +279,18 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                     ),
                     // Botón de recarga adicional en el área de filtros
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: _isRefreshing ? null : _refreshAppointments,
-                              icon: _isRefreshing 
+                              onPressed: _isRefreshing
+                                  ? null
+                                  : _refreshAppointments,
+                              icon: _isRefreshing
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
@@ -291,11 +300,17 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                                       ),
                                     )
                                   : const Icon(Icons.refresh, size: 18),
-                              label: Text(_isRefreshing ? 'Recargando...' : 'Recargar citas'),
+                              label: Text(
+                                _isRefreshing
+                                    ? 'Recargando...'
+                                    : 'Recargar citas',
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
                             ),
                           ),
@@ -346,13 +361,17 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
               // ),
               Expanded(
                 child: pageItems.isEmpty
-                  ? const Center(child: Text('No hay citas para mostrar'))
-                  : ListView.separated(
-                      itemCount: pageItems.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      itemBuilder: (context, i) => _buildAppointmentCard(pageItems[i]),
-                    ),
+                    ? const Center(child: Text('No hay citas para mostrar'))
+                    : ListView.separated(
+                        itemCount: pageItems.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        itemBuilder: (context, i) =>
+                            _buildAppointmentCard(pageItems[i]),
+                      ),
               ),
               if (filtered.isNotEmpty)
                 _PaginationControls(
@@ -427,7 +446,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                             userId: appointment.idAlumno,
                             prefix: 'Alumno: ',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, 
+                              fontWeight: FontWeight.bold,
                               color: Colors.grey[700],
                             ),
                             overflowVisible: true,
@@ -439,7 +458,11 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 4),
                         Text(_formatDate(appointment.fechaCita)),
                       ],
@@ -450,7 +473,10 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                         Chip(
                           label: Text(appointment.estadoCita.displayName),
                           backgroundColor: estadoColor.withValues(alpha: 0.15),
-                          labelStyle: TextStyle(color: estadoColor, fontWeight: FontWeight.bold),
+                          labelStyle: TextStyle(
+                            color: estadoColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -459,7 +485,11 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
                         padding: const EdgeInsets.only(top: 6.0),
                         child: Row(
                           children: [
-                            Icon(Icons.list_alt, size: 16, color: Colors.orange[700]),
+                            Icon(
+                              Icons.list_alt,
+                              size: 16,
+                              color: Colors.orange[700],
+                            ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
@@ -492,7 +522,8 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TutorAppointmentDetailScreen(appointment: appointmentEntity),
+        builder: (context) =>
+            TutorAppointmentDetailScreen(appointment: appointmentEntity),
       ),
     );
   }
@@ -518,7 +549,7 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
         status = AppointmentStatus.cancelled; // Mapear a cancelado por ahora
         break;
     }
-    
+
     return AppointmentEntity(
       id: model.id,
       tutorId: model.idTutor,
@@ -526,7 +557,8 @@ class _TutorAppointmentsScreenState extends ConsumerState<TutorAppointmentsScree
       studentName: model.idAlumno, // Usar ID como nombre por ahora
       topic: model.reason ?? 'Sin tema especificado',
       scheduledDate: model.fechaCita,
-      timeSlot: '${model.fechaCita.hour.toString().padLeft(2, '0')}:${model.fechaCita.minute.toString().padLeft(2, '0')}',
+      timeSlot:
+          '${model.fechaCita.hour.toString().padLeft(2, '0')}:${model.fechaCita.minute.toString().padLeft(2, '0')}',
       status: status,
       notes: model.reason,
       createdAt: model.createdAt,
@@ -552,18 +584,30 @@ class _AppointmentDetailSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_AppointmentDetailSheet> createState() => _AppointmentDetailSheetState();
+  ConsumerState<_AppointmentDetailSheet> createState() =>
+      _AppointmentDetailSheetState();
 }
 
-class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet> {
+class _AppointmentDetailSheetState
+    extends ConsumerState<_AppointmentDetailSheet> {
   late TextEditingController _todoController;
   late TextEditingController _finishTodoController;
 
   @override
   void initState() {
     super.initState();
-    _todoController = TextEditingController(text: widget.appointment.checklist.where((item) => !item.completed).map((item) => item.description).join(', '));
-    _finishTodoController = TextEditingController(text: widget.appointment.checklist.where((item) => item.completed).map((item) => item.description).join(', '));
+    _todoController = TextEditingController(
+      text: widget.appointment.checklist
+          .where((item) => !item.completed)
+          .map((item) => item.description)
+          .join(', '),
+    );
+    _finishTodoController = TextEditingController(
+      text: widget.appointment.checklist
+          .where((item) => item.completed)
+          .map((item) => item.description)
+          .join(', '),
+    );
   }
 
   @override
@@ -606,13 +650,17 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
       child: Container(
         margin: EdgeInsets.only(top: 40),
         padding: EdgeInsets.only(
-          left: 0, right: 0, top: 0,
+          left: 0,
+          right: 0,
+          top: 0,
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: Center(
           child: Card(
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: SingleChildScrollView(
@@ -631,11 +679,19 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Alumno:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                            Text(
+                              'Alumno:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                              ),
+                            ),
                             Expanded(
                               child: UserNameDisplay(
                                 userId: widget.appointment.idAlumno,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 overflowVisible: true,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -643,7 +699,11 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
                                 const SizedBox(width: 4),
                                 Text(_formatDate(widget.appointment.fechaCita)),
                               ],
@@ -654,7 +714,10 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
                         Chip(
                           label: Text(estado.displayName),
                           backgroundColor: estadoColor.withValues(alpha: 0.15),
-                          labelStyle: TextStyle(color: estadoColor, fontWeight: FontWeight.bold),
+                          labelStyle: TextStyle(
+                            color: estadoColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -713,7 +776,11 @@ class _AppointmentDetailSheetState extends ConsumerState<_AppointmentDetailSheet
     return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildEstadoActions(BuildContext context, EstadoCita estado, Color estadoColor) {
+  Widget _buildEstadoActions(
+    BuildContext context,
+    EstadoCita estado,
+    Color estadoColor,
+  ) {
     final actions = <Widget>[];
     // Acciones según el estado actual
     if (estado == EstadoCita.pendiente) {
@@ -861,4 +928,4 @@ class _PaginationControls extends StatelessWidget {
       ),
     );
   }
-} 
+}

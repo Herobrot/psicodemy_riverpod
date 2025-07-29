@@ -29,6 +29,6 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final isLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateNotifierProvider);
   final loginState = ref.watch(loginStateNotifierProvider);
-  
+
   return authState.status == 'loading' || loginState.status == 'loading';
 });

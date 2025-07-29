@@ -14,9 +14,9 @@ class UserListResponse {
     required this.status,
   });
 
-  factory UserListResponse.fromJson(Map<String, dynamic> json) => 
+  factory UserListResponse.fromJson(Map<String, dynamic> json) =>
       _$UserListResponseFromJson(json);
-  
+
   Map<String, dynamic> toJson() => _$UserListResponseToJson(this);
 }
 
@@ -32,9 +32,9 @@ class UserListData {
     required this.pagination,
   });
 
-  factory UserListData.fromJson(Map<String, dynamic> json) => 
+  factory UserListData.fromJson(Map<String, dynamic> json) =>
       _$UserListDataFromJson(json);
-  
+
   Map<String, dynamic> toJson() => _$UserListDataToJson(this);
 }
 
@@ -62,9 +62,9 @@ class UserListItem {
     required this.updatedAt,
   });
 
-  factory UserListItem.fromJson(Map<String, dynamic> json) => 
+  factory UserListItem.fromJson(Map<String, dynamic> json) =>
       _$UserListItemFromJson(json);
-  
+
   Map<String, dynamic> toJson() => _$UserListItemToJson(this);
 }
 
@@ -89,8 +89,8 @@ class PaginationInfo {
     required this.hasPrev,
   });
 
-  factory PaginationInfo.fromJson(Map<String, dynamic> json) => 
+  factory PaginationInfo.fromJson(Map<String, dynamic> json) =>
       _$PaginationInfoFromJson(json);
-  
+
   Map<String, dynamic> toJson() => _$PaginationInfoToJson(this);
-} 
+}

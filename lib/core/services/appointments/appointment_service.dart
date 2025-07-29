@@ -17,20 +17,24 @@ class AppointmentService {
 
   AppointmentService(this._apiService);
 
-  Future<AppointmentModel> createAppointment(CreateAppointmentRequest request) async {
+  Future<AppointmentModel> createAppointment(
+    CreateAppointmentRequest request,
+  ) async {
     try {
       final data = await _apiService.createAppointment(request.toJson());
-      final citaJson = data['data'] ?? data; 
+      final citaJson = data['data'] ?? data;
       return AppointmentModel.fromJson(citaJson);
     } catch (e) {
       throw AppointmentException.simple(e.toString());
     }
   }
+
   Future<String?> _getCurrentUserTutorId() async {
     try {
+      final completeUserData = await _secureStorage.read(
+        key: 'complete_user_data',
+      );
 
-      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
-      
       if (completeUserData != null) {
         final userJson = json.decode(completeUserData);
         print('🔍 User JSON: $userJson');
@@ -44,7 +48,7 @@ class AppointmentService {
         }
         return userId;
       }
-      
+
       print('⚠️  No se pudo obtener ID del tutor del storage');
       return null;
     } catch (e) {
@@ -72,7 +76,9 @@ class AppointmentService {
         page: page,
         limit: limit,
       );
-      return data.map<AppointmentModel>((json) => AppointmentModel.fromJson(json)).toList();
+      return data
+          .map<AppointmentModel>((json) => AppointmentModel.fromJson(json))
+          .toList();
     } catch (e) {
       throw AppointmentException.simple(e.toString());
     }
@@ -87,7 +93,10 @@ class AppointmentService {
     }
   }
 
-  Future<AppointmentModel> updateAppointment(String id, UpdateAppointmentRequest request) async {
+  Future<AppointmentModel> updateAppointment(
+    String id,
+    UpdateAppointmentRequest request,
+  ) async {
     try {
       final data = await _apiService.updateAppointment(id, request.toJson());
       return AppointmentModel.fromJson(data);
@@ -96,9 +105,15 @@ class AppointmentService {
     }
   }
 
-  Future<AppointmentModel> updateAppointmentStatus(String id, UpdateStatusRequest request) async {
+  Future<AppointmentModel> updateAppointmentStatus(
+    String id,
+    UpdateStatusRequest request,
+  ) async {
     try {
-      final data = await _apiService.updateAppointmentStatus(id, request.toJson());
+      final data = await _apiService.updateAppointmentStatus(
+        id,
+        request.toJson(),
+      );
       return AppointmentModel.fromJson(data);
     } catch (e) {
       throw AppointmentException.simple(e.toString());
@@ -135,7 +150,6 @@ class AppointmentService {
     DateTime fechaCita, {
     String? excludeAppointmentId,
   }) async {
-
     final fechaInicio = fechaCita.subtract(const Duration(hours: 1));
     final fechaFin = fechaCita.add(const Duration(hours: 1));
     final appointments = await getAppointments(
@@ -147,7 +161,8 @@ class AppointmentService {
     );
 
     final activeAppointments = appointments.where((appointment) {
-      if (excludeAppointmentId != null && appointment.id == excludeAppointmentId) {
+      if (excludeAppointmentId != null &&
+          appointment.id == excludeAppointmentId) {
         return false;
       }
       return appointment.estadoCita != EstadoCita.cancelada;
@@ -161,4 +176,4 @@ class AppointmentService {
     }
     return false;
   }
-} 
+}

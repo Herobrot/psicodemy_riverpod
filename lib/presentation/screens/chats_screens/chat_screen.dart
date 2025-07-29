@@ -18,7 +18,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -36,20 +36,22 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 );
               },
               child: CircleAvatar(
-                backgroundImage: user?.photoURL != null 
-                  ? NetworkImage(user!.photoURL!)
-                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                child: user?.photoURL == null 
-                  ? Text(
-                      user?.email?.isNotEmpty == true 
-                        ? user!.email![0].toUpperCase() 
-                        : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage(
+                        'https://lh3.googleusercontent.com/a/default-user=s96-c',
                       ),
-                    )
-                  : null,
+                child: user?.photoURL == null
+                    ? Text(
+                        user?.email?.isNotEmpty == true
+                            ? user!.email![0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -69,7 +71,10 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 SizedBox(width: 4),
                 Text(">", style: TextStyle(color: Colors.grey)),
                 SizedBox(width: 4),
-                Text("Chat con Mtro Ali", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  "Chat con Mtro Ali",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),
@@ -86,13 +91,18 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               child: Row(
                 children: [
                   const CircleAvatar(
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
+                    backgroundImage: NetworkImage(
+                      'https://i.pravatar.cc/150?img=1',
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
                       'Mtro Ali',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -100,7 +110,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const TutorProfileScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const TutorProfileScreen(),
+                        ),
                       );
                     },
                   ),
@@ -119,10 +131,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                   timestamp: 'Enviado 10/20/25 13:59 PM',
                 ),
                 const SizedBox(height: 12),
-                _buildMessageBubble(
-                  isSentByMe: true,
-                  message: 'Hola!',
-                ),
+                _buildMessageBubble(isSentByMe: true, message: 'Hola!'),
               ],
             ),
           ),
@@ -130,39 +139,45 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         ],
       ),
       bottomNavigationBar: FooterNavBar(
-  currentIndex: _currentIndex,
-  onTap: (index) {
-    setState(() {
-      _currentIndex = index;
-    });
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
 
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/citas');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/chats');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/foros');
-        break;
-      case 4:
-        Navigator.pushReplacementNamed(context, '/settings');
-        break;
-    }
-  },
-),
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, '/citas');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/chats');
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, '/foros');
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, '/settings');
+              break;
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildMessageBubble({required bool isSentByMe, required String message, String? timestamp}) {
+  Widget _buildMessageBubble({
+    required bool isSentByMe,
+    required String message,
+    String? timestamp,
+  }) {
     return Align(
       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: isSentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isSentByMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -170,10 +185,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               color: isSentByMe ? Colors.blue : Colors.pink[200],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
-            ),
+            child: Text(message, style: const TextStyle(color: Colors.white)),
           ),
           if (timestamp != null)
             Padding(

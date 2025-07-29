@@ -22,7 +22,8 @@ class SettingsEntity {
     this.lastUpdated,
   });
 
-  factory SettingsEntity.fromJson(Map<String, dynamic> json) => _$SettingsEntityFromJson(json);
+  factory SettingsEntity.fromJson(Map<String, dynamic> json) =>
+      _$SettingsEntityFromJson(json);
   Map<String, dynamic> toJson() => _$SettingsEntityToJson(this);
 }
 
@@ -50,7 +51,8 @@ class NotificationSettings {
     this.mutedUsers = const [],
   });
 
-  factory NotificationSettings.fromJson(Map<String, dynamic> json) => _$NotificationSettingsFromJson(json);
+  factory NotificationSettings.fromJson(Map<String, dynamic> json) =>
+      _$NotificationSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
 
   NotificationSettings copyWith({
@@ -96,7 +98,8 @@ class PrivacySettings {
     this.blockedUsers = const [],
   });
 
-  factory PrivacySettings.fromJson(Map<String, dynamic> json) => _$PrivacySettingsFromJson(json);
+  factory PrivacySettings.fromJson(Map<String, dynamic> json) =>
+      _$PrivacySettingsFromJson(json);
   Map<String, dynamic> toJson() => _$PrivacySettingsToJson(this);
 
   PrivacySettings copyWith({
@@ -134,7 +137,8 @@ class AppearanceSettings {
     this.reduceAnimations = false,
   });
 
-  factory AppearanceSettings.fromJson(Map<String, dynamic> json) => _$AppearanceSettingsFromJson(json);
+  factory AppearanceSettings.fromJson(Map<String, dynamic> json) =>
+      _$AppearanceSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$AppearanceSettingsToJson(this);
 
   AppearanceSettings copyWith({
@@ -170,7 +174,8 @@ class ChatSettings {
     this.messageRetention = MessageRetention.forever,
   });
 
-  factory ChatSettings.fromJson(Map<String, dynamic> json) => _$ChatSettingsFromJson(json);
+  factory ChatSettings.fromJson(Map<String, dynamic> json) =>
+      _$ChatSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$ChatSettingsToJson(this);
 
   ChatSettings copyWith({
@@ -204,7 +209,8 @@ class ForumSettings {
     this.defaultSortOrder = SortOrder.newest,
   });
 
-  factory ForumSettings.fromJson(Map<String, dynamic> json) => _$ForumSettingsFromJson(json);
+  factory ForumSettings.fromJson(Map<String, dynamic> json) =>
+      _$ForumSettingsFromJson(json);
   Map<String, dynamic> toJson() => _$ForumSettingsToJson(this);
 
   ForumSettings copyWith({
@@ -222,32 +228,13 @@ class ForumSettings {
   }
 }
 
-enum ProfileVisibility {
-  public,
-  private,
-  friendsOnly,
-}
+enum ProfileVisibility { public, private, friendsOnly }
 
-enum ThemeMode {
-  light,
-  dark,
-  system,
-}
+enum ThemeMode { light, dark, system }
 
-enum MessageRetention {
-  oneWeek,
-  oneMonth,
-  threeMonths,
-  oneYear,
-  forever,
-}
+enum MessageRetention { oneWeek, oneMonth, threeMonths, oneYear, forever }
 
-enum SortOrder {
-  newest,
-  oldest,
-  mostLiked,
-  mostCommented,
-}
+enum SortOrder { newest, oldest, mostLiked, mostCommented }
 
 // Import ForumCategory from forum_entity
 enum ForumCategory {
@@ -257,4 +244,4 @@ enum ForumCategory {
   questions,
   resources,
   achievements,
-} 
+}

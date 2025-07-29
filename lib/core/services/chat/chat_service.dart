@@ -62,9 +62,7 @@ class ChatService {
   Future<List<ChatAttemptModel>> getChatAttempts({
     required String estudianteId,
   }) async {
-    return await _chatRepository.getChatAttempts(
-      estudianteId: estudianteId,
-    );
+    return await _chatRepository.getChatAttempts(estudianteId: estudianteId);
   }
 
   Future<Map<String, dynamic>> getChatStatus() async {
@@ -75,12 +73,8 @@ class ChatService {
     return await _chatRepository.getAiInfo();
   }
 
-  Future<Map<String, dynamic>> testAi({
-    required String mensaje,
-  }) async {
-    return await _chatRepository.testAi(
-      mensaje: mensaje,
-    );
+  Future<Map<String, dynamic>> testAi({required String mensaje}) async {
+    return await _chatRepository.testAi(mensaje: mensaje);
   }
 
   // Conversaciones 1 a 1
@@ -137,4 +131,4 @@ class ChatService {
 final chatServiceProvider = Provider<ChatService>((ref) {
   final chatRepository = ref.watch(chatRepositoryProvider);
   return ChatService(chatRepository);
-}); 
+});

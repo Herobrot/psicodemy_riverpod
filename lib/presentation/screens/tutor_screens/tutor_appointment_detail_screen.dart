@@ -11,10 +11,12 @@ class TutorAppointmentDetailScreen extends ConsumerStatefulWidget {
   const TutorAppointmentDetailScreen({super.key, required this.appointment});
 
   @override
-  ConsumerState<TutorAppointmentDetailScreen> createState() => _TutorAppointmentDetailScreenState();
+  ConsumerState<TutorAppointmentDetailScreen> createState() =>
+      _TutorAppointmentDetailScreenState();
 }
 
-class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentDetailScreen> {
+class _TutorAppointmentDetailScreenState
+    extends ConsumerState<TutorAppointmentDetailScreen> {
   late List<ChecklistItem> _checklist;
   late TextEditingController _reasonController;
 
@@ -23,7 +25,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
     super.initState();
     // Inicializar checklist vacío por ahora, ya que AppointmentEntity no tiene checklist
     _checklist = [];
-    _reasonController = TextEditingController(text: widget.appointment.notes ?? '');
+    _reasonController = TextEditingController(
+      text: widget.appointment.notes ?? '',
+    );
   }
 
   @override
@@ -64,7 +68,12 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
                   setState(() {
-                    _checklist.add(ChecklistItem(description: controller.text.trim(), completed: false));
+                    _checklist.add(
+                      ChecklistItem(
+                        description: controller.text.trim(),
+                        completed: false,
+                      ),
+                    );
                   });
                   Navigator.pop(context);
                   // Actualizar en la API
@@ -83,7 +92,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
     showDialog(
       context: context,
       builder: (context) {
-        final controller = TextEditingController(text: _checklist[index].description);
+        final controller = TextEditingController(
+          text: _checklist[index].description,
+        );
         return AlertDialog(
           title: const Text('Editar tarea'),
           content: TextField(
@@ -100,7 +111,10 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
                   setState(() {
-                    _checklist[index] = ChecklistItem(description: controller.text.trim(), completed: _checklist[index].completed);
+                    _checklist[index] = ChecklistItem(
+                      description: controller.text.trim(),
+                      completed: _checklist[index].completed,
+                    );
                   });
                   Navigator.pop(context);
                   // Actualizar en la API
@@ -129,7 +143,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Cancelar Cita'),
-          content: const Text('¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.'),
+          content: const Text(
+            '¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -158,7 +174,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Cita'),
-          content: const Text('¿Estás seguro de que deseas confirmar esta cita?'),
+          content: const Text(
+            '¿Estás seguro de que deseas confirmar esta cita?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -187,7 +205,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Marcar como Completa'),
-          content: const Text('¿Estás seguro de que deseas marcar esta cita como completa?'),
+          content: const Text(
+            '¿Estás seguro de que deseas marcar esta cita como completa?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -216,7 +236,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Marcar como No Asistió'),
-          content: const Text('¿Estás seguro de que deseas marcar esta cita como "No Asistió"?'),
+          content: const Text(
+            '¿Estás seguro de que deseas marcar esta cita como "No Asistió"?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -242,23 +264,18 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
   Future<void> _updateAppointmentStatus(String status) async {
     try {
       final apiService = ref.read(apiServiceProvider);
-      
+
       // Mostrar indicador de carga
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Actualizar estado de la cita
-      await apiService.updateAppointmentStatus(
-        widget.appointment.id,
-        {
-          'estado_cita': status,
-        },
-      );
+      await apiService.updateAppointmentStatus(widget.appointment.id, {
+        'estado_cita': status,
+      });
 
       // Cerrar indicador de carga
       Navigator.of(context).pop();
@@ -292,20 +309,21 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
   Future<void> _updateChecklist() async {
     try {
       final apiService = ref.read(apiServiceProvider);
-      
+
       // Convertir checklist a formato de API
-      final checklistData = _checklist.map((item) => {
-        'description': item.description,
-        'completed': item.completed,
-      }).toList();
+      final checklistData = _checklist
+          .map(
+            (item) => {
+              'description': item.description,
+              'completed': item.completed,
+            },
+          )
+          .toList();
 
       // Actualizar cita con nuevo checklist
-      await apiService.updateAppointmentStatus(
-        widget.appointment.id,
-        {
-          'checklist': checklistData,
-        },
-      );
+      await apiService.updateAppointmentStatus(widget.appointment.id, {
+        'checklist': checklistData,
+      });
 
       print('✅ Checklist actualizado exitosamente');
     } catch (e) {
@@ -322,7 +340,7 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
   Widget _buildActionButtons() {
     // Obtener el estado actual de la cita
     final currentStatus = widget.appointment.statusText.toLowerCase();
-    
+
     switch (currentStatus) {
       case 'pendiente':
         return Row(
@@ -350,7 +368,7 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
             ),
           ],
         );
-      
+
       case 'confirmada':
         return Row(
           children: [
@@ -377,12 +395,12 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
             ),
           ],
         );
-      
+
       case 'completada':
       case 'cancelada':
       case 'no_asistio':
         return const SizedBox.shrink(); // No mostrar botones para estos estados
-      
+
       default:
         return Row(
           children: [
@@ -442,7 +460,9 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
                 radius: 18,
                 backgroundImage: user?.photoURL != null
                     ? NetworkImage(user!.photoURL!)
-                    : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
+                    : const NetworkImage(
+                        'https://lh3.googleusercontent.com/a/default-user=s96-c',
+                      ),
                 child: user?.photoURL == null
                     ? Text(
                         user?.email?.isNotEmpty == true
@@ -467,11 +487,20 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
             // Información del alumno usando UserNameDisplay
             Row(
               children: [
-                const Text('Alumno: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                const Text(
+                  'Alumno: ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
                 Expanded(
                   child: UserNameDisplay(
                     userId: widget.appointment.studentId,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                     overflowVisible: true,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -479,11 +508,20 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
               ],
             ),
             const SizedBox(height: 8),
-            Text('Fecha: ${_formatDate(widget.appointment.scheduledDate)}', style: const TextStyle(color: Colors.black87)),
+            Text(
+              'Fecha: ${_formatDate(widget.appointment.scheduledDate)}',
+              style: const TextStyle(color: Colors.black87),
+            ),
             const SizedBox(height: 8),
-            Text('Hora: ${widget.appointment.timeSlot.isNotEmpty ? widget.appointment.timeSlot : '${widget.appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${widget.appointment.scheduledDate.minute.toString().padLeft(2, '0')}'}', style: const TextStyle(color: Colors.black87)),
+            Text(
+              'Hora: ${widget.appointment.timeSlot.isNotEmpty ? widget.appointment.timeSlot : '${widget.appointment.scheduledDate.hour.toString().padLeft(2, '0')}:${widget.appointment.scheduledDate.minute.toString().padLeft(2, '0')}'}',
+              style: const TextStyle(color: Colors.black87),
+            ),
             const SizedBox(height: 8),
-            Text('Tema: ${widget.appointment.topic.isNotEmpty ? widget.appointment.topic : 'Sin tema especificado'}', style: const TextStyle(color: Colors.black87)),
+            Text(
+              'Tema: ${widget.appointment.topic.isNotEmpty ? widget.appointment.topic : 'Sin tema especificado'}',
+              style: const TextStyle(color: Colors.black87),
+            ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -500,15 +538,22 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
               ),
             ),
             const SizedBox(height: 16),
-            if (widget.appointment.notes != null && widget.appointment.notes!.isNotEmpty)
+            if (widget.appointment.notes != null &&
+                widget.appointment.notes!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text('Notas: ${widget.appointment.notes}', style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  'Notas: ${widget.appointment.notes}',
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Checklist de tareas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Checklist de tareas',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: _addChecklistItem,
@@ -518,40 +563,40 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
             ),
             Expanded(
               child: _checklist.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No hay tareas en el checklist',
-                      style: TextStyle(color: Colors.grey),
+                  ? const Center(
+                      child: Text(
+                        'No hay tareas en el checklist',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _checklist.length,
+                      itemBuilder: (context, index) {
+                        final item = _checklist[index];
+                        return ListTile(
+                          leading: Checkbox(
+                            value: item.completed,
+                            onChanged: (_) => _toggleCompleted(index),
+                          ),
+                          title: Text(item.description),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _editChecklistItem(index),
+                                tooltip: 'Editar',
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _removeChecklistItem(index),
+                                tooltip: 'Eliminar',
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: _checklist.length,
-                    itemBuilder: (context, index) {
-                      final item = _checklist[index];
-                      return ListTile(
-                        leading: Checkbox(
-                          value: item.completed,
-                          onChanged: (_) => _toggleCompleted(index),
-                        ),
-                        title: Text(item.description),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _editChecklistItem(index),
-                              tooltip: 'Editar',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => _removeChecklistItem(index),
-                              tooltip: 'Eliminar',
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
             ),
             const SizedBox(height: 16),
             // Botones de acción según el estado actual
@@ -566,5 +611,3 @@ class _TutorAppointmentDetailScreenState extends ConsumerState<TutorAppointmentD
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-
- 

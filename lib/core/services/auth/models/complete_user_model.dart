@@ -10,7 +10,7 @@ class CompleteUserModel {
   final bool isEmailVerified;
   final DateTime? createdAt;
   final DateTime? lastSignInAt;
-  
+
   // Datos de la API
   final String? userId; // ID del usuario en la API
   final String? nombre;
@@ -70,12 +70,16 @@ class CompleteUserModel {
       lastSignInAt: firebaseUser.lastSignInAt,
       userId: apiResponse.data.userId,
       nombre: apiResponse.data.nombre,
-      tipoUsuario: apiResponse.data.tipoUsuario, // Usando el getter que convierte string a enum
+      tipoUsuario: apiResponse
+          .data
+          .tipoUsuario, // Usando el getter que convierte string a enum
       apiToken: apiResponse.data.token,
       apiCreatedAt: null, // No disponible en la respuesta actual
       apiUpdatedAt: null, // No disponible en la respuesta actual
       firebaseUser: firebaseUser,
-      apiUser: ApiUser.fromApiResponseData(apiResponse.data), // Creando ApiUser desde los datos
+      apiUser: ApiUser.fromApiResponseData(
+        apiResponse.data,
+      ), // Creando ApiUser desde los datos
     );
   }
 
@@ -126,8 +130,7 @@ class CompleteUserModel {
   bool get isAlumno => tipoUsuario == TipoUsuario.alumno;
 
   // Obtener el nombre a mostrar
-  String get displayNameOrEmail => 
-    nombre ?? displayName ?? email.split('@')[0];
+  String get displayNameOrEmail => nombre ?? displayName ?? email.split('@')[0];
 
   // Convertir a JSON
   Map<String, dynamic> toJson() {
@@ -164,7 +167,7 @@ class CompleteUserModel {
           ? DateTime.fromMillisecondsSinceEpoch(json['lastSignInAt'] as int)
           : null,
     );
-    
+
     return CompleteUserModel(
       uid: json['uid'] as String,
       email: json['email'] as String,
@@ -197,7 +200,10 @@ class CompleteUserModel {
   }
 
   // Constructor específico para respuesta de API del backend
-  factory CompleteUserModel.fromApiResponse(Map<String, dynamic> apiData, UserModel firebaseUser) {
+  factory CompleteUserModel.fromApiResponse(
+    Map<String, dynamic> apiData,
+    UserModel firebaseUser,
+  ) {
     return CompleteUserModel(
       uid: firebaseUser.uid,
       email: firebaseUser.email,
@@ -220,7 +226,7 @@ class CompleteUserModel {
   // Método auxiliar para parsear el tipo de usuario
   static TipoUsuario _parseUserType(dynamic userType) {
     if (userType == null) return TipoUsuario.alumno;
-    
+
     switch (userType.toString().toLowerCase()) {
       case 'tutor':
         return TipoUsuario.tutor;
@@ -233,36 +239,36 @@ class CompleteUserModel {
   @override
   String toString() {
     return 'CompleteUserModel(uid: $uid, email: $email, displayName: $displayName, '
-           'userId: $userId, nombre: $nombre, tipoUsuario: $tipoUsuario, '
-           'hasApiData: $hasApiData)';
+        'userId: $userId, nombre: $nombre, tipoUsuario: $tipoUsuario, '
+        'hasApiData: $hasApiData)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is CompleteUserModel &&
-      other.uid == uid &&
-      other.email == email &&
-      other.displayName == displayName &&
-      other.photoURL == photoURL &&
-      other.isEmailVerified == isEmailVerified &&
-      other.userId == userId &&
-      other.nombre == nombre &&
-      other.tipoUsuario == tipoUsuario &&
-      other.apiToken == apiToken;
+        other.uid == uid &&
+        other.email == email &&
+        other.displayName == displayName &&
+        other.photoURL == photoURL &&
+        other.isEmailVerified == isEmailVerified &&
+        other.userId == userId &&
+        other.nombre == nombre &&
+        other.tipoUsuario == tipoUsuario &&
+        other.apiToken == apiToken;
   }
 
   @override
   int get hashCode {
     return uid.hashCode ^
-      email.hashCode ^
-      displayName.hashCode ^
-      photoURL.hashCode ^
-      isEmailVerified.hashCode ^
-      userId.hashCode ^
-      nombre.hashCode ^
-      tipoUsuario.hashCode ^
-      apiToken.hashCode;
+        email.hashCode ^
+        displayName.hashCode ^
+        photoURL.hashCode ^
+        isEmailVerified.hashCode ^
+        userId.hashCode ^
+        nombre.hashCode ^
+        tipoUsuario.hashCode ^
+        apiToken.hashCode;
   }
-} 
+}

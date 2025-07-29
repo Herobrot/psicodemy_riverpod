@@ -17,16 +17,16 @@ final onboardingRepository = Provider((ref) => OnboardingRepository(ref));
 
 class OnboardingRepository {
   final Ref _ref;
-  
+
   OnboardingRepository(this._ref);
-  
+
   Future<void> markOnboardingAsSeen() async {
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.setBool('has_seen_onboarding', true);
   }
-  
+
   Future<bool> hasSeenOnboarding() async {
     final prefs = _ref.read(sharedPreferencesProvider);
     return prefs.getBool('has_seen_onboarding') ?? false;
   }
-} 
+}

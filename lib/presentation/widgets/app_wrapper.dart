@@ -10,7 +10,7 @@ class AppWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isFirstTimeAsync = ref.watch(isFirstTimeProvider);
-    
+
     return isFirstTimeAsync.when(
       data: (isFirstTime) {
         if (isFirstTime) {
@@ -52,4 +52,4 @@ class AppWrapper extends ConsumerWidget {
       ),
     );
   }
-} 
+}

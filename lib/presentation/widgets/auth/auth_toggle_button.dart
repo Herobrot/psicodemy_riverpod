@@ -17,10 +17,7 @@ class AuthToggleButton extends StatelessWidget {
       children: [
         Text(
           isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         TextButton(
           onPressed: onToggle,

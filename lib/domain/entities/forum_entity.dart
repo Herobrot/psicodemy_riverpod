@@ -44,7 +44,8 @@ class ForumPostEntity {
     this.status,
   });
 
-  factory ForumPostEntity.fromJson(Map<String, dynamic> json) => _$ForumPostEntityFromJson(json);
+  factory ForumPostEntity.fromJson(Map<String, dynamic> json) =>
+      _$ForumPostEntityFromJson(json);
   Map<String, dynamic> toJson() => _$ForumPostEntityToJson(this);
 
   ForumPostEntity copyWith({
@@ -122,7 +123,8 @@ class ForumCommentEntity {
     this.replies = const [],
   });
 
-  factory ForumCommentEntity.fromJson(Map<String, dynamic> json) => _$ForumCommentEntityFromJson(json);
+  factory ForumCommentEntity.fromJson(Map<String, dynamic> json) =>
+      _$ForumCommentEntityFromJson(json);
   Map<String, dynamic> toJson() => _$ForumCommentEntityToJson(this);
 }
 
@@ -135,9 +137,4 @@ enum ForumCategory {
   achievements,
 }
 
-enum PostStatus {
-  draft,
-  published,
-  archived,
-  reported,
-} 
+enum PostStatus { draft, published, archived, reported }

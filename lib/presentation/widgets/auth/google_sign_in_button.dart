@@ -5,10 +5,7 @@ import '../../state_notifiers/auth_state_notifier.dart';
 class GoogleSignInButton extends ConsumerWidget {
   final bool isLoading;
 
-  const GoogleSignInButton({
-    super.key,
-    required this.isLoading,
-  });
+  const GoogleSignInButton({super.key, required this.isLoading});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +14,7 @@ class GoogleSignInButton extends ConsumerWidget {
       height: 56,
       child: OutlinedButton.icon(
         onPressed: isLoading ? null : () => _signInWithGoogle(ref),
-        icon: isLoading 
+        icon: isLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
@@ -29,10 +26,7 @@ class GoogleSignInButton extends ConsumerWidget {
                 width: 24,
                 errorBuilder: (context, error, stackTrace) {
                   // Fallback si no tienes el logo de Google
-                  return const Icon(
-                    Icons.login,
-                    color: Colors.red,
-                  );
+                  return const Icon(Icons.login, color: Colors.red);
                 },
               ),
         label: Text(

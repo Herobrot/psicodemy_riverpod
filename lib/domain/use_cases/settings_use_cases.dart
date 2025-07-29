@@ -166,4 +166,4 @@ class SettingsUseCases {
   Stream<SettingsEntity> watchSettings() {
     return _settingsRepository.watchSettings();
   }
-} 
+}

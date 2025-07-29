@@ -17,23 +17,25 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
-  
+
   // Solo considerar autenticado si tanto Firebase como el usuario completo están disponibles
   final firebaseAuth = authState.when(
     data: (user) => user != null,
     loading: () => false,
     error: (_, __) => false,
   );
-  
+
   final completeUserAuth = completeUserAsync.when(
     data: (user) => user != null,
     loading: () => false,
     error: (_, __) => false,
   );
-  
+
   final isAuthenticated = firebaseAuth && completeUserAuth;
-  print('🔍 isAuthenticatedProvider: firebaseAuth=$firebaseAuth, completeUserAuth=$completeUserAuth, isAuthenticated=$isAuthenticated');
-  
+  print(
+    '🔍 isAuthenticatedProvider: firebaseAuth=$firebaseAuth, completeUserAuth=$completeUserAuth, isAuthenticated=$isAuthenticated',
+  );
+
   return isAuthenticated;
 });
 
@@ -41,11 +43,13 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final isAuthLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
-  
+
   // Considerar loading si cualquiera de los dos streams está cargando
   final isLoading = authState.isLoading || completeUserAsync.isLoading;
-  print('🔍 isAuthLoadingProvider: authStateLoading=${authState.isLoading}, completeUserLoading=${completeUserAsync.isLoading}, isLoading=$isLoading');
-  
+  print(
+    '🔍 isAuthLoadingProvider: authStateLoading=${authState.isLoading}, completeUserLoading=${completeUserAsync.isLoading}, isLoading=$isLoading',
+  );
+
   return isLoading;
 });
 
@@ -72,9 +76,11 @@ final currentUserProvider = Provider<User?>((ref) {
 // Provider para el CompleteUserModel actual
 final currentCompleteUserProvider = StreamProvider<CompleteUserModel?>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
-  
-  print('🔍 currentCompleteUserProvider: Configurando stream de authStateChanges');
-  
+
+  print(
+    '🔍 currentCompleteUserProvider: Configurando stream de authStateChanges',
+  );
+
   return authRepository.authStateChanges;
 });
 
@@ -83,8 +89,12 @@ final currentUserTypeProvider = Provider<TipoUsuario?>((ref) {
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
   final userType = completeUserAsync.when(
     data: (completeUser) {
-      print('🔍 currentUserTypeProvider: CompleteUser: ${completeUser?.nombre ?? 'null'}');
-      print('🔍 currentUserTypeProvider: TipoUsuario: ${completeUser?.tipoUsuario ?? 'null'}');
+      print(
+        '🔍 currentUserTypeProvider: CompleteUser: ${completeUser?.nombre ?? 'null'}',
+      );
+      print(
+        '🔍 currentUserTypeProvider: TipoUsuario: ${completeUser?.tipoUsuario ?? 'null'}',
+      );
       return completeUser?.tipoUsuario;
     },
     loading: () {
@@ -121,32 +131,38 @@ final authActionsProvider = Provider((ref) => AuthActions(ref));
 
 class AuthActions {
   final Ref _ref;
-  
+
   AuthActions(this._ref);
-  
+
   Future<void> signOut() async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     await firebaseAuth.signOut();
   }
-  
-  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
+
+  Future<UserCredential> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     return await firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
-  
-  Future<UserCredential> createUserWithEmailAndPassword(String email, String password) async {
+
+  Future<UserCredential> createUserWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     return await firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
-  
+
   Future<void> sendPasswordResetEmail(String email) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     await firebaseAuth.sendPasswordResetEmail(email: email);
   }
-} 
+}

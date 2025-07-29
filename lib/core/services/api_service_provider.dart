@@ -6,4 +6,4 @@ import 'auth/providers/secure_storage_provider.dart';
 final apiServiceProvider = Provider<ApiService>((ref) {
   final storage = ref.watch(secureStorageProvider);
   return ApiService(secureStorage: storage);
-}); 
+});

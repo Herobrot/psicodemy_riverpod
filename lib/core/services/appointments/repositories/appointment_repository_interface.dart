@@ -60,10 +60,16 @@ abstract class AppointmentRepositoryInterface {
   });
 
   /// Actualizar una cita completa
-  Future<AppointmentModel> updateAppointment(String id, UpdateAppointmentRequest request);
+  Future<AppointmentModel> updateAppointment(
+    String id,
+    UpdateAppointmentRequest request,
+  );
 
   /// Actualizar solo el estado de una cita
-  Future<AppointmentModel> updateAppointmentStatus(String id, EstadoCita estado);
+  Future<AppointmentModel> updateAppointmentStatus(
+    String id,
+    EstadoCita estado,
+  );
 
   /// Confirmar una cita
   Future<AppointmentModel> confirmAppointment(String id);
@@ -72,7 +78,11 @@ abstract class AppointmentRepositoryInterface {
   Future<AppointmentModel> cancelAppointment(String id);
 
   /// Completar una cita
-  Future<AppointmentModel> completeAppointment(String id, {Checklist? checklist, String? reason});
+  Future<AppointmentModel> completeAppointment(
+    String id, {
+    Checklist? checklist,
+    String? reason,
+  });
 
   /// Marcar como no asistida
   Future<AppointmentModel> markAsNoShow(String id);
@@ -106,4 +116,4 @@ abstract class AppointmentRepositoryInterface {
 
   /// Obtener información detallada del servicio
   Future<Map<String, dynamic>> getServiceHealth();
-} 
+}

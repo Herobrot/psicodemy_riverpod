@@ -9,9 +9,6 @@ final googleSignInProvider = Provider<GoogleSignIn>((ref) {
     // Configuración para iOS (si es necesario)
     // iosClientId: 'TU_IOS_CLIENT_ID.apps.googleusercontent.com',
     // Configuración adicional
-    scopes: [
-      'email',
-      'profile',
-    ],
+    scopes: ['email', 'profile'],
   );
 });

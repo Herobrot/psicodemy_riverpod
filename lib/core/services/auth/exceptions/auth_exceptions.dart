@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_failure.dart';
 
 class AuthExceptions {
-  static AuthFailure handleFirebaseAuthException(FirebaseAuthException exception) {
+  static AuthFailure handleFirebaseAuthException(
+    FirebaseAuthException exception,
+  ) {
     switch (exception.code) {
       case 'user-not-found':
         return AuthFailure.userNotFound(exception.message);
@@ -29,9 +31,13 @@ class AuthExceptions {
 
   static AuthFailure handleGoogleSignInException(Exception exception) {
     if (exception.toString().contains('sign_in_canceled')) {
-      return AuthFailure.googleSignInCancelled('El usuario canceló el inicio de sesión');
+      return AuthFailure.googleSignInCancelled(
+        'El usuario canceló el inicio de sesión',
+      );
     } else if (exception.toString().contains('network_error')) {
-      return AuthFailure.networkError('Error de red durante el inicio de sesión con Google');
+      return AuthFailure.networkError(
+        'Error de red durante el inicio de sesión con Google',
+      );
     } else {
       return AuthFailure.googleSignInFailed(exception.toString());
     }

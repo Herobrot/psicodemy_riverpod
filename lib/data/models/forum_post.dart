@@ -39,4 +39,4 @@ class ForumPost {
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
-} 
+}

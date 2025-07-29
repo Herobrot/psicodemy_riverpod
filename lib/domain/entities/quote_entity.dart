@@ -34,7 +34,8 @@ class QuoteEntity {
     this.featuredAt,
   });
 
-  factory QuoteEntity.fromJson(Map<String, dynamic> json) => _$QuoteEntityFromJson(json);
+  factory QuoteEntity.fromJson(Map<String, dynamic> json) =>
+      _$QuoteEntityFromJson(json);
   Map<String, dynamic> toJson() => _$QuoteEntityToJson(this);
 }
 
@@ -56,7 +57,8 @@ class DailyQuoteEntity {
     this.userReflection,
   });
 
-  factory DailyQuoteEntity.fromJson(Map<String, dynamic> json) => _$DailyQuoteEntityFromJson(json);
+  factory DailyQuoteEntity.fromJson(Map<String, dynamic> json) =>
+      _$DailyQuoteEntityFromJson(json);
   Map<String, dynamic> toJson() => _$DailyQuoteEntityToJson(this);
 }
 
@@ -69,4 +71,4 @@ enum QuoteCategory {
   growth,
   resilience,
   hope,
-} 
+}

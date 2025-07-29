@@ -31,16 +31,16 @@ class AppointmentEntity {
   bool get isToday {
     final now = DateTime.now();
     return scheduledDate.year == now.year &&
-           scheduledDate.month == now.month &&
-           scheduledDate.day == now.day;
+        scheduledDate.month == now.month &&
+        scheduledDate.day == now.day;
   }
 
   // Método para verificar si la cita es de mañana
   bool get isTomorrow {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     return scheduledDate.year == tomorrow.year &&
-           scheduledDate.month == tomorrow.month &&
-           scheduledDate.day == tomorrow.day;
+        scheduledDate.month == tomorrow.month &&
+        scheduledDate.day == tomorrow.day;
   }
 
   // Método para obtener el estado como string
@@ -155,4 +155,4 @@ extension AppointmentStatusExtension on AppointmentStatus {
         return 'rescheduled';
     }
   }
-} 
+}

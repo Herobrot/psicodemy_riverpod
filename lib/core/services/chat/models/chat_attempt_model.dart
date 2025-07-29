@@ -21,9 +21,11 @@ class ChatAttemptModel {
     return ChatAttemptModel(
       id: json['id'] ?? '',
       estudianteId: json['estudiante_id'] ?? '',
-      fechaInicio: DateTime.parse(json['fecha_inicio'] ?? DateTime.now().toIso8601String()),
-      fechaFin: json['fecha_fin'] != null 
-          ? DateTime.parse(json['fecha_fin']) 
+      fechaInicio: DateTime.parse(
+        json['fecha_inicio'] ?? DateTime.now().toIso8601String(),
+      ),
+      fechaFin: json['fecha_fin'] != null
+          ? DateTime.parse(json['fecha_fin'])
           : null,
       duracionMinutos: json['duracion_minutos']?.toDouble(),
       mensajesEnviados: json['mensajes_enviados'] ?? 0,
@@ -62,4 +64,4 @@ class ChatAttemptModel {
       estado: estado ?? this.estado,
     );
   }
-} 
+}

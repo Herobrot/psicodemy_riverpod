@@ -32,8 +32,12 @@ class ChatMessageModel {
       estado: json['estado'] ?? 'enviado',
       fecha: DateTime.parse(json['fecha'] ?? DateTime.now().toIso8601String()),
       usuarioId: json['usuario_id'] ?? '',
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updated_at'] ?? DateTime.now().toIso8601String(),
+      ),
       isAiResponse: json['is_ai_response'] ?? false,
       responseToMessageId: json['response_to_message_id'],
       conversationId: json['conversation_id'],
@@ -84,4 +88,4 @@ class ChatMessageModel {
       recipientId: recipientId ?? this.recipientId,
     );
   }
-} 
+}

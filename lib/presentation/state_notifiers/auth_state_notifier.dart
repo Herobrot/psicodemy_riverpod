@@ -53,7 +53,10 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> signUpWithEmailAndPassword(String email, String password) async {
     try {
       state = AuthState.loading();
-      final user = await _authUseCases.signUpWithEmailAndPassword(email, password);
+      final user = await _authUseCases.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
       state = AuthState.authenticated(user);
     } catch (e) {
       state = AuthState.error(e.toString());
@@ -121,12 +124,14 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
 }
 
 // Providers para los state notifiers
-final authStateNotifierProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
-  final authUseCases = ref.watch(authUseCasesProvider);
-  return AuthStateNotifier(authUseCases);
-});
+final authStateNotifierProvider =
+    StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
+      final authUseCases = ref.watch(authUseCasesProvider);
+      return AuthStateNotifier(authUseCases);
+    });
 
-final loginStateNotifierProvider = StateNotifierProvider<LoginStateNotifier, LoginState>((ref) {
-  final authUseCases = ref.watch(authUseCasesProvider);
-  return LoginStateNotifier(authUseCases);
-});
+final loginStateNotifierProvider =
+    StateNotifierProvider<LoginStateNotifier, LoginState>((ref) {
+      final authUseCases = ref.watch(authUseCasesProvider);
+      return LoginStateNotifier(authUseCases);
+    });

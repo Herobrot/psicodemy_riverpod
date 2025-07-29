@@ -14,9 +14,15 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
   AuthRepositoryImpl(this._authService);
 
   @override
-  Future<UserEntity> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserEntity> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _authService.signInWithEmailAndPassword(email, password);
+      final userModel = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
+      );
       return _mapUserApiToEntity(userModel);
     } catch (e) {
       throw Exception('Error al iniciar sesión: ${e.toString()}');
@@ -24,9 +30,15 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
   }
 
   @override
-  Future<UserFirebaseEntity> signUpWithEmailAndPassword(String email, String password) async {
+  Future<UserFirebaseEntity> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _authService.signUpWithEmailAndPassword(email, password);
+      final userModel = await _authService.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
       return _mapUserModelToEntity(userModel);
     } catch (e) {
       throw Exception('Error al registrar usuario: ${e.toString()}');
@@ -90,10 +102,14 @@ class AuthRepositoryImpl implements AuthRepositoryInterface {
 
   UserEntity _mapUserApiToEntity(CompleteUserModel userApi) {
     return UserEntity(
-      id: userApi.userId ?? userApi.uid, // Usar userId de API o uid de Firebase como fallback
+      id:
+          userApi.userId ??
+          userApi.uid, // Usar userId de API o uid de Firebase como fallback
       correo: userApi.email,
       password: '', // No tenemos password en CompleteUserModel
-      tipoUsuario: userApi.tipoUsuario ?? TipoUsuario.alumno, // Usar tipoUsuario directamente
+      tipoUsuario:
+          userApi.tipoUsuario ??
+          TipoUsuario.alumno, // Usar tipoUsuario directamente
       createdAt: userApi.apiCreatedAt ?? userApi.createdAt ?? DateTime.now(),
       updatedAt: userApi.apiUpdatedAt ?? DateTime.now(),
       deletedAt: null,

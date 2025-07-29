@@ -24,9 +24,7 @@ abstract class ChatRepositoryInterface {
     int limit = 20,
   });
 
-  Future<ChatAttemptModel> registerChatAttempt({
-    required String estudianteId,
-  });
+  Future<ChatAttemptModel> registerChatAttempt({required String estudianteId});
 
   Future<List<ChatAttemptModel>> getChatAttempts({
     required String estudianteId,
@@ -36,9 +34,7 @@ abstract class ChatRepositoryInterface {
 
   Future<Map<String, dynamic>> getAiInfo();
 
-  Future<Map<String, dynamic>> testAi({
-    required String mensaje,
-  });
+  Future<Map<String, dynamic>> testAi({required String mensaje});
 
   // Conversaciones 1 a 1
   Future<ChatMessageModel> sendPrivateMessage({
@@ -65,4 +61,4 @@ abstract class ChatRepositoryInterface {
 
   // WebSocket
   Future<Map<String, dynamic>> getWebSocketInfo();
-} 
+}

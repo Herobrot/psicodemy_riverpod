@@ -67,4 +67,4 @@ class TutorService {
 final tutorServiceProvider = Provider<TutorService>((ref) {
   final tutorRepository = ref.watch(tutorRepositoryProvider);
   return TutorService(tutorRepository);
-}); 
+});

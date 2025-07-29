@@ -13,18 +13,18 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
   final SharedPreferences _prefs;
   static const String _notificationsKey = 'local_notifications';
 
-  LocalNotificationDatasourceImpl({required SharedPreferences prefs}) 
-      : _prefs = prefs;
+  LocalNotificationDatasourceImpl({required SharedPreferences prefs})
+    : _prefs = prefs;
 
   @override
   Future<void> saveNotification(NotificationModel notification) async {
     try {
       final notifications = await getNotifications();
       notifications.insert(0, notification);
-      
+
       // Keep only last 50 notifications
       final limitedNotifications = notifications.take(50).toList();
-      
+
       final jsonList = limitedNotifications.map((n) => n.toJson()).toList();
       await _prefs.setString(_notificationsKey, jsonEncode(jsonList));
     } catch (e) {
@@ -37,7 +37,7 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
     try {
       final jsonString = _prefs.getString(_notificationsKey);
       if (jsonString == null) return [];
-      
+
       final List<dynamic> jsonList = jsonDecode(jsonString);
       return jsonList.map((json) => NotificationModel.fromJson(json)).toList();
     } catch (e) {
@@ -69,7 +69,7 @@ class LocalNotificationDatasourceImpl implements LocalNotificationDatasource {
           isRead: true,
         );
         notifications[index] = updatedNotification;
-        
+
         final jsonList = notifications.map((n) => n.toJson()).toList();
         await _prefs.setString(_notificationsKey, jsonEncode(jsonList));
       }

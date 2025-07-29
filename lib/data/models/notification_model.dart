@@ -13,7 +13,7 @@ class NotificationModel extends NotificationEntity {
   factory NotificationModel.fromFirebase(Map<String, dynamic> message) {
     final notification = message['notification'] as Map<String, dynamic>?;
     final data = message['data'] as Map<String, dynamic>?;
-    
+
     return NotificationModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: notification?['title'] ?? '',
@@ -29,7 +29,9 @@ class NotificationModel extends NotificationEntity {
       id: json['id'],
       title: json['title'],
       body: json['body'],
-      data: json['data'] != null ? Map<String, dynamic>.from(json['data']) : null,
+      data: json['data'] != null
+          ? Map<String, dynamic>.from(json['data'])
+          : null,
       timestamp: DateTime.parse(json['timestamp']),
       isRead: json['isRead'] ?? false,
     );

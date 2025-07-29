@@ -44,4 +44,4 @@ class ChatNotFoundException extends ChatException {
 
   @override
   String toString() => 'ChatNotFoundException: $message';
-} 
+}

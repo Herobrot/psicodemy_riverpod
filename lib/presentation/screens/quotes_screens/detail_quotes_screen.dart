@@ -8,22 +8,18 @@ import '../../../domain/entities/appointment_entity.dart';
 
 class DetalleCitaScreen extends ConsumerStatefulWidget {
   final AppointmentEntity appointment;
-  
-  const DetalleCitaScreen({
-    super.key,
-    required this.appointment,
-  });
+
+  const DetalleCitaScreen({super.key, required this.appointment});
 
   @override
   ConsumerState<DetalleCitaScreen> createState() => _DetalleCitaScreenState();
 }
 
 class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
-
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -51,20 +47,22 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               },
               child: CircleAvatar(
                 radius: 18,
-                backgroundImage: user?.photoURL != null 
-                  ? NetworkImage(user!.photoURL!)
-                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                child: user?.photoURL == null 
-                  ? Text(
-                      user?.email?.isNotEmpty == true 
-                        ? user!.email![0].toUpperCase() 
-                        : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage(
+                        'https://lh3.googleusercontent.com/a/default-user=s96-c',
                       ),
-                    )
-                  : null,
+                child: user?.photoURL == null
+                    ? Text(
+                        user?.email?.isNotEmpty == true
+                            ? user!.email![0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -78,8 +76,10 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
             // Información del tutor
             Consumer(
               builder: (context, ref, child) {
-                final tutorAsync = ref.watch(tutorByIdProvider(widget.appointment.tutorId));
-                
+                final tutorAsync = ref.watch(
+                  tutorByIdProvider(widget.appointment.tutorId),
+                );
+
                 return tutorAsync.when(
                   data: (tutor) => Container(
                     padding: const EdgeInsets.all(16),
@@ -93,7 +93,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                           radius: 30,
                           backgroundColor: Colors.white,
                           child: Text(
-                            tutor?.nombre.isNotEmpty == true ? tutor!.nombre[0] : 'T',
+                            tutor?.nombre.isNotEmpty == true
+                                ? tutor!.nombre[0]
+                                : 'T',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -129,32 +131,45 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
                         Column(
                           children: [
                             ElevatedButton(
-                              onPressed: tutor != null ? () => _contactTutor(tutor.correo, 'whatsapp') : null,
+                              onPressed: tutor != null
+                                  ? () =>
+                                        _contactTutor(tutor.correo, 'whatsapp')
+                                  : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 minimumSize: const Size(80, 30),
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                               ),
                               child: Text(
                                 'WhatsApp',
                                 style: TextStyle(
-                                  color: _getStatusColor(widget.appointment.status),
+                                  color: _getStatusColor(
+                                    widget.appointment.status,
+                                  ),
                                   fontSize: 10,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton(
-                              onPressed: tutor != null ? () => _contactTutor(tutor.correo, 'email') : null,
+                              onPressed: tutor != null
+                                  ? () => _contactTutor(tutor.correo, 'email')
+                                  : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 minimumSize: const Size(80, 30),
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                               ),
                               child: Text(
                                 'Correo',
                                 style: TextStyle(
-                                  color: _getStatusColor(widget.appointment.status),
+                                  color: _getStatusColor(
+                                    widget.appointment.status,
+                                  ),
                                   fontSize: 10,
                                 ),
                               ),
@@ -203,7 +218,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Información de la cita
             Container(
               padding: const EdgeInsets.all(16),
@@ -248,7 +263,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Información adicional
             if (widget.appointment.topic.isNotEmpty) ...[
               const Text(
@@ -271,9 +286,10 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            
+
             // Notas
-            if (widget.appointment.notes != null && widget.appointment.notes!.isNotEmpty) ...[
+            if (widget.appointment.notes != null &&
+                widget.appointment.notes!.isNotEmpty) ...[
               const Text(
                 'Notas',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -294,9 +310,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            
+
             const Spacer(),
-            
+
             // Botones de acción
             _buildActionButtons(),
           ],
@@ -314,7 +330,8 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _updateAppointmentStatus(AppointmentStatus.cancelled),
+                  onPressed: () =>
+                      _updateAppointmentStatus(AppointmentStatus.cancelled),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -324,7 +341,8 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ),
             ],
           ),
-        ] else if (widget.appointment.status == AppointmentStatus.confirmed) ...[
+        ] else if (widget.appointment.status ==
+            AppointmentStatus.confirmed) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -346,7 +364,8 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ],
             ),
           ),
-        ] else if (widget.appointment.status == AppointmentStatus.completed) ...[
+        ] else if (widget.appointment.status ==
+            AppointmentStatus.completed) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -368,7 +387,8 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
               ],
             ),
           ),
-        ] else if (widget.appointment.status == AppointmentStatus.cancelled) ...[
+        ] else if (widget.appointment.status ==
+            AppointmentStatus.cancelled) ...[
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -400,9 +420,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // TODO: Implementar actualización de estado para AppointmentEntity
@@ -420,7 +438,6 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
           ),
         );
       }
-
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Cerrar loading
@@ -438,7 +455,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
   void _contactTutor(String email, String method) {
     // Aquí puedes implementar la lógica para contactar al tutor
     String message = '';
-    
+
     if (method == 'whatsapp') {
       message = 'Contactar por WhatsApp no implementado aún';
     } else if (method == 'email') {
@@ -446,9 +463,9 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -500,7 +517,7 @@ class _DetalleCitaScreenState extends ConsumerState<DetalleCitaScreen> {
       'Septiembre',
       'Octubre',
       'Noviembre',
-      'Diciembre'
+      'Diciembre',
     ];
     return months[month];
   }

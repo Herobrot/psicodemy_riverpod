@@ -23,18 +23,20 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 // Datasource providers
-final firebaseMessagingDatasourceProvider = Provider<FirebaseMessagingDatasource>((ref) {
-  return FirebaseMessagingDatasourceImpl(
-    firebaseMessaging: ref.watch(firebaseMessagingProvider),
-    firestore: ref.watch(firestoreProvider),
-  );
-});
+final firebaseMessagingDatasourceProvider =
+    Provider<FirebaseMessagingDatasource>((ref) {
+      return FirebaseMessagingDatasourceImpl(
+        firebaseMessaging: ref.watch(firebaseMessagingProvider),
+        firestore: ref.watch(firestoreProvider),
+      );
+    });
 
-final localNotificationDatasourceProvider = Provider<LocalNotificationDatasource>((ref) {
-  return LocalNotificationDatasourceImpl(
-    prefs: ref.watch(sharedPreferencesProvider),
-  );
-});
+final localNotificationDatasourceProvider =
+    Provider<LocalNotificationDatasource>((ref) {
+      return LocalNotificationDatasourceImpl(
+        prefs: ref.watch(sharedPreferencesProvider),
+      );
+    });
 
 // Repository provider
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
@@ -49,12 +51,13 @@ final notificationServiceProvider = Provider<dynamic>((ref) {
 });
 
 // State notifier provider
-final notificationStateProvider = StateNotifierProvider<NotificationStateNotifier, NotificationState>((ref) {
-  return NotificationStateNotifier(
-    ref.watch(notificationServiceProvider),
-    ref.watch(notificationRepositoryProvider),
-  );
-});
+final notificationStateProvider =
+    StateNotifierProvider<NotificationStateNotifier, NotificationState>((ref) {
+      return NotificationStateNotifier(
+        ref.watch(notificationServiceProvider),
+        ref.watch(notificationRepositoryProvider),
+      );
+    });
 
 // Stream providers for real-time updates
 final foregroundMessageProvider = StreamProvider<Map<String, dynamic>>((ref) {
@@ -68,7 +71,9 @@ final messageOpenedAppProvider = StreamProvider<Map<String, dynamic>>((ref) {
 });
 
 // Provider for local notifications
-final localNotificationsProvider = FutureProvider<List<NotificationEntity>>((ref) {
+final localNotificationsProvider = FutureProvider<List<NotificationEntity>>((
+  ref,
+) {
   final repository = ref.watch(notificationRepositoryProvider);
   return repository.getLocalNotifications();
 });

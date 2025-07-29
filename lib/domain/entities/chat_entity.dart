@@ -32,7 +32,8 @@ class ChatEntity {
     this.unreadCount = 0,
   });
 
-  factory ChatEntity.fromJson(Map<String, dynamic> json) => _$ChatEntityFromJson(json);
+  factory ChatEntity.fromJson(Map<String, dynamic> json) =>
+      _$ChatEntityFromJson(json);
   Map<String, dynamic> toJson() => _$ChatEntityToJson(this);
 }
 
@@ -68,22 +69,11 @@ class MessageEntity {
     this.metadata,
   });
 
-  factory MessageEntity.fromJson(Map<String, dynamic> json) => _$MessageEntityFromJson(json);
+  factory MessageEntity.fromJson(Map<String, dynamic> json) =>
+      _$MessageEntityFromJson(json);
   Map<String, dynamic> toJson() => _$MessageEntityToJson(this);
 }
 
-enum ChatType {
-  individual,
-  group,
-  therapist,
-  support,
-}
+enum ChatType { individual, group, therapist, support }
 
-enum MessageType {
-  text,
-  image,
-  audio,
-  video,
-  file,
-  system,
-} 
+enum MessageType { text, image, audio, video, file, system }

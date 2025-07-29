@@ -22,12 +22,10 @@ class ChecklistItem {
   final String description;
   final bool completed;
 
-  const ChecklistItem({
-    required this.description,
-    required this.completed,
-  });
+  const ChecklistItem({required this.description, required this.completed});
 
-  factory ChecklistItem.fromJson(Map<String, dynamic> json) => _$ChecklistItemFromJson(json);
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) =>
+      _$ChecklistItemFromJson(json);
   Map<String, dynamic> toJson() => _$ChecklistItemToJson(this);
 }
 
@@ -156,10 +154,7 @@ class UpdateStatusRequest {
   @JsonKey(name: 'userId')
   final String? userId;
 
-  const UpdateStatusRequest({
-    required this.estadoCita,
-    this.userId,
-  });
+  const UpdateStatusRequest({required this.estadoCita, this.userId});
 
   factory UpdateStatusRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdateStatusRequestFromJson(json);
@@ -240,10 +235,7 @@ class AppointmentError {
   final String code;
   final Map<String, dynamic>? details;
 
-  const AppointmentError({
-    required this.code,
-    this.details,
-  });
+  const AppointmentError({required this.code, this.details});
 
   factory AppointmentError.fromJson(Map<String, dynamic> json) =>
       _$AppointmentErrorFromJson(json);

@@ -9,13 +9,11 @@ import 'presentation/providers/app_providers.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Inicializar SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
-  
+
   runApp(
     ProviderScope(
       overrides: [

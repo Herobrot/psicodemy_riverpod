@@ -57,7 +57,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   TextButton(
                     onPressed: _completeOnboarding,
-                    child: const Text('Skip', style: TextStyle(color: Colors.black54)),
+                    child: const Text(
+                      'Skip',
+                      style: TextStyle(color: Colors.black54),
+                    ),
                   ),
                 ],
               ),
@@ -74,14 +77,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final page = _pages[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 8),
                         Text(
                           '${index + 1}/3',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 15,
+                          ),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(height: 16),
@@ -92,7 +101,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             fit: BoxFit.contain,
                           )
                         else
-                          Icon(Icons.chat_bubble_outline, size: 120, color: Colors.black87),
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 120,
+                            color: Colors.black87,
+                          ),
                         const SizedBox(height: 32),
                         Text(
                           page.title,
@@ -122,7 +135,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               height: 8,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: _currentPage == i ? Colors.black : Colors.grey[300],
+                                color: _currentPage == i
+                                    ? Colors.black
+                                    : Colors.grey[300],
                               ),
                             ),
                           ),
@@ -136,14 +151,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                   ? null
                                   : () {
                                       _controller.previousPage(
-                                        duration: const Duration(milliseconds: 300),
+                                        duration: const Duration(
+                                          milliseconds: 300,
+                                        ),
                                         curve: Curves.ease,
                                       );
                                     },
                               child: Text(
                                 'Prev',
                                 style: TextStyle(
-                                  color: _currentPage == 0 ? Colors.grey[400] : Colors.black54,
+                                  color: _currentPage == 0
+                                      ? Colors.grey[400]
+                                      : Colors.black54,
                                 ),
                               ),
                             ),
@@ -155,12 +174,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                     curve: Curves.ease,
                                   );
                                 },
-                                child: const Text('Next', style: TextStyle(color: Colors.red)),
+                                child: const Text(
+                                  'Next',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               )
                             else
                               TextButton(
                                 onPressed: _completeOnboarding,
-                                child: const Text('Inicia', style: TextStyle(color: Colors.red)),
+                                child: const Text(
+                                  'Inicia',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ),
                           ],
                         ),
@@ -182,5 +207,9 @@ class _OnboardingPageData {
   final String? image;
   final String title;
   final String subtitle;
-  _OnboardingPageData({this.image, required this.title, required this.subtitle});
-} 
+  _OnboardingPageData({
+    this.image,
+    required this.title,
+    required this.subtitle,
+  });
+}

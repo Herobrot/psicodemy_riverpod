@@ -7,10 +7,7 @@ class TutorFailure implements Exception {
   final String type;
   final String? message;
 
-  const TutorFailure({
-    required this.type,
-    this.message,
-  });
+  const TutorFailure({required this.type, this.message});
 
   factory TutorFailure.serverError([String? message]) =>
       TutorFailure(type: 'serverError', message: message);

@@ -21,7 +21,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -37,12 +37,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     if (value == null || value.isEmpty) {
       return 'El email es requerido';
     }
-    
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(value)) {
       return 'Ingresa un email válido';
     }
-    
+
     return null;
   }
 
@@ -50,11 +52,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     if (value == null || value.isEmpty) {
       return 'La contraseña es requerida';
     }
-    
+
     if (value.length < 6) {
       return 'La contraseña debe tener al menos 6 caracteres';
     }
-    
+
     return null;
   }
 
@@ -63,12 +65,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       if (value == null || value.isEmpty) {
         return 'Confirma tu contraseña';
       }
-      
+
       if (value != _passwordController.text) {
         return 'Las contraseñas no coinciden';
       }
     }
-    
+
     return null;
   }
 
@@ -76,12 +78,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
-      
+
       if (widget.isLoginMode) {
-        await ref.read(loginStateNotifierProvider.notifier)
+        await ref
+            .read(loginStateNotifierProvider.notifier)
             .signInWithEmailAndPassword(email, password);
       } else {
-        await ref.read(loginStateNotifierProvider.notifier)
+        await ref
+            .read(loginStateNotifierProvider.notifier)
             .signUpWithEmailAndPassword(email, password);
       }
     }
@@ -117,14 +121,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Campo de contraseña
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
-            textInputAction: widget.isLoginMode ? TextInputAction.done : TextInputAction.next,
+            textInputAction: widget.isLoginMode
+                ? TextInputAction.done
+                : TextInputAction.next,
             enabled: !widget.isLoading,
             validator: _validatePassword,
             decoration: InputDecoration(
@@ -132,7 +138,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               hintText: 'Ingresa tu contraseña',
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                ),
                 onPressed: () {
                   setState(() {
                     _obscurePassword = !_obscurePassword;
@@ -152,7 +160,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
             ),
           ),
-          
+
           // Campo de confirmar contraseña (solo para registro)
           if (!widget.isLoginMode) ...[
             const SizedBox(height: 16),
@@ -167,7 +175,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 hintText: 'Confirma tu contraseña',
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(
+                    _obscureConfirmPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                  ),
                   onPressed: () {
                     setState(() {
                       _obscureConfirmPassword = !_obscureConfirmPassword;
@@ -188,9 +200,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
             ),
           ],
-          
+
           const SizedBox(height: 24),
-          
+
           // Botón de submit
           SizedBox(
             width: double.infinity,
@@ -223,7 +235,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                     ),
             ),
           ),
-          
+
           // Enlace de "¿Olvidaste tu contraseña?" (solo en modo login)
           if (widget.isLoginMode) ...[
             const SizedBox(height: 16),
@@ -245,7 +257,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   void _showForgotPasswordDialog() {
     final emailController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -253,7 +265,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Ingresa tu email para recibir un enlace de recuperación'),
+            const Text(
+              'Ingresa tu email para recibir un enlace de recuperación',
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
@@ -275,12 +289,15 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               final email = emailController.text.trim();
               if (email.isNotEmpty) {
                 Navigator.of(context).pop();
-                await ref.read(loginStateNotifierProvider.notifier)
+                await ref
+                    .read(loginStateNotifierProvider.notifier)
                     .sendPasswordResetEmail(email);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Se ha enviado un enlace de recuperación a tu email'),
+                      content: Text(
+                        'Se ha enviado un enlace de recuperación a tu email',
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );

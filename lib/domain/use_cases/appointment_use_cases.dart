@@ -27,13 +27,21 @@ class AppointmentUseCases {
   }
 
   // Crear una nueva cita
-  Future<AppointmentEntity> createAppointment(AppointmentEntity appointment) async {
+  Future<AppointmentEntity> createAppointment(
+    AppointmentEntity appointment,
+  ) async {
     return await _appointmentRepository.createAppointment(appointment);
   }
 
   // Actualizar el estado de una cita
-  Future<AppointmentEntity> updateAppointmentStatus(String appointmentId, AppointmentStatus status) async {
-    return await _appointmentRepository.updateAppointmentStatus(appointmentId, status);
+  Future<AppointmentEntity> updateAppointmentStatus(
+    String appointmentId,
+    AppointmentStatus status,
+  ) async {
+    return await _appointmentRepository.updateAppointmentStatus(
+      appointmentId,
+      status,
+    );
   }
 
   // Cancelar una cita
@@ -42,8 +50,16 @@ class AppointmentUseCases {
   }
 
   // Reprogramar una cita
-  Future<AppointmentEntity> rescheduleAppointment(String appointmentId, DateTime newDate, String newTimeSlot) async {
-    return await _appointmentRepository.rescheduleAppointment(appointmentId, newDate, newTimeSlot);
+  Future<AppointmentEntity> rescheduleAppointment(
+    String appointmentId,
+    DateTime newDate,
+    String newTimeSlot,
+  ) async {
+    return await _appointmentRepository.rescheduleAppointment(
+      appointmentId,
+      newDate,
+      newTimeSlot,
+    );
   }
 
   // Obtener estadísticas de citas
@@ -57,7 +73,9 @@ class AppointmentUseCases {
   }
 
   // Obtener todas las citas de un alumno
-  Future<List<AppointmentEntity>> getStudentAppointments(String studentId) async {
+  Future<List<AppointmentEntity>> getStudentAppointments(
+    String studentId,
+  ) async {
     return await _appointmentRepository.getStudentAppointments(studentId);
   }
 
@@ -79,42 +97,47 @@ class AppointmentUseCases {
   // Casos de uso específicos para la UI
 
   // Obtener citas agrupadas por fecha
-  Future<Map<String, List<AppointmentEntity>>> getAppointmentsGroupedByDate(String tutorId) async {
+  Future<Map<String, List<AppointmentEntity>>> getAppointmentsGroupedByDate(
+    String tutorId,
+  ) async {
     final appointments = await getTutorAppointments(tutorId);
     final grouped = <String, List<AppointmentEntity>>{};
-    
+
     for (final appointment in appointments) {
-      final dateKey = '${appointment.scheduledDate.year}-${appointment.scheduledDate.month.toString().padLeft(2, '0')}-${appointment.scheduledDate.day.toString().padLeft(2, '0')}';
+      final dateKey =
+          '${appointment.scheduledDate.year}-${appointment.scheduledDate.month.toString().padLeft(2, '0')}-${appointment.scheduledDate.day.toString().padLeft(2, '0')}';
       grouped.putIfAbsent(dateKey, () => []).add(appointment);
     }
-    
+
     return grouped;
   }
 
   // Obtener próximas citas (próximos 7 días)
-  Future<List<AppointmentEntity>> getUpcomingAppointments(String tutorId) async {
+  Future<List<AppointmentEntity>> getUpcomingAppointments(
+    String tutorId,
+  ) async {
     final appointments = await getTutorAppointments(tutorId);
     final now = DateTime.now();
     final weekFromNow = now.add(const Duration(days: 7));
-    
+
     return appointments.where((appointment) {
-      return appointment.scheduledDate.isAfter(now) && 
-             appointment.scheduledDate.isBefore(weekFromNow) &&
-             appointment.status != AppointmentStatus.cancelled;
-    }).toList()
-      ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+      return appointment.scheduledDate.isAfter(now) &&
+          appointment.scheduledDate.isBefore(weekFromNow) &&
+          appointment.status != AppointmentStatus.cancelled;
+    }).toList()..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   }
 
   // Obtener citas completadas del mes
-  Future<List<AppointmentEntity>> getCompletedAppointmentsThisMonth(String tutorId) async {
+  Future<List<AppointmentEntity>> getCompletedAppointmentsThisMonth(
+    String tutorId,
+  ) async {
     final appointments = await getTutorAppointments(tutorId);
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
-    
+
     return appointments.where((appointment) {
       return appointment.status == AppointmentStatus.completed &&
-             appointment.scheduledDate.isAfter(startOfMonth);
-    }).toList()
-      ..sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
+          appointment.scheduledDate.isAfter(startOfMonth);
+    }).toList()..sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
   }
-} 
+}

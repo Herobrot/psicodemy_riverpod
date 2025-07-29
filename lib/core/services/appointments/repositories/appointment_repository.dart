@@ -12,7 +12,9 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   AppointmentRepository(this._appointmentService, this._authService);
 
   @override
-  Future<AppointmentModel> createAppointment(CreateAppointmentRequest request) async {
+  Future<AppointmentModel> createAppointment(
+    CreateAppointmentRequest request,
+  ) async {
     try {
       return await _appointmentService.createAppointment(request);
     } catch (e) {
@@ -166,7 +168,10 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   }
 
   @override
-  Future<AppointmentModel> updateAppointment(String id, UpdateAppointmentRequest request) async {
+  Future<AppointmentModel> updateAppointment(
+    String id,
+    UpdateAppointmentRequest request,
+  ) async {
     try {
       return await _appointmentService.updateAppointment(id, request);
     } catch (e) {
@@ -175,7 +180,10 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   }
 
   @override
-  Future<AppointmentModel> updateAppointmentStatus(String id, EstadoCita estado) async {
+  Future<AppointmentModel> updateAppointmentStatus(
+    String id,
+    EstadoCita estado,
+  ) async {
     try {
       final request = UpdateStatusRequest(estadoCita: estado);
       return await _appointmentService.updateAppointmentStatus(id, request);
@@ -195,7 +203,11 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   }
 
   @override
-  Future<AppointmentModel> completeAppointment(String id, {Checklist? checklist, String? reason}) async {
+  Future<AppointmentModel> completeAppointment(
+    String id, {
+    Checklist? checklist,
+    String? reason,
+  }) async {
     try {
       final request = UpdateAppointmentRequest(
         estadoCita: EstadoCita.completada,
@@ -232,7 +244,7 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
       // Buscar citas del tutor en un rango de ±1 hora
       final fechaInicio = fechaCita.subtract(const Duration(hours: 1));
       final fechaFin = fechaCita.add(const Duration(hours: 1));
-      
+
       final appointments = await _appointmentService.getAppointments(
         idTutor: tutorId,
         fechaDesde: fechaInicio,
@@ -243,7 +255,8 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
 
       // Filtrar citas que no estén canceladas y no sea la cita a excluir
       final activeAppointments = appointments.where((appointment) {
-        if (excludeAppointmentId != null && appointment.id == excludeAppointmentId) {
+        if (excludeAppointmentId != null &&
+            appointment.id == excludeAppointmentId) {
           return false;
         }
         return appointment.estadoCita != EstadoCita.cancelada;
@@ -270,7 +283,7 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
   ) async {
     try {
       DateTime fechaActual = fechaPreferida;
-      
+
       // Buscar en los próximos 30 días
       for (int i = 0; i < 30; i++) {
         // Verificar horarios típicos de trabajo (9 AM - 6 PM)
@@ -281,13 +294,13 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
             fechaActual.day,
             hora,
           );
-          
+
           final hasConflict = await hasScheduleConflict(tutorId, fechaTest);
           if (!hasConflict) {
             return fechaTest;
           }
         }
-        
+
         fechaActual = fechaActual.add(const Duration(days: 1));
       }
 
@@ -314,20 +327,21 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
       );
 
       final stats = <String, dynamic>{};
-      
+
       // Estadísticas generales
       stats['total'] = appointments.length;
-      
+
       // Estadísticas por estado
       for (final estado in EstadoCita.values) {
         final count = appointments.where((a) => a.estadoCita == estado).length;
         stats[estado.name] = count;
       }
-      
+
       // Porcentajes
       if (appointments.isNotEmpty) {
         for (final estado in EstadoCita.values) {
-          final percentage = (stats[estado.name] as int) / appointments.length * 100;
+          final percentage =
+              (stats[estado.name] as int) / appointments.length * 100;
           stats['${estado.name}_percentage'] = percentage.toStringAsFixed(1);
         }
       }
@@ -365,4 +379,4 @@ class AppointmentRepository implements AppointmentRepositoryInterface {
       return AppointmentException.simple(error.toString());
     }
   }
-} 
+}

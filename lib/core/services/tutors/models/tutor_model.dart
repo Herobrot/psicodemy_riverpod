@@ -53,12 +53,12 @@ class TutorModel {
 
   @override
   int get hashCode {
-    return id.hashCode ^ 
-           nombre.hashCode ^ 
-           correo.hashCode ^ 
-           fotoPerfil.hashCode ^ 
-           telefono.hashCode ^ 
-           especialidad.hashCode;
+    return id.hashCode ^
+        nombre.hashCode ^
+        correo.hashCode ^
+        fotoPerfil.hashCode ^
+        telefono.hashCode ^
+        especialidad.hashCode;
   }
 }
 
@@ -111,7 +111,9 @@ class TutorListResponse {
   factory TutorListResponse.fromList(List<dynamic> list) {
     return TutorListResponse(
       data: TutorData(
-        users: list.map((e) => TutorModel.fromJson(e as Map<String, dynamic>)).toList(),
+        users: list
+            .map((e) => TutorModel.fromJson(e as Map<String, dynamic>))
+            .toList(),
         total: list.length,
         userType: 'tutor',
       ),
@@ -138,4 +140,4 @@ class TutorErrorResponse {
       _$TutorErrorResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$TutorErrorResponseToJson(this);
-} 
+}

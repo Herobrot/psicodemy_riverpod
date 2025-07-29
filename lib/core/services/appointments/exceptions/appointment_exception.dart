@@ -16,9 +16,9 @@ class AppointmentException implements Exception {
   });
 
   // Constructor simple para crear excepciones con solo un mensaje
-  const AppointmentException.simple(this.message) : 
-    type = 'error',
-    details = null;
+  const AppointmentException.simple(this.message)
+    : type = 'error',
+      details = null;
 
   // Factores de errores comunes
   factory AppointmentException.serverError([String? message]) =>
@@ -110,4 +110,4 @@ class AppointmentException implements Exception {
   int get hashCode {
     return type.hashCode ^ message.hashCode ^ details.hashCode;
   }
-} 
+}

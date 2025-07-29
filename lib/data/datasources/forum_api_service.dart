@@ -4,7 +4,9 @@ import '../models/forum_post.dart';
 
 class ForumApiService {
   static Future<List<ForumPost>> fetchPosts() async {
-    final response = await http.get(Uri.parse('https://api.psicodemy.com/s4/api/posts'));
+    final response = await http.get(
+      Uri.parse('https://api.psicodemy.com/s4/api/posts'),
+    );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final posts = data['data']['posts'] as List;
@@ -13,4 +15,4 @@ class ForumApiService {
       throw Exception('Error al cargar los posts');
     }
   }
-} 
+}

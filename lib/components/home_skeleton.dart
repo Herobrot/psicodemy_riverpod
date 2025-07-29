@@ -36,9 +36,13 @@ class HomeSkeleton extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: _buildSkeletonBox(width: double.infinity, height: 180)),
+                Expanded(
+                  child: _buildSkeletonBox(width: double.infinity, height: 180),
+                ),
                 const SizedBox(width: 16),
-                Expanded(child: _buildSkeletonBox(width: double.infinity, height: 180)),
+                Expanded(
+                  child: _buildSkeletonBox(width: double.infinity, height: 180),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -48,4 +52,4 @@ class HomeSkeleton extends StatelessWidget {
       ),
     );
   }
-} 
+}

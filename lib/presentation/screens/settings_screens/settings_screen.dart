@@ -11,7 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -32,9 +32,9 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             // Perfil del usuario
             _buildUserProfile(user?.email ?? 'Usuario'),
-            
+
             const SizedBox(height: 32),
-            
+
             // Información de la aplicación
             _buildSection(
               title: 'Información',
@@ -57,12 +57,12 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Botón de cerrar sesión
             _buildSignOutButton(context, ref),
-            
+
             const SizedBox(height: 32),
           ],
         ),
@@ -113,10 +113,7 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   email,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
               ],
             ),
@@ -126,10 +123,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required List<Widget> items,
-  }) {
+  Widget _buildSection({required String title, required List<Widget> items}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,25 +170,15 @@ class SettingsScreen extends ConsumerWidget {
           color: const Color(0xFF4CAF50).withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          color: const Color(0xFF4CAF50),
-          size: 20,
-        ),
+        child: Icon(icon, color: const Color(0xFF4CAF50), size: 20),
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          color: Colors.grey[600],
-          fontSize: 13,
-        ),
+        style: TextStyle(color: Colors.grey[600], fontSize: 13),
       ),
       trailing: trailing ?? const Icon(Icons.chevron_right),
       onTap: onTap,
@@ -273,7 +257,8 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       applicationName: 'Psicodemy',
       applicationVersion: '1.0.0',
-      applicationLegalese: '© 2024 HomeDevs Software Solutions. Todos los derechos reservados.',
+      applicationLegalese:
+          '© 2024 HomeDevs Software Solutions. Todos los derechos reservados.',
       children: [
         const Text(
           'Una aplicación para el bienestar mental y el crecimiento personal.',
@@ -293,4 +278,4 @@ class SettingsScreen extends ConsumerWidget {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
   }
-} 
+}

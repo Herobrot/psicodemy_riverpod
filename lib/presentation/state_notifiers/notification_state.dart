@@ -21,20 +21,23 @@ class NotificationState {
     this.error,
   });
 
-  factory NotificationState.initial() => const NotificationState(status: 'initial');
-  factory NotificationState.loading() => const NotificationState(status: 'loading');
-  factory NotificationState.permission() => const NotificationState(status: 'permission');
-  factory NotificationState.notifications(NotificationEntity notification) => 
+  factory NotificationState.initial() =>
+      const NotificationState(status: 'initial');
+  factory NotificationState.loading() =>
+      const NotificationState(status: 'loading');
+  factory NotificationState.permission() =>
+      const NotificationState(status: 'permission');
+  factory NotificationState.notifications(NotificationEntity notification) =>
       NotificationState(status: 'notifications', notification: notification);
-  factory NotificationState.subscribedTopics(String topic) => 
+  factory NotificationState.subscribedTopics(String topic) =>
       NotificationState(status: 'subscribedTopics', topic: topic);
-  factory NotificationState.token(String token) => 
+  factory NotificationState.token(String token) =>
       NotificationState(status: 'token', token: token);
-  factory NotificationState.error(String error) => 
+  factory NotificationState.error(String error) =>
       NotificationState(status: 'error', error: error);
 
-  factory NotificationState.fromJson(Map<String, dynamic> json) => 
+  factory NotificationState.fromJson(Map<String, dynamic> json) =>
       _$NotificationStateFromJson(json);
-  
+
   Map<String, dynamic> toJson() => _$NotificationStateToJson(this);
 }

@@ -59,5 +59,4 @@ class DefaultFirebaseOptions {
     projectId: 'flutter-app-8f4bb',
     storageBucket: 'flutter-app-8f4bb.firebasestorage.app',
   );
-
 }

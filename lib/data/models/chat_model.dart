@@ -42,9 +42,9 @@ class ChatModel {
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       participantIds: List<String>.from(json['participantIds'] as List),
       lastMessageId: json['lastMessageId'] as String?,
-      lastMessageAt: json['lastMessageAt'] != null 
-        ? DateTime.parse(json['lastMessageAt'] as String)
-        : null,
+      lastMessageAt: json['lastMessageAt'] != null
+          ? DateTime.parse(json['lastMessageAt'] as String)
+          : null,
       avatarUrl: json['avatarUrl'] as String?,
       isActive: json['isActive'] as bool? ?? false,
       unreadCount: json['unreadCount'] as int? ?? 0,
@@ -145,16 +145,16 @@ class MessageModel {
         orElse: () => MessageType.text,
       ),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null 
-        ? DateTime.parse(json['updatedAt'] as String)
-        : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
       replyToMessageId: json['replyToMessageId'] as String?,
       isRead: json['isRead'] as bool? ?? false,
       isEdited: json['isEdited'] as bool? ?? false,
       isDeleted: json['isDeleted'] as bool? ?? false,
-      attachmentUrls: json['attachmentUrls'] != null 
-        ? List<String>.from(json['attachmentUrls'] as List)
-        : null,
+      attachmentUrls: json['attachmentUrls'] != null
+          ? List<String>.from(json['attachmentUrls'] as List)
+          : null,
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
@@ -212,4 +212,4 @@ class MessageModel {
       metadata: entity.metadata,
     );
   }
-} 
+}

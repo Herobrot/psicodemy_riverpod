@@ -23,11 +23,18 @@ final tutorsLoadingProvider = StateProvider<bool>((ref) => false);
 final tutorsErrorProvider = StateProvider<String?>((ref) => null);
 
 // Provider para las conversaciones del usuario
-final userConversationsProvider = FutureProvider.family<List<ConversationModel>, String>((ref, usuarioId) async {
+final userConversationsProvider = FutureProvider.family<List<ConversationModel>, String>((
+  ref,
+  usuarioId,
+) async {
   final chatService = ref.watch(chatServiceProvider);
   final isTutor = ref.watch(isTutorProvider);
-  print('userConversationsProvider: usuarioId= [32m$usuarioId [0m, isTutor= [32m$isTutor [0m');
-  final conversations = await chatService.getUserConversations(usuarioId: usuarioId);
+  print(
+    'userConversationsProvider: usuarioId= [32m$usuarioId [0m, isTutor= [32m$isTutor [0m',
+  );
+  final conversations = await chatService.getUserConversations(
+    usuarioId: usuarioId,
+  );
 
   if (isTutor) {
     print('Mostrando TODAS las conversaciones para el tutor');
@@ -40,33 +47,51 @@ final userConversationsProvider = FutureProvider.family<List<ConversationModel>,
     // Si tienes una lista de tutores, puedes comparar con sus IDs
     final tutors = await ref.read(tutorsProvider.future);
     final tutorIds = tutors.map((t) => t.id).toSet();
-    return conversations.where((c) => tutorIds.contains(c.participant2Id) || tutorIds.contains(c.participant1Id)).toList();
+    return conversations
+        .where(
+          (c) =>
+              tutorIds.contains(c.participant2Id) ||
+              tutorIds.contains(c.participant1Id),
+        )
+        .toList();
   }
 });
 
 // Provider para los mensajes de una conversación específica
-final conversationMessagesProvider = FutureProvider.family<Map<String, dynamic>, Map<String, String>>((ref, params) async {
-  final chatService = ref.watch(chatServiceProvider);
-  final conversationId = params['conversationId']!;
-  final usuarioId = params['usuarioId']!;
-  
-  return await chatService.getConversationMessages(
-    conversationId: conversationId,
-    usuarioId: usuarioId,
-  );
-});
+final conversationMessagesProvider =
+    FutureProvider.family<Map<String, dynamic>, Map<String, String>>((
+      ref,
+      params,
+    ) async {
+      final chatService = ref.watch(chatServiceProvider);
+      final conversationId = params['conversationId']!;
+      final usuarioId = params['usuarioId']!;
+
+      return await chatService.getConversationMessages(
+        conversationId: conversationId,
+        usuarioId: usuarioId,
+      );
+    });
 
 // Provider para el historial de chat con IA
-final chatHistoryProvider = FutureProvider.family<List<ChatMessageModel>, String>((ref, estudianteId) async {
-  final chatService = ref.watch(chatServiceProvider);
-  return await chatService.getChatMessages(estudianteId: estudianteId);
-});
+final chatHistoryProvider =
+    FutureProvider.family<List<ChatMessageModel>, String>((
+      ref,
+      estudianteId,
+    ) async {
+      final chatService = ref.watch(chatServiceProvider);
+      return await chatService.getChatMessages(estudianteId: estudianteId);
+    });
 
 // Provider para los intentos de chat
-final chatAttemptsProvider = FutureProvider.family<List<ChatAttemptModel>, String>((ref, estudianteId) async {
-  final chatService = ref.watch(chatServiceProvider);
-  return await chatService.getChatAttempts(estudianteId: estudianteId);
-});
+final chatAttemptsProvider =
+    FutureProvider.family<List<ChatAttemptModel>, String>((
+      ref,
+      estudianteId,
+    ) async {
+      final chatService = ref.watch(chatServiceProvider);
+      return await chatService.getChatAttempts(estudianteId: estudianteId);
+    });
 
 // Provider para el estado del servicio de chat
 final chatStatusProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -105,4 +130,4 @@ final websocketConnectionProvider = StateProvider<bool>((ref) => false);
 final websocketInfoProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final chatService = ref.watch(chatServiceProvider);
   return await chatService.getWebSocketInfo();
-}); 
+});

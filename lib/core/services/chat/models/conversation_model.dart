@@ -22,11 +22,15 @@ class ConversationModel {
       id: json['id'] ?? '',
       participant1Id: json['participant1_id'] ?? '',
       participant2Id: json['participant2_id'] ?? '',
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updated_at'] ?? DateTime.now().toIso8601String(),
+      ),
       isActive: json['is_active'] ?? true,
-      lastMessageAt: json['last_message_at'] != null 
-          ? DateTime.parse(json['last_message_at']) 
+      lastMessageAt: json['last_message_at'] != null
+          ? DateTime.parse(json['last_message_at'])
           : null,
     );
   }
@@ -62,4 +66,4 @@ class ConversationModel {
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
     );
   }
-} 
+}

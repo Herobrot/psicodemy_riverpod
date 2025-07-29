@@ -15,8 +15,15 @@ import '../../api_service_provider.dart';
 import '../../../constants/timeout_config.dart';
 
 abstract class AuthRepository {
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password);
-  Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor});
+  Future<CompleteUserModel> signInWithEmailAndPassword(
+    String email,
+    String password,
+  );
+  Future<CompleteUserModel> signUpWithEmailAndPassword(
+    String email,
+    String password, {
+    String? codigoTutor,
+  });
   Future<CompleteUserModel> signInWithGoogle();
   Future<void> signOut();
   Future<CompleteUserModel?> getCurrentUser();
@@ -38,21 +45,27 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<CompleteUserModel> signInWithEmailAndPassword(String email, String password) async {
+  Future<CompleteUserModel> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
       // 1. Iniciar sesión con Firebase
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      ).timeout(TimeoutConfig.firebaseAuth);
-      
+      final userCredential = await _firebaseAuth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .timeout(TimeoutConfig.firebaseAuth);
+
       if (userCredential.user == null) {
-        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
+        throw AuthFailure.unknown(
+          'Usuario no encontrado después del inicio de sesión',
+        );
       }
 
       // 2. Obtener token de Firebase
-      final firebaseToken = await userCredential.user!.getIdToken().timeout(TimeoutConfig.firebaseToken);
-      
+      final firebaseToken = await userCredential.user!.getIdToken().timeout(
+        TimeoutConfig.firebaseToken,
+      );
+
       // 🔍 DEBUG: Imprimir token de Firebase
       print('🔥 FIREBASE TOKEN (Sign In):');
       print('Token length: ${firebaseToken?.length ?? 0}');
@@ -60,16 +73,16 @@ class AuthRepositoryImpl implements AuthRepository {
       print('User UID: ${userCredential.user!.uid}');
       print('User Email: ${userCredential.user!.email}');
       print('---');
-      
+
       // 3. Autenticar en la API del backend
       if (firebaseToken == null) {
         throw AuthFailure.serverError('Firebase token is null');
       }
-      
+
       final response = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
         nombre: userCredential.user!.displayName ?? email.split('@')[0],
-        correo: email
+        correo: email,
       );
 
       print('📡 AuthRepository: Respuesta de API recibida');
@@ -78,17 +91,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (response['data'] == null) {
         print('❌ AuthRepository: Usuario no encontrado en la respuesta');
-        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión');
+        throw AuthFailure.unknown(
+          'Usuario no encontrado después del inicio de sesión',
+        );
       }
 
       print('✅ AuthRepository: Creando CompleteUserModel');
-      final user = CompleteUserModel.fromApiResponse(response['data'], UserModel.fromFirebaseUser(userCredential.user!));
+      final user = CompleteUserModel.fromApiResponse(
+        response['data'],
+        UserModel.fromFirebaseUser(userCredential.user!),
+      );
       print('✅ AuthRepository: Usuario creado: ${user.toString()}');
-      
+
       print('💾 AuthRepository: Guardando sesión de usuario');
       await _storeUserSession(user).timeout(TimeoutConfig.storage);
       print('✅ AuthRepository: Sesión guardada exitosamente');
-      
+
       return user;
     } on FirebaseAuthException catch (e) {
       throw AuthExceptions.handleFirebaseAuthException(e);
@@ -96,35 +114,41 @@ class AuthRepositoryImpl implements AuthRepository {
       print('❌ AuthRepository: Error en signInWithEmailAndPassword');
       print('❌ Error tipo: ${e.runtimeType}');
       print('❌ Error mensaje: $e');
-      
+
       if (e is AuthFailure) {
         print('❌ Es un AuthFailure, re-lanzando');
         rethrow;
       }
-      
+
       print('❌ Convirtiendo a AuthFailure.unknown');
       throw AuthFailure.unknown(e.toString());
     }
   }
 
   @override
-  Future<CompleteUserModel> signUpWithEmailAndPassword(String email, String password, {String? codigoTutor}) async {
+  Future<CompleteUserModel> signUpWithEmailAndPassword(
+    String email,
+    String password, {
+    String? codigoTutor,
+  }) async {
     try {
       // 1. Crear usuario en Firebase
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      
+
       if (userCredential.user == null) {
-        throw AuthFailure.unknown('Usuario no creado correctamente en Firebase');
+        throw AuthFailure.unknown(
+          'Usuario no creado correctamente en Firebase',
+        );
       }
 
       final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
-      
+
       // 2. Obtener token de Firebase
       final firebaseToken = await userCredential.user!.getIdToken();
-      
+
       // 🔍 DEBUG: Imprimir token de Firebase
       print('🔥 FIREBASE TOKEN (Sign Up):');
       print('Token length: ${firebaseToken?.length ?? 0}');
@@ -132,7 +156,7 @@ class AuthRepositoryImpl implements AuthRepository {
       print('User UID: ${userCredential.user!.uid}');
       print('User Email: ${userCredential.user!.email}');
       print('---');
-      
+
       // 3. Registrar en la API del backend
       if (firebaseToken == null) {
         throw AuthFailure.serverError('Firebase token is null');
@@ -145,13 +169,13 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
-      
+
       // 4. Crear modelo completo del usuario
       final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
         firebaseUser,
         firebaseAuthResponse,
       );
-      
+
       await _storeUserSession(completeUser);
       return completeUser;
     } on FirebaseAuthException catch (e) {
@@ -166,21 +190,26 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<CompleteUserModel> signInWithGoogle() async {
     try {
       print('🔐 AuthRepository: Iniciando proceso de Google Sign In...');
-      
+
       // 1. Iniciar sesión con Google
       print('🔐 AuthRepository: Llamando a _googleSignIn.signIn()...');
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+
       if (googleUser == null) {
-        print('❌ AuthRepository: Usuario canceló el inicio de sesión con Google');
-        throw AuthFailure.googleSignInCancelled('El usuario canceló el inicio de sesión');
+        print(
+          '❌ AuthRepository: Usuario canceló el inicio de sesión con Google',
+        );
+        throw AuthFailure.googleSignInCancelled(
+          'El usuario canceló el inicio de sesión',
+        );
       }
 
       print('✅ AuthRepository: Google Sign In exitoso');
       print('🔍 Google User: ${googleUser.displayName} (${googleUser.email})');
-      
+
       print('🔐 AuthRepository: Obteniendo autenticación de Google...');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       print('✅ AuthRepository: Autenticación de Google obtenida');
       print('🔍 Access Token: ${googleAuth.accessToken?.substring(0, 20)}...');
       print('🔍 ID Token: ${googleAuth.idToken?.substring(0, 20)}...');
@@ -191,22 +220,32 @@ class AuthRepositoryImpl implements AuthRepository {
         idToken: googleAuth.idToken,
       );
 
-      print('🔐 AuthRepository: Iniciando sesión en Firebase con credencial...');
-      final userCredential = await _firebaseAuth.signInWithCredential(credential);
-      
+      print(
+        '🔐 AuthRepository: Iniciando sesión en Firebase con credencial...',
+      );
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
+
       if (userCredential.user == null) {
-        print('❌ AuthRepository: Usuario no encontrado después del inicio de sesión con Google');
-        throw AuthFailure.unknown('Usuario no encontrado después del inicio de sesión con Google');
+        print(
+          '❌ AuthRepository: Usuario no encontrado después del inicio de sesión con Google',
+        );
+        throw AuthFailure.unknown(
+          'Usuario no encontrado después del inicio de sesión con Google',
+        );
       }
 
       print('✅ AuthRepository: Firebase Sign In exitoso');
       final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
-      print('🔍 Firebase User: ${firebaseUser.displayName} (${firebaseUser.email})');
-      
+      print(
+        '🔍 Firebase User: ${firebaseUser.displayName} (${firebaseUser.email})',
+      );
+
       // 2. Obtener token de Firebase
       print('🔐 AuthRepository: Obteniendo token de Firebase...');
       final firebaseToken = await userCredential.user!.getIdToken();
-      
+
       // 🔍 DEBUG: Imprimir token de Firebase
       print('🔥 FIREBASE TOKEN (Google Sign In):');
       print('Token length: ${firebaseToken?.length ?? 0}');
@@ -216,39 +255,44 @@ class AuthRepositoryImpl implements AuthRepository {
       print('Google Access Token: ${googleAuth.accessToken}');
       print('Google ID Token: ${googleAuth.idToken}');
       print('---');
-      
+
       // 3. Autenticar/Registrar en la API del backend
       if (firebaseToken == null) {
         print('❌ AuthRepository: Firebase token es null');
         throw AuthFailure.serverError('Firebase token is null');
       }
-      
+
       print('🔐 AuthRepository: Autenticando con la API del backend...');
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
-        nombre: firebaseUser.displayName ?? googleUser.displayName ?? firebaseUser.email.split('@')[0],
-        correo: firebaseUser.email      
+        nombre:
+            firebaseUser.displayName ??
+            googleUser.displayName ??
+            firebaseUser.email.split('@')[0],
+        correo: firebaseUser.email,
       );
 
       print('✅ AuthRepository: API response recibida');
       print('📡 API Response keys: ${apiResponse.keys.toList()}');
 
       final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
-      
+
       // 4. Crear modelo completo del usuario
       print('🔐 AuthRepository: Creando CompleteUserModel...');
       final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
         firebaseUser,
         firebaseAuthResponse,
       );
-      
+
       print('✅ AuthRepository: CompleteUserModel creado');
-      print('🔍 Complete User: ${completeUser.nombre} (${completeUser.email}) - Tipo: ${completeUser.tipoUsuario}');
-      
+      print(
+        '🔍 Complete User: ${completeUser.nombre} (${completeUser.email}) - Tipo: ${completeUser.tipoUsuario}',
+      );
+
       print('💾 AuthRepository: Guardando sesión de usuario...');
       await _storeUserSession(completeUser);
       print('✅ AuthRepository: Sesión guardada exitosamente');
-      
+
       return completeUser;
     } on FirebaseAuthException catch (e) {
       print('❌ AuthRepository: FirebaseAuthException en signInWithGoogle');
@@ -259,12 +303,12 @@ class AuthRepositoryImpl implements AuthRepository {
       print('❌ AuthRepository: Error genérico en signInWithGoogle');
       print('❌ Error tipo: ${e.runtimeType}');
       print('❌ Error mensaje: $e');
-      
+
       if (e is AuthFailure) {
         print('❌ Es un AuthFailure, re-lanzando');
         rethrow;
       }
-      
+
       print('❌ Convirtiendo a AuthFailure.googleSignInFailed');
       throw AuthExceptions.handleGoogleSignInException(Exception(e.toString()));
     }
@@ -302,36 +346,51 @@ class AuthRepositoryImpl implements AuthRepository {
             final userData = CompleteUserModel.fromJson(savedUserData);
             // Validar que el UID del usuario actual coincida con el del storage
             if (userData.uid != firebaseUser.uid) {
-              print('❌ UID de storage no coincide con el usuario actual. Ignorando datos guardados.');
+              print(
+                '❌ UID de storage no coincide con el usuario actual. Ignorando datos guardados.',
+              );
               // Forzar obtención de datos completos desde la API
               try {
                 final firebaseToken = await firebaseUser.getIdToken();
                 if (firebaseToken == null) {
                   print('❌ No se pudo obtener el token de Firebase.');
-                  final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+                  final completeUser = CompleteUserModel.fromFirebaseUser(
+                    userModel,
+                  );
                   print('Devolviendo solo datos de Firebase');
                   print('=====================================');
                   return completeUser;
                 }
                 final apiResponse = await _apiService.authenticateWithFirebase(
                   firebaseToken: firebaseToken,
-                  nombre: userModel.displayName ?? firebaseUser.email?.split('@')[0] ?? '',
+                  nombre:
+                      userModel.displayName ??
+                      firebaseUser.email?.split('@')[0] ??
+                      '',
                   correo: firebaseUser.email ?? '',
                   codigoTutor: null,
                 );
-                final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
+                final firebaseAuthResponse = FirebaseAuthResponse.fromJson(
+                  apiResponse,
+                );
                 final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
                   userModel,
                   firebaseAuthResponse,
                 );
                 await _storeUserSession(completeUser);
-                print('✅ Usuario actualizado desde la API tras cambio de cuenta.');
+                print(
+                  '✅ Usuario actualizado desde la API tras cambio de cuenta.',
+                );
                 print('=====================================');
                 return completeUser;
               } catch (tokenError) {
                 print('❌ Error obteniendo token de Firebase: $tokenError');
-                print('🔍 Usando datos de Firebase como fallback debido a error de conectividad');
-                final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
+                print(
+                  '🔍 Usando datos de Firebase como fallback debido a error de conectividad',
+                );
+                final completeUser = CompleteUserModel.fromFirebaseUser(
+                  userModel,
+                );
                 print('Devolviendo solo datos de Firebase');
                 print('=====================================');
                 return completeUser;
@@ -394,31 +453,41 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<CompleteUserModel?> get authStateChanges {
     return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
-      print('🔍 AuthRepository: authStateChanges - Firebase user: ${firebaseUser?.email ?? 'null'}');
-      
+      print(
+        '🔍 AuthRepository: authStateChanges - Firebase user: ${firebaseUser?.email ?? 'null'}',
+      );
+
       if (firebaseUser != null) {
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
-        
+
         // Intentar obtener datos adicionales del storage
         final savedUserData = await _secureStorage.read('complete_user_data');
-        print('🔍 AuthRepository: authStateChanges - ¿Hay datos guardados?: ${savedUserData != null}');
-        
+        print(
+          '🔍 AuthRepository: authStateChanges - ¿Hay datos guardados?: ${savedUserData != null}',
+        );
+
         if (savedUserData != null) {
           try {
             final userData = CompleteUserModel.fromJson(savedUserData);
-            print('🔍 AuthRepository: authStateChanges - Usuario completo recuperado: ${userData.nombre} (${userData.tipoUsuario})');
+            print(
+              '🔍 AuthRepository: authStateChanges - Usuario completo recuperado: ${userData.nombre} (${userData.tipoUsuario})',
+            );
             return userData;
           } catch (e) {
-            print('❌ AuthRepository: authStateChanges - Error al deserializar datos guardados: $e');
+            print(
+              '❌ AuthRepository: authStateChanges - Error al deserializar datos guardados: $e',
+            );
             // Si no se puede deserializar, devolver solo datos de Firebase
             return CompleteUserModel.fromFirebaseUser(userModel);
           }
         }
-        
-        print('🔍 AuthRepository: authStateChanges - No hay datos guardados, usando solo Firebase');
+
+        print(
+          '🔍 AuthRepository: authStateChanges - No hay datos guardados, usando solo Firebase',
+        );
         return CompleteUserModel.fromFirebaseUser(userModel);
       }
-      
+
       print('🔍 AuthRepository: authStateChanges - Usuario null (logout)');
       return null;
     });
@@ -461,7 +530,7 @@ class AuthRepositoryImpl implements AuthRepository {
       print('==================================');
 
       await _secureStorage.storeToken('user_session', userId);
-      
+
       // Guardar datos completos del usuario si están disponibles
       if (userData != null) {
         await _secureStorage.storeData('complete_user_data', userData);
@@ -478,6 +547,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final googleSignIn = ref.watch(googleSignInProvider);
   final secureStorage = ref.watch(secureStorageRepositoryProvider);
   final apiService = ref.watch(apiServiceProvider);
-  
-  return AuthRepositoryImpl(firebaseAuth, googleSignIn, secureStorage, apiService);
+
+  return AuthRepositoryImpl(
+    firebaseAuth,
+    googleSignIn,
+    secureStorage,
+    apiService,
+  );
 });

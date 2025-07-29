@@ -106,7 +106,9 @@ class ForumUseCases {
     return await _forumRepository.searchPosts(query);
   }
 
-  Future<List<ForumPostEntity>> getPostsByCategory(ForumCategory category) async {
+  Future<List<ForumPostEntity>> getPostsByCategory(
+    ForumCategory category,
+  ) async {
     return await _forumRepository.getPostsByCategory(category);
   }
 
@@ -139,4 +141,4 @@ class ForumUseCases {
   Stream<List<ForumCommentEntity>> watchComments(String postId) {
     return _forumRepository.watchComments(postId);
   }
-} 
+}

@@ -16,7 +16,7 @@ class UserFirebaseEntity {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is UserFirebaseEntity &&
         other.uid == uid &&
         other.email == email &&

@@ -27,25 +27,25 @@ class UserEntity {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-  
+
     return other is UserEntity &&
-      other.id == id &&
-      other.correo == correo &&
-      other.password == password &&
-      other.tipoUsuario == tipoUsuario &&
-      other.createdAt == createdAt &&
-      other.updatedAt == updatedAt &&
-      other.deletedAt == deletedAt;
+        other.id == id &&
+        other.correo == correo &&
+        other.password == password &&
+        other.tipoUsuario == tipoUsuario &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt &&
+        other.deletedAt == deletedAt;
   }
 
   @override
   int get hashCode {
     return id.hashCode ^
-      correo.hashCode ^
-      password.hashCode ^
-      tipoUsuario.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode ^
-      deletedAt.hashCode;
+        correo.hashCode ^
+        password.hashCode ^
+        tipoUsuario.hashCode ^
+        createdAt.hashCode ^
+        updatedAt.hashCode ^
+        deletedAt.hashCode;
   }
 }

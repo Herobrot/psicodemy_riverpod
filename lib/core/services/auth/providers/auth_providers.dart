@@ -5,13 +5,7 @@ import '../exceptions/auth_failure.dart';
 import '../../../../domain/entities/user_firebase_entity.dart';
 
 // Enum para los estados de autenticación
-enum AuthStateStatus {
-  initial,
-  loading,
-  authenticated,
-  unauthenticated,
-  error,
-}
+enum AuthStateStatus { initial, loading, authenticated, unauthenticated, error }
 
 // StateNotifier para manejar el estado de autenticación
 class AuthNotifier extends StateNotifier<AuthState> {
@@ -38,11 +32,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     });
   }
 
-  Future<void> signInWithEmailAndPassword(String email, String password, {String? codigoInstitucion}) async {
+  Future<void> signInWithEmailAndPassword(
+    String email,
+    String password, {
+    String? codigoInstitucion,
+  }) async {
     state = AuthState.loading();
-    
+
     try {
-      final userApiModel = await _authService.signInWithEmailAndPassword(email, password);
+      final userApiModel = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
+      );
       final userEntity = UserFirebaseEntity(
         uid: userApiModel.userId ?? userApiModel.uid,
         email: userApiModel.email,
@@ -54,15 +55,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 
-  Future<void> signUpWithEmailAndPassword(String email, String password, {String? codigoInstitucion}) async {
+  Future<void> signUpWithEmailAndPassword(
+    String email,
+    String password, {
+    String? codigoInstitucion,
+  }) async {
     state = AuthState.loading();
-    
+
     try {
-      final completeUser = await _authService.signUpWithEmailAndPassword(email, password);
+      final completeUser = await _authService.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
       final userEntity = UserFirebaseEntity(
         uid: completeUser.uid,
         email: completeUser.email,
@@ -74,13 +84,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 
   Future<void> signInWithGoogle({String? codigoInstitucion}) async {
     state = AuthState.loading();
-    
+
     try {
       final completeUser = await _authService.signInWithGoogle();
       final userEntity = UserFirebaseEntity(
@@ -94,7 +106,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 
@@ -103,7 +117,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _authService.signOut();
       state = AuthState.unauthenticated();
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 
@@ -111,7 +127,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _authService.sendPasswordResetEmail(email);
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 
@@ -131,13 +149,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = AuthState.unauthenticated();
       }
     } catch (e) {
-      state = AuthState.error(AuthFailure.unknown(e.toString()).message ?? 'Error desconocido');
+      state = AuthState.error(
+        AuthFailure.unknown(e.toString()).message ?? 'Error desconocido',
+      );
     }
   }
 }
 
 // Provider para AuthNotifier
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((
+  ref,
+) {
   final authService = ref.watch(authServiceProvider);
   return AuthNotifier(authService);
 });

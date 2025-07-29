@@ -26,7 +26,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       await _secureStorage.write(key: key, value: token);
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error storing token: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error storing token: $e'),
+      );
     }
   }
 
@@ -35,7 +37,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       return await _secureStorage.read(key: key);
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error getting token: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error getting token: $e'),
+      );
     }
   }
 
@@ -44,7 +48,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       await _secureStorage.delete(key: key);
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error deleting token: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error deleting token: $e'),
+      );
     }
   }
 
@@ -53,7 +59,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
     try {
       await _secureStorage.deleteAll();
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error clearing storage: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error clearing storage: $e'),
+      );
     }
   }
 
@@ -73,7 +81,9 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
       final jsonString = json.encode(data);
       await _secureStorage.write(key: key, value: jsonString);
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error storing data: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error storing data: $e'),
+      );
     }
   }
 
@@ -86,12 +96,16 @@ class SecureStorageRepositoryImpl implements SecureStorageRepository {
       }
       return null;
     } catch (e) {
-      throw AuthExceptions.handleGenericException(Exception('Error reading data: $e'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error reading data: $e'),
+      );
     }
   }
 }
 
-final secureStorageRepositoryProvider = Provider<SecureStorageRepository>((ref) {
+final secureStorageRepositoryProvider = Provider<SecureStorageRepository>((
+  ref,
+) {
   final secureStorage = ref.watch(secureStorageProvider);
   return SecureStorageRepositoryImpl(secureStorage);
 });

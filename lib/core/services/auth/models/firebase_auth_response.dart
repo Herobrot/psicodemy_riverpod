@@ -48,7 +48,7 @@ class ApiResponseData {
       _$ApiResponseDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApiResponseDataToJson(this);
-      
+
   // Método helper para obtener TipoUsuario
   TipoUsuario get tipoUsuario {
     switch (userType.toLowerCase()) {
@@ -87,7 +87,7 @@ class ApiUser {
       _$ApiUserFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApiUserToJson(this);
-      
+
   // Factory para crear desde ApiResponseData
   factory ApiUser.fromApiResponseData(ApiResponseData data) {
     return ApiUser(
@@ -131,4 +131,4 @@ class TipoUsuarioConverter implements JsonConverter<TipoUsuario, String> {
 
   @override
   String toJson(TipoUsuario object) => object.jsonValue;
-} 
+}

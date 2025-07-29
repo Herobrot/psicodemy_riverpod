@@ -9,7 +9,7 @@ import '../../api_service_provider.dart';
 /// Implementación del repositorio de tutores
 class TutorRepository implements TutorRepositoryInterface {
   final ApiService _apiService;
-  
+
   // Cache simple para tutores
   List<TutorModel>? _cachedTutors;
   DateTime? _cacheTimestamp;
@@ -102,7 +102,11 @@ class TutorRepository implements TutorRepositoryInterface {
   Future<List<TutorModel>> searchTutorsByName(String name) async {
     try {
       final tutors = await getTutors();
-      return tutors.where((tutor) => tutor.nombre.toLowerCase().contains(name.toLowerCase())).toList();
+      return tutors
+          .where(
+            (tutor) => tutor.nombre.toLowerCase().contains(name.toLowerCase()),
+          )
+          .toList();
     } on TutorException catch (e) {
       print('❌ TutorException en searchTutorsByName: $e');
       rethrow;
@@ -291,4 +295,4 @@ class TutorRepository implements TutorRepositoryInterface {
 final tutorRepositoryProvider = Provider<TutorRepository>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return TutorRepository(apiService);
-}); 
+});

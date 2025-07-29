@@ -18,7 +18,8 @@ class SendPasswordResetEmailUseCase {
   }
 }
 
-final sendPasswordResetEmailUseCaseProvider = Provider<SendPasswordResetEmailUseCase>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return SendPasswordResetEmailUseCase(authRepository);
-});
+final sendPasswordResetEmailUseCaseProvider =
+    Provider<SendPasswordResetEmailUseCase>((ref) {
+      final authRepository = ref.watch(authRepositoryProvider);
+      return SendPasswordResetEmailUseCase(authRepository);
+    });

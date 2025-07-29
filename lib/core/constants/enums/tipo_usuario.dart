@@ -4,5 +4,5 @@ enum TipoUsuario {
   @JsonValue('tutor')
   tutor,
   @JsonValue('alumno')
-  alumno
+  alumno,
 }

@@ -91,14 +91,12 @@ class FirebaseMessagingDatasourceImpl implements FirebaseMessagingDatasource {
   }
 
   @override
-  Stream<RemoteMessage> get onMessageReceived => 
-      FirebaseMessaging.onMessage;
+  Stream<RemoteMessage> get onMessageReceived => FirebaseMessaging.onMessage;
 
   @override
-  Stream<RemoteMessage> get onMessageOpenedApp => 
+  Stream<RemoteMessage> get onMessageOpenedApp =>
       FirebaseMessaging.onMessageOpenedApp;
 
   @override
-  Stream<String> get onTokenRefresh => 
-      _firebaseMessaging.onTokenRefresh;
+  Stream<String> get onTokenRefresh => _firebaseMessaging.onTokenRefresh;
 }
