@@ -35,13 +35,13 @@ class TutorRepository implements TutorRepositoryInterface {
       _cachedTutors = tutors;
       _cacheTimestamp = DateTime.now();
       return tutors;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener los tutores');
     }
   }
@@ -55,13 +55,13 @@ class TutorRepository implements TutorRepositoryInterface {
       } catch (_) {
         return null;
       }
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener el tutor por ID');
     }
   }
@@ -75,13 +75,13 @@ class TutorRepository implements TutorRepositoryInterface {
       } catch (_) {
         return null;
       }
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al buscar tutores por nombre');
     }
   }
@@ -95,13 +95,13 @@ class TutorRepository implements TutorRepositoryInterface {
             (tutor) => tutor.nombre.toLowerCase().contains(name.toLowerCase()),
           )
           .toList();
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
@@ -111,13 +111,13 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutors = await getTutors();
       return tutors.length;
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
@@ -127,13 +127,13 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutor = await getTutorByEmail(email);
       return tutor != null;
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener el tutor por email');
     }
   }
@@ -142,13 +142,13 @@ class TutorRepository implements TutorRepositoryInterface {
   Future<List<TutorModel>> getActiveTutors() async {
     try {
       return await getTutors();
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener los tutores activos');
     }
   }
@@ -158,14 +158,16 @@ class TutorRepository implements TutorRepositoryInterface {
     try {
       final tutors = await getTutors();
       return tutors.take(limit).toList();
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
-      throw TutorException.unknown('Error al obtener los tutores más calificados');
+    } catch (_) {
+      throw TutorException.unknown(
+        'Error al obtener los tutores más calificados',
+      );
     }
   }
 
@@ -173,13 +175,13 @@ class TutorRepository implements TutorRepositoryInterface {
   Future<List<TutorModel>> getAvailableTutorsForDate(DateTime fecha) async {
     try {
       return await getTutors();
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
+    } catch (_) {
       throw TutorException.unknown('Error al obtener los tutores disponibles');
     }
   }
@@ -195,14 +197,16 @@ class TutorRepository implements TutorRepositoryInterface {
         'cacheValid': isCacheValid(),
         'cacheTimestamp': _cacheTimestamp?.toIso8601String(),
       };
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
-      throw TutorException.unknown('Error al obtener las estadísticas de los tutores');
+    } catch (_) {
+      throw TutorException.unknown(
+        'Error al obtener las estadísticas de los tutores',
+      );
     }
   }
 
@@ -212,14 +216,16 @@ class TutorRepository implements TutorRepositoryInterface {
       _cachedTutors = null;
       _cacheTimestamp = null;
       await getTutors();
-    } on TutorException catch (_) {      
+    } on TutorException catch (_) {
       rethrow;
-    } on SocketException catch (_) {      
+    } on SocketException catch (_) {
       throw TutorException.networkError('Sin conexión a internet');
-    } on FormatException catch (_) {      
+    } on FormatException catch (_) {
       throw TutorException.parseError('Error al procesar la respuesta');
-    } catch (_) {      
-      throw TutorException.unknown('Error al actualizar la caché de los tutores');
+    } catch (_) {
+      throw TutorException.unknown(
+        'Error al actualizar la caché de los tutores',
+      );
     }
   }
 

@@ -22,7 +22,8 @@ class AppointmentDetailScreen extends ConsumerWidget {
             Text('Estado: ${appointment.statusText}'),
             if (appointment.notes != null) Text('Notas: ${appointment.notes}'),
             const Spacer(),
-            if (appointment.status == AppointmentStatus.pending || appointment.status == AppointmentStatus.confirmed)
+            if (appointment.status == AppointmentStatus.pending ||
+                appointment.status == AppointmentStatus.confirmed)
               ElevatedButton(
                 onPressed: () async {
                   final actions = ref.read(appointmentActionsProvider);
@@ -37,4 +38,4 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ),
     );
   }
-} 
+}

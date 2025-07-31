@@ -15,7 +15,6 @@ class AuthWrapper extends ConsumerWidget {
     final isTutor = ref.watch(isTutorProvider);
     final isAlumno = ref.watch(isAlumnoProvider);
     final currentUser = ref.watch(currentCompleteUserProvider);
-    
 
     // Si está cargando, mostrar pantalla de carga
     if (isLoading) {
@@ -29,7 +28,7 @@ class AuthWrapper extends ConsumerWidget {
 
     // Si está autenticado pero el currentUser aún está cargando, mostrar pantalla de carga
     return currentUser.when(
-      data: (user) {        
+      data: (user) {
         // Si el usuario está autenticado pero no tenemos datos completos, mostrar carga
         if (user == null) {
           return const Scaffold(
@@ -67,7 +66,7 @@ class AuthWrapper extends ConsumerWidget {
           );
         }
       },
-      loading: () {        
+      loading: () {
         return const Scaffold(
           body: Center(
             child: Column(
@@ -81,7 +80,7 @@ class AuthWrapper extends ConsumerWidget {
           ),
         );
       },
-      error: (error, stack) {        
+      error: (error, stack) {
         return const Scaffold(
           body: Center(
             child: Column(

@@ -21,8 +21,7 @@ class FCMService {
 
   /// Inicializa el servicio FCM
   static Future<void> initialize() async {
-    try {      
-
+    try {
       // Inicializar notificaciones locales
       await _initializeLocalNotifications();
 
@@ -38,7 +37,6 @@ class FCMService {
 
       // Escuchar cambios en el token
       _setupTokenRefreshListener();
-      
     } catch (_) {
       throw Exception('Error al inicializar FCM:');
     }
@@ -62,7 +60,7 @@ class FCMService {
           iOS: initializationSettingsIOS,
         );
 
-    await _localNotifications.initialize(initializationSettings);    
+    await _localNotifications.initialize(initializationSettings);
   }
 
   /// Solicitar permisos para notificaciones
@@ -77,19 +75,17 @@ class FCMService {
       sound: true,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {      
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
     } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {      
-    } else {      
-    }
+        AuthorizationStatus.provisional) {
+    } else {}
   }
 
   /// Configurar listener para notificaciones en primer plano
   static Future<void> _setupForegroundMessaging() async {
     _foregroundSubscription = FirebaseMessaging.onMessage.listen((
       RemoteMessage message,
-    ) {      
-
+    ) {
       // Mostrar la notificación visualmente cuando la app está en primer plano
       _showLocalNotification(message);
 
@@ -103,7 +99,7 @@ class FCMService {
     // Notificaciones cuando la app está en segundo plano pero no terminada
     _backgroundSubscription = FirebaseMessaging.onMessageOpenedApp.listen((
       RemoteMessage message,
-    ) {      
+    ) {
       _handleSecurityNotification(message);
     });
 
@@ -111,7 +107,6 @@ class FCMService {
     RemoteMessage? initialMessage = await _firebaseMessaging
         .getInitialMessage();
     if (initialMessage != null) {
-      
       _handleSecurityNotification(initialMessage);
     }
   }
@@ -148,7 +143,6 @@ class FCMService {
         message.notification?.body ?? 'Nueva notificación recibida',
         platformChannelSpecifics,
       );
-      
     } catch (_) {
       throw Exception('Error al mostrar notificación local:');
     }
@@ -157,7 +151,7 @@ class FCMService {
   /// Manejar notificaciones de seguridad que requieren cerrar sesión
   static Future<void> _handleSecurityNotification(RemoteMessage message) async {
     try {
-      // Log de la notificación recibida                        
+      // Log de la notificación recibida
 
       if (message.data['action'] == 'security_logout') {
         await _clearSensitiveData();
@@ -178,7 +172,6 @@ class FCMService {
 
       // CONFIGURACIÓN ACTUAL: Eliminar datos sensibles con cualquier notificación
       //await _clearSensitiveData();
-      
     } catch (_) {
       throw Exception('Error al manejar notificación de seguridad:');
     }
@@ -195,12 +188,11 @@ class FCMService {
 
       // 3. Aquí puedes agregar más limpieza de datos sensibles si es necesario
       // Por ejemplo: cache de imágenes, bases de datos locales, etc.
-      
-    } catch (_) {      
+    } catch (_) {
       // Intentar al menos cerrar sesión aunque fallen otros pasos
       try {
         await _authService.signOut();
-      } catch (_) { 
+      } catch (_) {
         throw Exception('Error al cerrar sesión:');
       }
     }
@@ -209,7 +201,7 @@ class FCMService {
   /// Obtener y guardar el token FCM en Firestore
   static Future<String?> _getAndSaveToken() async {
     try {
-      String? token = await _firebaseMessaging.getToken();      
+      String? token = await _firebaseMessaging.getToken();
       if (token != null) {
         await _saveTokenToFirestore(token);
       }
@@ -229,7 +221,6 @@ class FCMService {
           'lastTokenUpdate': FieldValue.serverTimestamp(),
           'platform': 'flutter', // Identificar la plataforma
         }, SetOptions(merge: true));
-        
       }
     } catch (_) {
       throw Exception('Error al guardar token FCM en Firestore:');
@@ -238,7 +229,7 @@ class FCMService {
 
   /// Configurar listener para actualizaciones del token
   static void _setupTokenRefreshListener() {
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {      
+    _firebaseMessaging.onTokenRefresh.listen((newToken) {
       _saveTokenToFirestore(newToken);
     });
   }
@@ -251,7 +242,7 @@ class FCMService {
   /// Suscribir al usuario a un tema específico
   static Future<void> subscribeToTopic(String topic) async {
     try {
-      await _firebaseMessaging.subscribeToTopic(topic);      
+      await _firebaseMessaging.subscribeToTopic(topic);
     } catch (_) {
       throw Exception('Error al suscribir al usuario a un tema específico:');
     }
@@ -260,7 +251,7 @@ class FCMService {
   /// Desuscribir al usuario de un tema específico
   static Future<void> unsubscribeFromTopic(String topic) async {
     try {
-      await _firebaseMessaging.unsubscribeFromTopic(topic);      
+      await _firebaseMessaging.unsubscribeFromTopic(topic);
     } catch (_) {
       throw Exception('Error al desuscribir al usuario de un tema específico:');
     }
@@ -280,8 +271,7 @@ class FCMService {
 
 /// Handler para notificaciones en segundo plano (debe estar fuera de la clase)
 @pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {  
-
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Para notificaciones en segundo plano, solo podemos hacer operaciones limitadas
   // La limpieza completa se hará cuando la app se abra
   try {

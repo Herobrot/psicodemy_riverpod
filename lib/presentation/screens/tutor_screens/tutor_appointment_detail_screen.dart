@@ -324,8 +324,7 @@ class _TutorAppointmentDetailScreenState
       await apiService.updateAppointmentStatus(widget.appointment.id, {
         'checklist': checklistData,
       });
-          
-    } catch (_) {         
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al actualizar checklist'),

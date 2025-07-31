@@ -25,21 +25,27 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         // Si falla, dejar realTutorId como null
       }
     }
-    final List<AppointmentModel> models = await _appointmentService.getAppointments(idTutor: realTutorId);
-    return models.map((m) => AppointmentEntity(
-      id: m.id,
-      tutorId: m.idTutor,
-      studentId: m.idAlumno,
-      studentName: m.idAlumno, // Si tienes el nombre real, cámbialo aquí
-      topic: m.reason ?? '',
-      scheduledDate: m.fechaCita,
-      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
-      status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
-      notes: m.reason,
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
-      completedAt: null,
-    )).toList();
+    final List<AppointmentModel> models = await _appointmentService
+        .getAppointments(idTutor: realTutorId);
+    return models
+        .map(
+          (m) => AppointmentEntity(
+            id: m.id,
+            tutorId: m.idTutor,
+            studentId: m.idAlumno,
+            studentName: m.idAlumno, // Si tienes el nombre real, cámbialo aquí
+            topic: m.reason ?? '',
+            scheduledDate: m.fechaCita,
+            timeSlot:
+                '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
+            status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
+            notes: m.reason,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            completedAt: null,
+          ),
+        )
+        .toList();
   }
 
   AppointmentStatus _mapEstadoCitaToAppointmentStatus(EstadoCita estado) {
@@ -59,24 +65,27 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<List<AppointmentEntity>> getPendingAppointments(String tutorId) async {
-    final List<AppointmentModel> models = await _appointmentService.getAppointments(
-      idTutor: tutorId,
-      estadoCita: EstadoCita.pendiente,
-    );
-    return models.map((m) => AppointmentEntity(
-      id: m.id,
-      tutorId: m.idTutor,
-      studentId: m.idAlumno,
-      studentName: m.idAlumno,
-      topic: m.reason ?? '',
-      scheduledDate: m.fechaCita,
-      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
-      status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
-      notes: m.reason,
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
-      completedAt: null,
-    )).toList();
+    final List<AppointmentModel> models = await _appointmentService
+        .getAppointments(idTutor: tutorId, estadoCita: EstadoCita.pendiente);
+    return models
+        .map(
+          (m) => AppointmentEntity(
+            id: m.id,
+            tutorId: m.idTutor,
+            studentId: m.idAlumno,
+            studentName: m.idAlumno,
+            topic: m.reason ?? '',
+            scheduledDate: m.fechaCita,
+            timeSlot:
+                '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
+            status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
+            notes: m.reason,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            completedAt: null,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -84,31 +93,35 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
     final end = start.add(const Duration(days: 1));
-    final List<AppointmentModel> models = await _appointmentService.getAppointments(
-      idTutor: tutorId,
-      fechaDesde: start,
-      fechaHasta: end,
-    );
-    return models.map((m) => AppointmentEntity(
-      id: m.id,
-      tutorId: m.idTutor,
-      studentId: m.idAlumno,
-      studentName: m.idAlumno,
-      topic: m.reason ?? '',
-      scheduledDate: m.fechaCita,
-      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
-      status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
-      notes: m.reason,
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
-      completedAt: null,
-    )).toList();
+    final List<AppointmentModel> models = await _appointmentService
+        .getAppointments(idTutor: tutorId, fechaDesde: start, fechaHasta: end);
+    return models
+        .map(
+          (m) => AppointmentEntity(
+            id: m.id,
+            tutorId: m.idTutor,
+            studentId: m.idAlumno,
+            studentName: m.idAlumno,
+            topic: m.reason ?? '',
+            scheduledDate: m.fechaCita,
+            timeSlot:
+                '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
+            status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
+            notes: m.reason,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            completedAt: null,
+          ),
+        )
+        .toList();
   }
 
   @override
   Future<AppointmentEntity?> getAppointmentById(String appointmentId) async {
     try {
-      final appointmentModel = await _appointmentService.getAppointmentById(appointmentId);
+      final appointmentModel = await _appointmentService.getAppointmentById(
+        appointmentId,
+      );
       return AppointmentEntity(
         id: appointmentModel.id,
         tutorId: appointmentModel.idTutor,
@@ -116,7 +129,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         studentName: appointmentModel.idAlumno,
         topic: appointmentModel.reason ?? '',
         scheduledDate: appointmentModel.fechaCita,
-        timeSlot: '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
+        timeSlot:
+            '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
         status: _mapEstadoCitaToAppointmentStatus(appointmentModel.estadoCita),
         notes: appointmentModel.reason,
         createdAt: appointmentModel.createdAt,
@@ -129,13 +143,18 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<AppointmentEntity> createAppointment(AppointmentEntity appointment) async {
+  Future<AppointmentEntity> createAppointment(
+    AppointmentEntity appointment,
+  ) async {
     // TODO: Implementar usando AppointmentService
     throw UnimplementedError();
   }
 
   @override
-  Future<AppointmentEntity> updateAppointmentStatus(String appointmentId, AppointmentStatus status) async {
+  Future<AppointmentEntity> updateAppointmentStatus(
+    String appointmentId,
+    AppointmentStatus status,
+  ) async {
     try {
       // Mapear AppointmentStatus a EstadoCita
       EstadoCita estado;
@@ -160,10 +179,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           break;
       }
 
-      final appointmentModel = await _appointmentService.updateAppointmentStatus(
-        appointmentId, 
-        UpdateStatusRequest(estadoCita: estado)
-      );
+      final appointmentModel = await _appointmentService
+          .updateAppointmentStatus(
+            appointmentId,
+            UpdateStatusRequest(estadoCita: estado),
+          );
 
       return AppointmentEntity(
         id: appointmentModel.id,
@@ -172,7 +192,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         studentName: appointmentModel.idAlumno,
         topic: appointmentModel.reason ?? '',
         scheduledDate: appointmentModel.fechaCita,
-        timeSlot: '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
+        timeSlot:
+            '${appointmentModel.fechaCita.hour.toString().padLeft(2, '0')}:${appointmentModel.fechaCita.minute.toString().padLeft(2, '0')}',
         status: _mapEstadoCitaToAppointmentStatus(appointmentModel.estadoCita),
         notes: appointmentModel.reason,
         createdAt: appointmentModel.createdAt,
@@ -188,8 +209,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   Future<void> cancelAppointment(String appointmentId) async {
     try {
       await _appointmentService.updateAppointmentStatus(
-        appointmentId, 
-        UpdateStatusRequest(estadoCita: EstadoCita.cancelada)
+        appointmentId,
+        UpdateStatusRequest(estadoCita: EstadoCita.cancelada),
       );
     } catch (_) {
       throw Exception('Error al cancelar la cita:');
@@ -197,7 +218,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<AppointmentEntity> rescheduleAppointment(String appointmentId, DateTime newDate, String newTimeSlot) async {
+  Future<AppointmentEntity> rescheduleAppointment(
+    String appointmentId,
+    DateTime newDate,
+    String newTimeSlot,
+  ) async {
     // TODO: Implementar usando AppointmentService
     throw UnimplementedError();
   }
@@ -216,7 +241,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           cita.scheduledDate.day == now.day) {
         hoy++;
       }
-      if (cita.status == AppointmentStatus.pending || cita.status == AppointmentStatus.confirmed) {
+      if (cita.status == AppointmentStatus.pending ||
+          cita.status == AppointmentStatus.confirmed) {
         pendientes++;
       }
       if (cita.status == AppointmentStatus.completed) {
@@ -224,15 +250,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       }
     }
 
-    return {
-      'Hoy': hoy,
-      'Pendiente': pendientes,
-      'Completada': completadas,
-    };
+    return {'Hoy': hoy, 'Pendiente': pendientes, 'Completada': completadas};
   }
 
   @override
-  Future<List<AppointmentEntity>> getStudentAppointments(String studentId) async {
+  Future<List<AppointmentEntity>> getStudentAppointments(
+    String studentId,
+  ) async {
     // TODO: Implementar usando AppointmentService
     throw UnimplementedError();
   }
@@ -266,26 +290,32 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         estado = EstadoCita.pendiente;
         break;
     }
-    final List<AppointmentModel> models = await _appointmentService.getAppointments(
-      idAlumno: studentId,
-      estadoCita: estado,
-      fechaDesde: fechaDesde,
-      limit: limit,
-    );
-    return models.map((m) => AppointmentEntity(
-      id: m.id,
-      tutorId: m.idTutor,
-      studentId: m.idAlumno,
-      studentName: m.idAlumno,
-      topic: m.reason ?? '',
-      scheduledDate: m.fechaCita,
-      timeSlot: '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
-      status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
-      notes: m.reason,
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
-      completedAt: null,
-    )).toList();
+    final List<AppointmentModel> models = await _appointmentService
+        .getAppointments(
+          idAlumno: studentId,
+          estadoCita: estado,
+          fechaDesde: fechaDesde,
+          limit: limit,
+        );
+    return models
+        .map(
+          (m) => AppointmentEntity(
+            id: m.id,
+            tutorId: m.idTutor,
+            studentId: m.idAlumno,
+            studentName: m.idAlumno,
+            topic: m.reason ?? '',
+            scheduledDate: m.fechaCita,
+            timeSlot:
+                '${m.fechaCita.hour.toString().padLeft(2, '0')}:${m.fechaCita.minute.toString().padLeft(2, '0')}',
+            status: _mapEstadoCitaToAppointmentStatus(m.estadoCita),
+            notes: m.reason,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            completedAt: null,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -293,4 +323,4 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     // TODO: Implementar usando AppointmentService
     throw UnimplementedError();
   }
-} 
+}

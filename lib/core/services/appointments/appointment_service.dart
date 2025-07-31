@@ -36,17 +36,17 @@ class AppointmentService {
       );
 
       if (completeUserData != null) {
-        final userJson = json.decode(completeUserData);        
+        final userJson = json.decode(completeUserData);
         final userId = userJson['userId'] as String?;
-        final tipoUsuario = userJson['tipoUsuario'] as String?;                
-        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {          
+        final tipoUsuario = userJson['tipoUsuario'] as String?;
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
           return userId;
         }
         return userId;
       }
-      
+
       return null;
-    } catch (_) {      
+    } catch (_) {
       return null;
     }
   }
@@ -83,7 +83,9 @@ class AppointmentService {
       final data = await _apiService.getAppointmentById(id);
       return AppointmentModel.fromJson(data);
     } catch (_) {
-      throw AppointmentException.simple('Error al actualizar el estado de la cita');
+      throw AppointmentException.simple(
+        'Error al actualizar el estado de la cita',
+      );
     }
   }
 
@@ -110,7 +112,9 @@ class AppointmentService {
       );
       return AppointmentModel.fromJson(data);
     } catch (_) {
-      throw AppointmentException.simple('Error al actualizar el estado de la cita');
+      throw AppointmentException.simple(
+        'Error al actualizar el estado de la cita',
+      );
     }
   }
 

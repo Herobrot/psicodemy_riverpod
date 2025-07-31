@@ -17,7 +17,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _showPassword = false;  
+  bool _showPassword = false;
   String? _error;
 
   @override
@@ -25,7 +25,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.initState();
     // Agregar listeners para limpiar errores cuando el usuario escriba
     _emailController.addListener(_clearError);
-    _passwordController.addListener(_clearError);  
+    _passwordController.addListener(_clearError);
   }
 
   void _clearError() {
@@ -49,13 +49,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (!mounted) return;
 
-    setState(() { 
-      _isLoading = true; 
-      _error = null; 
+    setState(() {
+      _isLoading = true;
+      _error = null;
     });
 
-    try {      
-      
+    try {
       // Mostrar mensaje de progreso al usuario
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,15 +65,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         );
       }
-      
+
       final authService = ref.read(authServiceProvider);
-      
+
       final completeUser = await authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
-        _passwordController.text.trim()
+        _passwordController.text.trim(),
       );
-                              
-      
+
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,20 +81,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
-                
-        
+
         // Esperar un poco más para asegurar que los datos se guarden en storage
         await Future.delayed(const Duration(milliseconds: 1500));
-        
-        // Forzar actualización del estado de autenticación        
+
+        // Forzar actualización del estado de autenticación
         ref.invalidate(currentCompleteUserProvider);
-        
+
         // Esperar un poco más para que el stream se actualice
         await Future.delayed(const Duration(milliseconds: 500));
-                
       }
-    } catch (e) {            
-      
+    } catch (e) {
       if (mounted) {
         // Si hay un error, cerrar sesión de Firebase para evitar navegación incorrecta
         try {
@@ -105,12 +100,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         } catch (signOutError) {
           throw Exception('Error al cerrar sesión: $signOutError');
         }
-        
+
         String errorMessage;
-        
+
         // Manejar errores específicos
         if (e.toString().contains('TimeoutException')) {
-          errorMessage = 'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
+          errorMessage =
+              'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
         } else if (e.toString().contains('SocketException')) {
           errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
         } else if (e.toString().contains('AuthFailure')) {
@@ -122,38 +118,41 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             if (endIndex > startIndex) {
               errorMessage = errorString.substring(startIndex, endIndex).trim();
             } else {
-              errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+              errorMessage =
+                  'Error de autenticación: ${errorString.split('(').first.trim()}';
             }
           } else {
-            errorMessage = 'Error de autenticación: ${errorString.split('(').first.trim()}';
+            errorMessage =
+                'Error de autenticación: ${errorString.split('(').first.trim()}';
           }
         } else {
           errorMessage = 'Error al iniciar sesión';
         }
-        
+
         setState(() {
           _error = errorMessage;
         });
-        
-        // Mostrar error en consola para debug        
+
+        // Mostrar error en consola para debug
       }
     } finally {
       if (mounted) {
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
   Future<void> _signInWithGoogle() async {
     if (!mounted) return;
-    
-    setState(() { 
-      _isLoading = true; 
-      _error = null; 
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
     });
 
-    try {      
-      
+    try {
       // Mostrar mensaje de progreso al usuario
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,12 +163,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         );
       }
-      
+
       final authService = ref.read(authServiceProvider);
-      
+
       final completeUser = await authService.signInWithGoogle();
-                              
-      
+
       // Si llegamos aquí, el inicio de sesión fue exitoso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -178,35 +176,37 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             backgroundColor: Colors.green,
           ),
         );
-                
-        
+
         // Esperar un poco más para asegurar que los datos se guarden en storage
         await Future.delayed(const Duration(milliseconds: 1500));
-        
-        // Forzar actualización del estado de autenticación        
+
+        // Forzar actualización del estado de autenticación
         ref.invalidate(currentCompleteUserProvider);
-        
+
         // Esperar un poco más para que el stream se actualice
         await Future.delayed(const Duration(milliseconds: 500));
-                
       }
-    } catch (e) {            
-      
+    } catch (e) {
       if (mounted) {
         // NO cerrar sesión automáticamente en caso de error
         // Solo mostrar el error al usuario
-        
+
         String errorMessage;
-        
+
         // Manejar errores específicos de Google Sign In
         if (e.toString().contains('TimeoutException')) {
-          errorMessage = 'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
+          errorMessage =
+              'Tiempo de espera agotado. Verifica tu conexión a internet e intenta nuevamente.';
         } else if (e.toString().contains('SocketException')) {
           errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
-        } else if (e.toString().contains('sign_in_canceled') || e.toString().contains('googleSignInCancelled')) {
-          errorMessage = 'Inicio de sesión con Google cancelado por el usuario.';
-        } else if (e.toString().contains('network_error') || e.toString().contains('networkError')) {
-          errorMessage = 'Error de red durante el inicio de sesión con Google. Verifica tu conexión.';
+        } else if (e.toString().contains('sign_in_canceled') ||
+            e.toString().contains('googleSignInCancelled')) {
+          errorMessage =
+              'Inicio de sesión con Google cancelado por el usuario.';
+        } else if (e.toString().contains('network_error') ||
+            e.toString().contains('networkError')) {
+          errorMessage =
+              'Error de red durante el inicio de sesión con Google. Verifica tu conexión.';
         } else if (e.toString().contains('AuthFailure')) {
           // Extraer el mensaje del AuthFailure
           final errorString = e.toString();
@@ -216,28 +216,31 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             if (endIndex > startIndex) {
               errorMessage = errorString.substring(startIndex, endIndex).trim();
             } else {
-              errorMessage = 'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
+              errorMessage =
+                  'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
             }
           } else {
-            errorMessage = 'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
+            errorMessage =
+                'Error de autenticación con Google: ${errorString.split('(').first.trim()}';
           }
         } else if (e.toString().contains('PigeonUserDetails')) {
           errorMessage = 'Error interno de Google Sign In. Intenta de nuevo.';
         } else {
           errorMessage = 'Error inesperado con Google Sign In: ${e.toString()}';
         }
-        
+
         setState(() {
           _error = errorMessage;
-        });              
+        });
       }
     } finally {
       if (mounted) {
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +262,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Campo de correo
                   TextFormField(
                     controller: _emailController,
@@ -280,7 +283,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Campo de contraseña
                   TextFormField(
                     controller: _passwordController,
@@ -289,7 +292,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       labelText: 'Contraseña',
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () {
                           setState(() {
                             _showPassword = !_showPassword;
@@ -305,8 +312,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),                  
-                  
+                  const SizedBox(height: 16),
+
                   // Link de contraseña olvidada
                   Align(
                     alignment: Alignment.centerRight,
@@ -314,7 +321,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
                         );
                       },
                       child: const Text(
@@ -323,7 +332,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Mostrar error si existe
                   if (_error != null) ...[
                     const SizedBox(height: 16),
@@ -339,7 +348,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red.shade600),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade600,
+                              ),
                               const SizedBox(width: 8),
                               const Text(
                                 'Error de autenticación',
@@ -365,13 +377,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                   title: const Text('Información de Debug'),
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text('Error: $_error'),
                                       const SizedBox(height: 8),
                                       Text('Email: ${_emailController.text}'),
                                       const SizedBox(height: 8),
-                                      const Text('Revisa la consola para más detalles.'),
+                                      const Text(
+                                        'Revisa la consola para más detalles.',
+                                      ),
                                     ],
                                   ),
                                   actions: [
@@ -389,9 +404,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Botón de iniciar sesión
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signInWithEmail,
@@ -402,11 +417,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Iniciar sesión', style: TextStyle(color: Colors.white)),
+                        : const Text(
+                            'Iniciar sesión',
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   const Row(
                     children: [
                       Expanded(child: Divider()),
@@ -417,9 +435,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       Expanded(child: Divider()),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Botón de Google
                   Center(
                     child: InkWell(
@@ -440,12 +458,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Botón de debug temporal
-                 
-                  
                   const SizedBox(height: 16),
-                  
+
                   // Link a registro
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -455,14 +471,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const SignUpScreen(),
+                            ),
                           );
                         },
                         child: const Text(
                           'Regístrate',
                           style: TextStyle(
-                            color: Colors.red, 
-                            fontWeight: FontWeight.bold
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -476,6 +494,4 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       ),
     );
   }
-
-
-} 
+}

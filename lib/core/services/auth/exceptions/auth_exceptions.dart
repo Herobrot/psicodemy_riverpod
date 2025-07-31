@@ -11,7 +11,9 @@ class AuthExceptions {
       case 'wrong-password':
         return AuthFailure.wrongPassword('Contraseña incorrecta');
       case 'email-already-in-use':
-        return AuthFailure.emailAlreadyInUse('El correo electrónico ya está en uso');
+        return AuthFailure.emailAlreadyInUse(
+          'El correo electrónico ya está en uso',
+        );
       case 'invalid-email':
         return AuthFailure.invalidEmail('El correo electrónico no es válido');
       case 'weak-password':
@@ -39,7 +41,9 @@ class AuthExceptions {
         'Error de red durante el inicio de sesión con Google',
       );
     } else {
-      return AuthFailure.googleSignInFailed('Error al iniciar sesión con Google');
+      return AuthFailure.googleSignInFailed(
+        'Error al iniciar sesión con Google',
+      );
     }
   }
 

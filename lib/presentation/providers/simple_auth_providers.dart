@@ -15,22 +15,22 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
-  
+
   // Solo considerar autenticado si tanto Firebase como el usuario completo están disponibles
   final firebaseAuth = authState.when(
     data: (user) => user != null,
     loading: () => false,
     error: (_, __) => false,
   );
-  
+
   final completeUserAuth = completeUserAsync.when(
     data: (user) => user != null,
     loading: () => false,
     error: (_, __) => false,
   );
-  
-  final isAuthenticated = firebaseAuth && completeUserAuth;  
-  
+
+  final isAuthenticated = firebaseAuth && completeUserAuth;
+
   return isAuthenticated;
 });
 
@@ -38,10 +38,10 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final isAuthLoadingProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
-  
+
   // Considerar loading si cualquiera de los dos streams está cargando
-  final isLoading = authState.isLoading || completeUserAsync.isLoading;  
-  
+  final isLoading = authState.isLoading || completeUserAsync.isLoading;
+
   return isLoading;
 });
 
@@ -68,8 +68,7 @@ final currentUserProvider = Provider<User?>((ref) {
 // Provider para el CompleteUserModel actual
 final currentCompleteUserProvider = StreamProvider<CompleteUserModel?>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
-    
-  
+
   return authRepository.authStateChanges;
 });
 
@@ -77,30 +76,30 @@ final currentCompleteUserProvider = StreamProvider<CompleteUserModel?>((ref) {
 final currentUserTypeProvider = Provider<TipoUsuario?>((ref) {
   final completeUserAsync = ref.watch(currentCompleteUserProvider);
   final userType = completeUserAsync.when(
-    data: (completeUser) {            
+    data: (completeUser) {
       return completeUser?.tipoUsuario;
     },
-    loading: () {      
+    loading: () {
       return null;
     },
-    error: (error, _) {      
+    error: (error, _) {
       return null;
     },
-  );  
+  );
   return userType;
 });
 
 // Provider para verificar si el usuario es tutor
 final isTutorProvider = Provider<bool>((ref) {
   final userType = ref.watch(currentUserTypeProvider);
-  final isTutor = userType == TipoUsuario.tutor;  
+  final isTutor = userType == TipoUsuario.tutor;
   return isTutor;
 });
 
 // Provider para verificar si el usuario es alumno
 final isAlumnoProvider = Provider<bool>((ref) {
   final userType = ref.watch(currentUserTypeProvider);
-  final isAlumno = userType == TipoUsuario.alumno;  
+  final isAlumno = userType == TipoUsuario.alumno;
   return isAlumno;
 });
 
@@ -109,32 +108,38 @@ final authActionsProvider = Provider((ref) => AuthActions(ref));
 
 class AuthActions {
   final Ref _ref;
-  
+
   AuthActions(this._ref);
-  
+
   Future<void> signOut() async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     await firebaseAuth.signOut();
   }
-  
-  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
+
+  Future<UserCredential> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     return await firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
-  
-  Future<UserCredential> createUserWithEmailAndPassword(String email, String password) async {
+
+  Future<UserCredential> createUserWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     return await firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
-  
+
   Future<void> sendPasswordResetEmail(String email) async {
     final firebaseAuth = _ref.read(firebaseAuthProvider);
     await firebaseAuth.sendPasswordResetEmail(email: email);
   }
-} 
+}

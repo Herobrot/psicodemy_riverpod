@@ -84,7 +84,9 @@ class LoginStateNotifier extends StateNotifier<LoginState> {
       await _authUseCases.signInWithEmailAndPassword(email, password);
       state = LoginState.success();
     } catch (_) {
-      state = LoginState.error('Error al iniciar sesión con correo y contraseña');
+      state = LoginState.error(
+        'Error al iniciar sesión con correo y contraseña',
+      );
     }
   }
 

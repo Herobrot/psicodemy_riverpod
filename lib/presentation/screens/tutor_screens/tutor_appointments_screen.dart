@@ -55,11 +55,11 @@ class _TutorAppointmentsScreenState
       } catch (_) {
         throw Exception('Error al cargar datos del usuario:');
       }
-    }    
+    }
   }
 
   // Método para recargar las citas
-  void _refreshAppointments() {    
+  void _refreshAppointments() {
     setState(() {
       _isRefreshing = true;
     });

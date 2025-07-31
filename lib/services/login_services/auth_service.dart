@@ -55,7 +55,6 @@ class AuthService {
       // devolvemos null pero el usuario seguirá logueado
       if (e.toString().contains('PigeonUserDetails') &&
           _auth.currentUser != null) {
-        
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
@@ -113,7 +112,6 @@ class AuthService {
       // devolvemos null pero el usuario seguirá logueado
       if (e.toString().contains('PigeonUserDetails') &&
           _auth.currentUser != null) {
-        
         return null; // El usuario está autenticado aunque haya error
       }
       rethrow;
@@ -125,15 +123,14 @@ class AuthService {
       final pendingCleanup = await _secureStorage.read(
         key: 'pending_security_cleanup',
       );
-      if (pendingCleanup != null) {        
-
+      if (pendingCleanup != null) {
         await signOut();
         await _secureStorage.deleteAll();
-        
+
         return true;
       }
       return false;
-    } catch (_) {      
+    } catch (_) {
       return false;
     }
   }
@@ -143,8 +140,7 @@ class AuthService {
       await signOut();
 
       await _secureStorage.deleteAll();
-      
-    } on AuthFailure {      
+    } on AuthFailure {
       rethrow;
     }
   }

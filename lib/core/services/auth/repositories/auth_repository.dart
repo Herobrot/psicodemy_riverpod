@@ -66,7 +66,7 @@ class AuthRepositoryImpl implements AuthRepository {
         TimeoutConfig.firebaseToken,
       );
 
-      // 🔍 DEBUG: Imprimir token de Firebase                                    
+      // 🔍 DEBUG: Imprimir token de Firebase
 
       // 3. Autenticar en la API del backend
       if (firebaseToken == null) {
@@ -78,20 +78,19 @@ class AuthRepositoryImpl implements AuthRepository {
         nombre: userCredential.user!.displayName ?? email.split('@')[0],
         correo: email,
       );
-                  
 
-      if (response['data'] == null) {        
+      if (response['data'] == null) {
         throw AuthFailure.unknown(
           'Usuario no encontrado después del inicio de sesión',
         );
       }
-      
+
       final user = CompleteUserModel.fromApiResponse(
         response['data'],
         UserModel.fromFirebaseUser(userCredential.user!),
-      );      
-      
-      await _storeUserSession(user).timeout(TimeoutConfig.storage);      
+      );
+
+      await _storeUserSession(user).timeout(TimeoutConfig.storage);
 
       return user;
     } on FirebaseAuthException catch (e) {
@@ -127,7 +126,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // 2. Obtener token de Firebase
       final firebaseToken = await userCredential.user!.getIdToken();
 
-      // 🔍 DEBUG: Imprimir token de Firebase                                    
+      // 🔍 DEBUG: Imprimir token de Firebase
 
       // 3. Registrar en la API del backend
       if (firebaseToken == null) {
@@ -155,54 +154,54 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthExceptions.handleGenericException(Exception('Error al crear usuario'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error al crear usuario'),
+      );
     }
   }
 
   @override
   Future<CompleteUserModel> signInWithGoogle() async {
-    try {      
-
-      // 1. Iniciar sesión con Google      
+    try {
+      // 1. Iniciar sesión con Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      if (googleUser == null) {        
+      if (googleUser == null) {
         throw AuthFailure.googleSignInCancelled(
           'El usuario canceló el inicio de sesión',
         );
       }
-            
-      
+
       final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;                  
-      
+          await googleUser.authentication;
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      
+
       final userCredential = await _firebaseAuth.signInWithCredential(
         credential,
       );
 
-      if (userCredential.user == null) {        
+      if (userCredential.user == null) {
         throw AuthFailure.unknown(
           'Usuario no encontrado después del inicio de sesión con Google',
         );
       }
-      
-      final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);      
 
-      // 2. Obtener token de Firebase      
+      final firebaseUser = UserModel.fromFirebaseUser(userCredential.user!);
+
+      // 2. Obtener token de Firebase
       final firebaseToken = await userCredential.user!.getIdToken();
 
-      // 🔍 DEBUG: Imprimir token de Firebase                                                
+      // 🔍 DEBUG: Imprimir token de Firebase
 
       // 3. Autenticar/Registrar en la API del backend
-      if (firebaseToken == null) {        
+      if (firebaseToken == null) {
         throw AuthFailure.serverError('Firebase token is null');
       }
-      
+
       final apiResponse = await _apiService.authenticateWithFirebase(
         firebaseToken: firebaseToken,
         nombre:
@@ -211,26 +210,26 @@ class AuthRepositoryImpl implements AuthRepository {
             firebaseUser.email.split('@')[0],
         correo: firebaseUser.email,
       );
-            
 
       final firebaseAuthResponse = FirebaseAuthResponse.fromJson(apiResponse);
 
-      // 4. Crear modelo completo del usuario      
+      // 4. Crear modelo completo del usuario
       final completeUser = CompleteUserModel.fromFirebaseAuthResponse(
         firebaseUser,
         firebaseAuthResponse,
       );
-            
-      
-      await _storeUserSession(completeUser);      
+
+      await _storeUserSession(completeUser);
 
       return completeUser;
-    } on FirebaseAuthException catch (e) {                  
+    } on FirebaseAuthException catch (e) {
       throw AuthExceptions.handleFirebaseAuthException(e);
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthExceptions.handleGoogleSignInException(Exception('Error al iniciar sesión con Google'));
+      throw AuthExceptions.handleGoogleSignInException(
+        Exception('Error al iniciar sesión con Google'),
+      );
     }
   }
 
@@ -245,7 +244,9 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthExceptions.handleGenericException(Exception('Error al cerrar sesión'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error al cerrar sesión'),
+      );
     }
   }
 
@@ -254,23 +255,23 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser != null) {
-        final userModel = UserModel.fromFirebaseUser(firebaseUser);                        
+        final userModel = UserModel.fromFirebaseUser(firebaseUser);
 
         // Intentar obtener datos adicionales del storage
-        final savedUserData = await _secureStorage.read('complete_user_data');        
+        final savedUserData = await _secureStorage.read('complete_user_data');
 
         if (savedUserData != null) {
           try {
             final userData = CompleteUserModel.fromJson(savedUserData);
             // Validar que el UID del usuario actual coincida con el del storage
-            if (userData.uid != firebaseUser.uid) {              
+            if (userData.uid != firebaseUser.uid) {
               // Forzar obtención de datos completos desde la API
               try {
                 final firebaseToken = await firebaseUser.getIdToken();
-                if (firebaseToken == null) {                  
+                if (firebaseToken == null) {
                   final completeUser = CompleteUserModel.fromFirebaseUser(
                     userModel,
-                  );                                    
+                  );
                   return completeUser;
                 }
                 final apiResponse = await _apiService.authenticateWithFirebase(
@@ -289,25 +290,25 @@ class AuthRepositoryImpl implements AuthRepository {
                   userModel,
                   firebaseAuthResponse,
                 );
-                await _storeUserSession(completeUser);                
+                await _storeUserSession(completeUser);
                 return completeUser;
-              } catch (tokenError) {                                
+              } catch (tokenError) {
                 final completeUser = CompleteUserModel.fromFirebaseUser(
                   userModel,
-                );                                
+                );
                 return completeUser;
               }
-            }                                                                                    
+            }
             return userData;
-          } catch (_) {            
-            final completeUser = CompleteUserModel.fromFirebaseUser(userModel);                        
+          } catch (_) {
+            final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
             return completeUser;
           }
         }
         // Si no hay datos en storage, devolver solo datos de Firebase
-        final completeUser = CompleteUserModel.fromFirebaseUser(userModel);                
+        final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
         return completeUser;
-      }      
+      }
       return null;
     } on AuthFailure {
       rethrow;
@@ -316,12 +317,14 @@ class AuthRepositoryImpl implements AuthRepository {
         final firebaseUser = _firebaseAuth.currentUser;
         if (firebaseUser != null) {
           final userModel = UserModel.fromFirebaseUser(firebaseUser);
-          final completeUser = CompleteUserModel.fromFirebaseUser(userModel);          
+          final completeUser = CompleteUserModel.fromFirebaseUser(userModel);
           return completeUser;
         }
       } catch (_) {
-        throw AuthExceptions.handleGenericException(Exception('Error al obtener el usuario actual'));
-      }      
+        throw AuthExceptions.handleGenericException(
+          Exception('Error al obtener el usuario actual'),
+        );
+      }
     }
   }
 
@@ -334,14 +337,15 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthExceptions.handleGenericException(Exception('Error al enviar el correo de restablecimiento'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error al enviar el correo de restablecimiento'),
+      );
     }
   }
 
   @override
   Stream<CompleteUserModel?> get authStateChanges {
-    return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {      
-
+    return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser != null) {
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
 
@@ -350,16 +354,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
         if (savedUserData != null) {
           try {
-            final userData = CompleteUserModel.fromJson(savedUserData);            
+            final userData = CompleteUserModel.fromJson(savedUserData);
             return userData;
-          } catch (_) {            
+          } catch (_) {
             // Si no se puede deserializar, devolver solo datos de Firebase
             return CompleteUserModel.fromFirebaseUser(userModel);
           }
         }
         return CompleteUserModel.fromFirebaseUser(userModel);
       }
-      
+
       return null;
     });
   }
@@ -390,7 +394,9 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthExceptions.handleGenericException(Exception('Error al almacenar la sesión del usuario'));
+      throw AuthExceptions.handleGenericException(
+        Exception('Error al almacenar la sesión del usuario'),
+      );
     }
   }
 }

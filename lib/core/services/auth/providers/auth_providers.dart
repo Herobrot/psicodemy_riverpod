@@ -55,7 +55,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (_) {
-      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
+      state = AuthState.error(
+        'Error de autenticación. Intenta de nuevo más tarde.',
+      );
     }
   }
 
@@ -81,8 +83,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = AuthState.authenticated(userEntity);
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
-    } catch (_) {    
-      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
+    } catch (_) {
+      state = AuthState.error(
+        'Error de autenticación. Intenta de nuevo más tarde.',
+      );
     }
   }
 
@@ -102,7 +106,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on AuthFailure catch (e) {
       state = AuthState.error(e.message ?? 'Error de autenticación');
     } catch (_) {
-      state = AuthState.error('Error de autenticación. Intenta de nuevo más tarde.');
+      state = AuthState.error(
+        'Error de autenticación. Intenta de nuevo más tarde.',
+      );
     }
   }
 
@@ -111,7 +117,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _authService.signOut();
       state = AuthState.unauthenticated();
     } catch (_) {
-      state = AuthState.error('Error al cerrar sesión. Intenta de nuevo más tarde.');
+      state = AuthState.error(
+        'Error al cerrar sesión. Intenta de nuevo más tarde.',
+      );
     }
   }
 
@@ -119,7 +127,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _authService.sendPasswordResetEmail(email);
     } catch (_) {
-      state = AuthState.error('Error al enviar el correo de restablecimiento. Intenta de nuevo más tarde.');
+      state = AuthState.error(
+        'Error al enviar el correo de restablecimiento. Intenta de nuevo más tarde.',
+      );
     }
   }
 
@@ -139,7 +149,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = AuthState.unauthenticated();
       }
     } catch (_) {
-      state = AuthState.error('Error al obtener el usuario actual. Intenta de nuevo más tarde.');
+      state = AuthState.error(
+        'Error al obtener el usuario actual. Intenta de nuevo más tarde.',
+      );
     }
   }
 }

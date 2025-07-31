@@ -14,7 +14,9 @@ class SignInWithEmailAndPasswordUseCase {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthFailure.unknown('Error al iniciar sesión con correo y contraseña');
+      throw AuthFailure.unknown(
+        'Error al iniciar sesión con correo y contraseña',
+      );
     }
   }
 }

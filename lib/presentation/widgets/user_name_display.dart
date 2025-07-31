@@ -25,11 +25,11 @@ class UserNameDisplay extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {    
+  Widget build(BuildContext context, WidgetRef ref) {
     final userNameAsync = ref.watch(userNameProvider(userId));
 
     return userNameAsync.when(
-      data: (nombre) {        
+      data: (nombre) {
         final fullText = '${prefix ?? ''}$nombre${suffix ?? ''}';
 
         if (overflowVisible) {
@@ -52,7 +52,7 @@ class UserNameDisplay extends ConsumerWidget {
           );
         }
       },
-      loading: () {        
+      loading: () {
         return loadingWidget ??
             const SizedBox(
               width: 16,

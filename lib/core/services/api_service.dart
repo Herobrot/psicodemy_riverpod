@@ -10,15 +10,13 @@ import '../constants/timeout_config.dart';
 class ApiService {
   static const String _baseUrl = 'https://api.psicodemy.com';
   static const Duration _timeout = TimeoutConfig.apiCall;
-  
+
   final http.Client _client;
   final FlutterSecureStorage _secureStorage;
 
-  ApiService({
-    http.Client? client,
-    required FlutterSecureStorage secureStorage,
-  }) : _client = client ?? http.Client(),
-       _secureStorage = secureStorage;
+  ApiService({http.Client? client, required FlutterSecureStorage secureStorage})
+    : _client = client ?? http.Client(),
+      _secureStorage = secureStorage;
 
   // Headers básicos para todas las requests
   Map<String, String> get _baseHeaders => {
@@ -38,7 +36,9 @@ class ApiService {
       throw AuthFailure.apiError('No se pudo obtener el token de Firebase');
     }
     // Obtener el userId y userType del tutor desde el storage
-    final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+    final completeUserData = await _secureStorage.read(
+      key: 'complete_user_data',
+    );
     String? userId;
     String? userType;
     if (completeUserData != null) {
@@ -47,7 +47,9 @@ class ApiService {
       userType = userJson['tipoUsuario'] as String?;
     }
     if (userId == null || userType == null) {
-      throw AuthFailure.apiError('No se pudo obtener el userId o userType del tutor');
+      throw AuthFailure.apiError(
+        'No se pudo obtener el userId o userType del tutor',
+      );
     }
     return {
       ..._baseHeaders,
@@ -79,14 +81,17 @@ class ApiService {
         'firebase_token': firebaseToken,
         'nombre': nombre,
         'correo': correo,
-        if (codigoTutor != null && codigoTutor.isNotEmpty) 'codigo_institucion': codigoTutor,
+        if (codigoTutor != null && codigoTutor.isNotEmpty)
+          'codigo_institucion': codigoTutor,
       };
-      
-      final response = await _client.post(
-        Uri.parse('$_baseUrl${ApiRoutes.authFirebase}'),
-        headers: _baseHeaders,
-        body: json.encode(requestBody),
-      ).timeout(_timeout);
+
+      final response = await _client
+          .post(
+            Uri.parse('$_baseUrl${ApiRoutes.authFirebase}'),
+            headers: _baseHeaders,
+            body: json.encode(requestBody),
+          )
+          .timeout(_timeout);
 
       return await _handleResponse(response);
     } catch (e) {
@@ -104,14 +109,17 @@ class ApiService {
       final requestBody = {
         'correo': correo,
         'contraseña': password,
-        if (codigoTutor != null && codigoTutor.isNotEmpty) 'codigo_institucion': codigoTutor,
+        if (codigoTutor != null && codigoTutor.isNotEmpty)
+          'codigo_institucion': codigoTutor,
       };
-      
-      final response = await _client.post(
-        Uri.parse('$_baseUrl${ApiRoutes.authValidate}'),
-        headers: _baseHeaders,
-        body: json.encode(requestBody),
-      ).timeout(_timeout);
+
+      final response = await _client
+          .post(
+            Uri.parse('$_baseUrl${ApiRoutes.authValidate}'),
+            headers: _baseHeaders,
+            body: json.encode(requestBody),
+          )
+          .timeout(_timeout);
 
       return await _handleResponse(response);
     } catch (e) {
@@ -146,13 +154,11 @@ class ApiService {
         if (userType != null) 'userType': userType,
       };
 
-      final uri = Uri.parse('$_baseUrl/auth/users')
-          .replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$_baseUrl/auth/users',
+      ).replace(queryParameters: queryParams);
 
-      final response = await _client.get(
-        uri,
-        headers: await _authHeaders,
-      );
+      final response = await _client.get(uri, headers: await _authHeaders);
 
       return await _handleResponse(response);
     } catch (e) {
@@ -183,7 +189,9 @@ class ApiService {
   }
 
   // Crear una nueva cita
-  Future<Map<String, dynamic>> createAppointment(Map<String, dynamic> request) async {
+  Future<Map<String, dynamic>> createAppointment(
+    Map<String, dynamic> request,
+  ) async {
     try {
       final response = await _client.post(
         Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}'),
@@ -212,13 +220,15 @@ class ApiService {
         'page': page.toString(),
         'limit': limit.toString(),
       };
-      
-            // Obtener datos del usuario autenticado para verificar si es tutor
-      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
+
+      // Obtener datos del usuario autenticado para verificar si es tutor
+      final completeUserData = await _secureStorage.read(
+        key: 'complete_user_data',
+      );
       String? tutorId;
       String? alumnoId;
       String? userId;
-      
+
       if (completeUserData != null) {
         final userJson = json.decode(completeUserData);
         final tipoUsuario = userJson['tipoUsuario'] as String?;
@@ -226,22 +236,22 @@ class ApiService {
         // Solo agregar id_tutor si el usuario es tutor
         if (tipoUsuario?.toLowerCase() == 'tutor') {
           queryParams['id_tutor'] = userId ?? idTutor ?? '';
-        }
-        else {
+        } else {
           if (idAlumno != null) {
             queryParams['id_alumno'] = userId ?? idAlumno ?? '';
           }
         }
       }
-      
+
       // Si no se agregó id_alumno en el bloque anterior y se proporciona idAlumno, agregarlo
       if (!queryParams.containsKey('id_alumno') && idAlumno != null) {
         queryParams['id_alumno'] = idAlumno;
       }
       if (estadoCita != null) queryParams['estado_cita'] = estadoCita;
 
-
-      final uri = Uri.parse('$_baseUrl${ApiRoutes.baseAppointments}').replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$_baseUrl${ApiRoutes.baseAppointments}',
+      ).replace(queryParameters: queryParams);
       final response = await _client.get(uri, headers: await _authHeaders);
       final data = await _handleResponse(response);
       if (data['data'] is Map && data['data']['data'] is List) {
@@ -271,7 +281,10 @@ class ApiService {
   }
 
   // Actualizar una cita completa
-  Future<Map<String, dynamic>> updateAppointment(String id, Map<String, dynamic> request) async {
+  Future<Map<String, dynamic>> updateAppointment(
+    String id,
+    Map<String, dynamic> request,
+  ) async {
     try {
       final response = await _client.put(
         Uri.parse('$_baseUrl${ApiRoutes.appointmentId(id)}'),
@@ -279,7 +292,7 @@ class ApiService {
         body: json.encode(request),
       );
       final data = await _handleResponse(response);
-      
+
       // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
       // Verificar si está envuelto en 'data' o es directo
       if (data.containsKey('data')) {
@@ -294,24 +307,27 @@ class ApiService {
   }
 
   // Actualizar solo el estado de una cita
-  Future<Map<String, dynamic>> updateAppointmentStatus(String id, Map<String, dynamic> request) async {
+  Future<Map<String, dynamic>> updateAppointmentStatus(
+    String id,
+    Map<String, dynamic> request,
+  ) async {
     try {
       final headers = await _authHeaders;
-      
+
       final tutorId = await _getCurrentUserTutorId();
-      
+
       // Agregar ID del tutor a la request si no está presente o es null
       if (request['userId'] == null) {
         request['userId'] = tutorId;
       }
-      
+
       final response = await _client.put(
         Uri.parse('$_baseUrl${ApiRoutes.appointmentId(id)}'),
         headers: headers,
         body: json.encode(request),
       );
       final data = await _handleResponse(response);
-      
+
       // La API devuelve directamente el objeto de la cita, no envuelto en 'data'
       // Verificar si está envuelto en 'data' o es directo
       if (data.containsKey('data')) {
@@ -359,7 +375,7 @@ class ApiService {
     }
 
     final Map<String, dynamic> responseData;
-    
+
     try {
       final decoded = json.decode(response.body);
       if (decoded == null) {
@@ -368,8 +384,7 @@ class ApiService {
       responseData = decoded as Map<String, dynamic>;
     } on AuthFailure {
       rethrow;
-    }
-    catch (_) {
+    } catch (_) {
       throw AuthFailure.unknown('Respuesta inválida del servidor');
     }
 
@@ -378,47 +393,52 @@ class ApiService {
       case 201:
         // Si hay token en la respuesta, lo guardamos
         if (responseData['token'] != null) {
-          await _secureStorage.write(key: 'auth_token', value: responseData['token']);
+          await _secureStorage.write(
+            key: 'auth_token',
+            value: responseData['token'],
+          );
         }
         // Normalizar data['data'] si está anidado
-        if (responseData['data'] is Map && responseData['data']['data'] != null) {
+        if (responseData['data'] is Map &&
+            responseData['data']['data'] != null) {
           responseData['data'] = responseData['data']['data'];
         }
         return responseData;
-      
+
       case 400:
         throw AuthFailure.apiError(
-          responseData['message'] ?? 'Datos de entrada inválidos'
+          responseData['message'] ?? 'Datos de entrada inválidos',
         );
-      
+
       case 401:
         throw AuthFailure.apiError(
-          responseData['message'] ?? 'Token de autorización requerido o inválido'
+          responseData['message'] ??
+              'Token de autorización requerido o inválido',
         );
-      
+
       case 403:
         throw AuthFailure.apiError(
-          responseData['message'] ?? 'Permisos insuficientes'
+          responseData['message'] ?? 'Permisos insuficientes',
         );
-      
-      case 404:        
+
+      case 404:
         throw AuthFailure.apiError(
-          responseData['message'] ?? 'Recurso no encontrado'
+          responseData['message'] ?? 'Recurso no encontrado',
         );
-      
-      case 422:        
+
+      case 422:
         throw AuthFailure.apiError(
-          responseData['message'] ?? 'Datos de entrada inválidos'
+          responseData['message'] ?? 'Datos de entrada inválidos',
         );
-      
-      case 500:        
+
+      case 500:
         throw AuthFailure.serverError(
-          responseData['message'] ?? 'Error interno del servidor'
+          responseData['message'] ?? 'Error interno del servidor',
         );
-      
-      default:        
+
+      default:
         throw AuthFailure.unknown(
-          'Error HTTP ${response.statusCode}: ${responseData['message'] ?? 'Error desconocido'}'
+          'Error HTTP ${response.statusCode}: ${responseData['message'] ?? 'Error desconocido'}',
         );
     }
   }
@@ -427,20 +447,22 @@ class ApiService {
   Future<String?> _getCurrentUserTutorId() async {
     try {
       // Intentar obtener datos del usuario completo del storage
-      final completeUserData = await _secureStorage.read(key: 'complete_user_data');
-      
+      final completeUserData = await _secureStorage.read(
+        key: 'complete_user_data',
+      );
+
       if (completeUserData != null) {
-        final userJson = json.decode(completeUserData);        
+        final userJson = json.decode(completeUserData);
         final userId = userJson['userId'] as String?;
-        final tipoUsuario = userJson['tipoUsuario'] as String?;                
-        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {          
+        final tipoUsuario = userJson['tipoUsuario'] as String?;
+        if (userId != null && tipoUsuario?.toLowerCase() == 'tutor') {
           return userId;
         }
         return userId;
       }
-            
+
       return null;
-    } catch (_) {      
+    } catch (_) {
       return null;
     }
   }
@@ -448,15 +470,15 @@ class ApiService {
   // Manejo de errores
   AuthFailure _handleError(dynamic error) {
     if (error is AuthFailure) return error;
-    
+
     if (error is SocketException) {
       return AuthFailure.network('Error de conexión a internet');
     }
-    
+
     if (error is http.ClientException) {
       return AuthFailure.network('Error de red');
     }
-    
+
     return AuthFailure.unknown(error.toString());
   }
 
@@ -510,16 +532,11 @@ class ApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final queryParams = {
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
-    final uri = Uri.parse('$_baseUrl${ApiRoutes.chatHistory(estudianteId)}')
-        .replace(queryParameters: queryParams);
-    final response = await _client.get(
-      uri,
-      headers: await _authHeaders,
-    );
+    final queryParams = {'page': page.toString(), 'limit': limit.toString()};
+    final uri = Uri.parse(
+      '$_baseUrl${ApiRoutes.chatHistory(estudianteId)}',
+    ).replace(queryParameters: queryParams);
+    final response = await _client.get(uri, headers: await _authHeaders);
     return await _handleResponse(response);
   }
 
@@ -529,16 +546,11 @@ class ApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final queryParams = {
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
-    final uri = Uri.parse('$_baseUrl${ApiRoutes.chatHistoryMessages(estudianteId)}')
-        .replace(queryParameters: queryParams);
-    final response = await _client.get(
-      uri,
-      headers: await _authHeaders,
-    );
+    final queryParams = {'page': page.toString(), 'limit': limit.toString()};
+    final uri = Uri.parse(
+      '$_baseUrl${ApiRoutes.chatHistoryMessages(estudianteId)}',
+    ).replace(queryParameters: queryParams);
+    final response = await _client.get(uri, headers: await _authHeaders);
     return await _handleResponse(response);
   }
 
@@ -546,9 +558,7 @@ class ApiService {
   Future<Map<String, dynamic>> registerChatAttempt({
     required String estudianteId,
   }) async {
-    final requestBody = {
-      'estudiante_id': estudianteId,
-    };
+    final requestBody = {'estudiante_id': estudianteId};
     final response = await _client.post(
       Uri.parse('$_baseUrl${ApiRoutes.chatAttempt}'),
       headers: await _authHeaders,
@@ -587,12 +597,8 @@ class ApiService {
   }
 
   // Probar IA
-  Future<Map<String, dynamic>> testAi({
-    required String mensaje,
-  }) async {
-    final requestBody = {
-      'mensaje': mensaje,
-    };
+  Future<Map<String, dynamic>> testAi({required String mensaje}) async {
+    final requestBody = {'mensaje': mensaje};
     final response = await _client.post(
       Uri.parse('$_baseUrl${ApiRoutes.chatAiTest}'),
       headers: await _authHeaders,
@@ -628,16 +634,11 @@ class ApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final queryParams = {
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
-    final uri = Uri.parse('$_baseUrl${ApiRoutes.userConversations(usuarioId)}')
-        .replace(queryParameters: queryParams);
-    final response = await _client.get(
-      uri,
-      headers: await _authHeaders,
-    );
+    final queryParams = {'page': page.toString(), 'limit': limit.toString()};
+    final uri = Uri.parse(
+      '$_baseUrl${ApiRoutes.userConversations(usuarioId)}',
+    ).replace(queryParameters: queryParams);
+    final response = await _client.get(uri, headers: await _authHeaders);
     return await _handleResponse(response);
   }
 
@@ -653,12 +654,10 @@ class ApiService {
       'page': page.toString(),
       'limit': limit.toString(),
     };
-    final uri = Uri.parse('$_baseUrl${ApiRoutes.conversationMessages(conversationId)}')
-        .replace(queryParameters: queryParams);
-    final response = await _client.get(
-      uri,
-      headers: await _authHeaders,
-    );
+    final uri = Uri.parse(
+      '$_baseUrl${ApiRoutes.conversationMessages(conversationId)}',
+    ).replace(queryParameters: queryParams);
+    final response = await _client.get(uri, headers: await _authHeaders);
     return await _handleResponse(response);
   }
 
@@ -679,4 +678,4 @@ class ApiService {
     );
     return await _handleResponse(response);
   }
-} 
+}

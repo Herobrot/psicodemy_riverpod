@@ -23,34 +23,35 @@ final tutorsLoadingProvider = StateProvider<bool>((ref) => false);
 final tutorsErrorProvider = StateProvider<String?>((ref) => null);
 
 // Provider para las conversaciones del usuario
-final userConversationsProvider = FutureProvider.family<List<ConversationModel>, String>((
-  ref,
-  usuarioId,
-) async {
-  final chatService = ref.watch(chatServiceProvider);
-  final isTutor = ref.watch(isTutorProvider);    
-  final conversations = await chatService.getUserConversations(
-    usuarioId: usuarioId,
-  );
+final userConversationsProvider =
+    FutureProvider.family<List<ConversationModel>, String>((
+      ref,
+      usuarioId,
+    ) async {
+      final chatService = ref.watch(chatServiceProvider);
+      final isTutor = ref.watch(isTutorProvider);
+      final conversations = await chatService.getUserConversations(
+        usuarioId: usuarioId,
+      );
 
-  if (isTutor) {    
-    // Si es tutor, muestra todas las conversaciones
-    return conversations;
-  } else {    
-    // Si es alumno, filtra solo las conversaciones donde el otro participante es tutor
-    // Suponiendo que participant2Id es el tutor (ajusta si tu modelo es diferente)
-    // Si tienes una lista de tutores, puedes comparar con sus IDs
-    final tutors = await ref.read(tutorsProvider.future);
-    final tutorIds = tutors.map((t) => t.id).toSet();
-    return conversations
-        .where(
-          (c) =>
-              tutorIds.contains(c.participant2Id) ||
-              tutorIds.contains(c.participant1Id),
-        )
-        .toList();
-  }
-});
+      if (isTutor) {
+        // Si es tutor, muestra todas las conversaciones
+        return conversations;
+      } else {
+        // Si es alumno, filtra solo las conversaciones donde el otro participante es tutor
+        // Suponiendo que participant2Id es el tutor (ajusta si tu modelo es diferente)
+        // Si tienes una lista de tutores, puedes comparar con sus IDs
+        final tutors = await ref.read(tutorsProvider.future);
+        final tutorIds = tutors.map((t) => t.id).toSet();
+        return conversations
+            .where(
+              (c) =>
+                  tutorIds.contains(c.participant2Id) ||
+                  tutorIds.contains(c.participant1Id),
+            )
+            .toList();
+      }
+    });
 
 // Provider para los mensajes de una conversación específica
 final conversationMessagesProvider =

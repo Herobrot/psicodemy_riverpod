@@ -13,7 +13,9 @@ class SendPasswordResetEmailUseCase {
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw AuthFailure.unknown('Error al enviar el correo de restablecimiento');
+      throw AuthFailure.unknown(
+        'Error al enviar el correo de restablecimiento',
+      );
     }
   }
 }

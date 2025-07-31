@@ -12,12 +12,6 @@ import '../../../data/datasources/forum_api_service.dart';
 import '../forum_screens/forum_screen.dart';
 import '../quotes_screens/detail_quotes_screen.dart';
 
-
-
-
-
-
-
 String? formatForumImageUrl(String? originalUrl) {
   if (originalUrl == null) return null;
   final idx = originalUrl.indexOf('/prueba');
@@ -51,13 +45,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        
+
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -66,7 +60,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               'lib/src/shared_imgs/chat.png',
               height: 28,
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.psychology, size: 28, color: Color(0xFF4CAF50));
+                return const Icon(
+                  Icons.psychology,
+                  size: 28,
+                  color: Color(0xFF4CAF50),
+                );
               },
             ),
             const SizedBox(width: 8),
@@ -90,20 +88,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               },
               child: CircleAvatar(
                 radius: 18,
-                backgroundImage: user?.photoURL != null 
-                  ? NetworkImage(user!.photoURL!)
-                  : const NetworkImage('https://lh3.googleusercontent.com/a/default-user=s96-c'),
-                child: user?.photoURL == null 
-                  ? Text(
-                      user?.email?.isNotEmpty == true 
-                        ? user!.email![0].toUpperCase() 
-                        : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : const NetworkImage(
+                        'https://lh3.googleusercontent.com/a/default-user=s96-c',
                       ),
-                    )
-                  : null,
+                child: user?.photoURL == null
+                    ? Text(
+                        user?.email?.isNotEmpty == true
+                            ? user!.email![0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -133,7 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _buildAppointmentCard(),
           const SizedBox(height: 16),
           ForumSummaryWidget(), // <-- Integración del widget de resumen de foro
-          const SizedBox(height: 16)
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -141,8 +141,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildPersonalizedGreeting() {
     final user = FirebaseAuth.instance.currentUser;
-    final userName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
-    
+    final userName =
+        user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
+
     final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
@@ -169,10 +170,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Text(
             '$greeting,',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
           const SizedBox(height: 4),
           Text(
@@ -186,10 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(height: 8),
           const Text(
             '¿Cómo te sientes hoy?',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
       ),
@@ -203,7 +198,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (user == null) {
           return const SizedBox.shrink();
         }
-        final nextAppointmentAsync = ref.watch(nextStudentAppointmentProvider(user.uid));
+        final nextAppointmentAsync = ref.watch(
+          nextStudentAppointmentProvider(user.uid),
+        );
         return nextAppointmentAsync.when(
           data: (appointment) {
             if (appointment == null) {
@@ -216,7 +213,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Column(
@@ -241,7 +242,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -259,7 +263,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               );
             }
-            final timeUntilAppointment = appointment.scheduledDate.difference(DateTime.now());
+            final timeUntilAppointment = appointment.scheduledDate.difference(
+              DateTime.now(),
+            );
             final hoursUntilAppointment = timeUntilAppointment.inHours;
             final daysUntilAppointment = timeUntilAppointment.inDays;
             String timeText;
@@ -291,7 +297,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.access_time, color: Colors.white, size: 20),
+                    const Icon(
+                      Icons.access_time,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -316,7 +326,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -389,16 +402,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       Text(
                         'Intenta de nuevo más tarde',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -441,7 +454,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 const Text(
                   'Obtén tu\nCredencial de\nEstudiante',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -450,7 +467,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -458,9 +478,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Solicitar', style: TextStyle(color: Color(0xFFFF6B9D), fontWeight: FontWeight.w600)),
+                      Text(
+                        'Solicitar',
+                        style: TextStyle(
+                          color: Color(0xFFFF6B9D),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, color: Color(0xFFFF6B9D), size: 16),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: Color(0xFFFF6B9D),
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -506,33 +536,45 @@ class ForumSummaryWidget extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...posts.map((post) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: post.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          formatForumImageUrl(post.imageUrl!)!,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : const Icon(Icons.forum, size: 40, color: Colors.blue),
-                title: Text(post.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ForumPostDetailScreen(post: post),
-                    ),
-                  );
-                },
+            ...posts.map(
+              (post) => Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: post.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            formatForumImageUrl(post.imageUrl!)!,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Icon(Icons.forum, size: 40, color: Colors.blue),
+                  title: Text(
+                    post.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    post.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ForumPostDetailScreen(post: post),
+                      ),
+                    );
+                  },
+                ),
               ),
-            )),
+            ),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
